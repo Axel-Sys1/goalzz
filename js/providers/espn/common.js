@@ -23,20 +23,21 @@ async function getJsonDirect(url, { timeoutMs = 15_000 } = {}) {
   }
 }
 
-// Sur le site en ligne, les requêtes passent par le relais Cloudflare (functions/api/fetch.js)
-// qui partage un cache entre tous les joueurs. En cas de panne du relais, on interroge la source
-// directement (et on n'essaie plus le relais pendant cette visite).
+// Sur le site en ligne, les requêtes ESPN passent par le relais Cloudflare (functions/api/fetch.js),
+// qui partage un cache entre tous les joueurs. Si le relais refuse une requête (ESPN bloque parfois
+// ses serveurs), on la refait en direct ; après 3 pannes réseau, on ne l'utilise plus de la visite.
+// TheSportsDB (boxe) est toujours interrogé en direct : sa limite par adresse IP pénaliserait le relais.
 const PROXY = typeof location !== 'undefined' && location.hostname === 'goalzz.pages.dev' ? '/api/fetch?u=' : null;
-let proxyDown = false;
+const viaProxy = (url) => PROXY && proxyFailures < 3 && /^https?:\/\/[^/]*espn\.com\//.test(url);
+let proxyFailures = 0;
 
 export async function defaultGetJson(url, opts = {}) {
-  if (PROXY && !proxyDown) {
+  if (viaProxy(url)) {
     try {
       return await getJsonDirect(PROXY + encodeURIComponent(url), opts);
     } catch (err) {
-      // Erreur de la source elle-même (ex. 404) : inutile de réessayer en direct.
-      if (err instanceof HttpError && err.status < 500 && err.status !== 403) throw new HttpError(err.status, url);
-      proxyDown = true;
+      if (err instanceof HttpError && err.status === 404) throw new HttpError(404, url); // absent chez ESPN aussi
+      if (!(err instanceof HttpError)) proxyFailures += 1;
     }
   }
   return getJsonDirect(url, opts);

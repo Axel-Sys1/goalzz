@@ -1,16 +1,14 @@
-// Relais Cloudflare (Pages Function) : /api/fetch?u=<adresse ESPN ou TheSportsDB>
+// Relais Cloudflare (Pages Function) : /api/fetch?u=<adresse ESPN>
 // Tous les joueurs partagent les mêmes réponses mises en cache quelques minutes : les sources
 // sportives reçoivent quelques requêtes par minute au total, au lieu de dizaines par visiteur.
 const ALLOWED = new Set([
   'site.api.espn.com',
   'site.web.api.espn.com',
   'sports.core.api.espn.com',
-  'www.thesportsdb.com',
 ]);
 
-// Durée de cache (secondes) : courte pour les scores, plus longue pour les fiches et la boxe.
+// Durée de cache (secondes) : courte pour les scores, plus longue pour les fiches (cotes, statuts).
 function ttlFor(url) {
-  if (url.hostname === 'www.thesportsdb.com') return 600;
   if (url.hostname === 'sports.core.api.espn.com') return 300;
   return 60;
 }
