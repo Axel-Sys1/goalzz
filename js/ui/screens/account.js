@@ -9,7 +9,7 @@ export function renderAccountCard({ compact = false } = {}) {
     return `
       <section class="card account-card">
         <div class="grow">
-          <strong>☁️ Partie sauvegardée en ligne</strong>
+          <strong>Partie sauvegardée en ligne</strong>
           <span class="muted">Connecté avec ${escapeHtml(cloud.user.email || 'ton compte')}</span>
         </div>
         <button class="btn btn-ghost" data-action="cloud-logout" type="button">Se déconnecter</button>
@@ -17,7 +17,7 @@ export function renderAccountCard({ compact = false } = {}) {
   }
 
   const signup = cloud.mode === 'signup';
-  const title = signup ? '☁️ Crée ton compte' : compact ? 'Déjà un compte ? Connecte-toi' : '☁️ Sauvegarde ta partie';
+  const title = signup ? 'Crée ton compte' : compact ? 'Déjà un compte ? Connecte-toi' : 'Sauvegarde ta partie';
   const intro = signup
     ? 'Ta partie sera sauvegardée en ligne et tu la retrouveras sur tous tes appareils.'
     : compact

@@ -13,6 +13,25 @@ export const icons = {
   forward: svg('<path d="M4 6l8 6-8 6zM12 6l8 6-8 6z"/>', 'fill="currentColor"'),
   arrow: svg('<path d="M5 12h14M13 6l6 6-6 6"/>'),
   trash: svg('<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>'),
+  stadium: svg('<ellipse cx="12" cy="8" rx="9" ry="3"/><path d="M3 8v8c0 1.7 4 3 9 3s9-1.3 9-3V8"/><path d="M8 11v8M16 11v8"/>'),
+  bolt: svg('<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>'),
+  check: svg('<path d="M5 12.5l4.5 4.5L19 7"/>', 'stroke-width="3"'),
+  cross: svg('<path d="M6 6l12 12M18 6L6 18"/>', 'stroke-width="3"'),
+  clock: svg('<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>', 'stroke-width="3"'),
+  undo: svg('<path d="M9 7L4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12"/>', 'stroke-width="3"'),
+  link: svg('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>'),
+  cloud: svg('<path d="M7 18a5 5 0 1 1 .9-9.9A6 6 0 0 1 19 10a4 4 0 0 1-1 8z"/>'),
+  // Badges
+  target: svg('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor"/>'),
+  flame: svg('<path d="M12 3c1 4 5 5.5 5 10a5 5 0 0 1-10 0c0-2.5 1.5-4 2.5-5 .3 2 1.5 3 2.5 3 0-3-1-5 0-8z"/>'),
+  star: svg('<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>'),
+  diamond: svg('<path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l3 16 3-16"/>'),
+  globe: svg('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/>'),
+  glove: svg('<path d="M7 11V7a3 3 0 0 1 3-3h4a4 4 0 0 1 4 4v5a6 6 0 0 1-6 6h-1a5 5 0 0 1-5-5v-1a2 2 0 0 1 2-2h3"/><path d="M8 21h8"/>'),
+  chart: svg('<path d="M4 20V4M4 20h16"/><path d="M7 15l4-4 3 3 5-6"/>'),
+  calendar: svg('<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>'),
+  crown: svg('<path d="M4 18h16M4 18L3 7l5 4 4-6 4 6 5-4-1 11"/>'),
+  coins: svg('<ellipse cx="9" cy="7" rx="5" ry="2.5"/><path d="M4 7v4c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5V7"/><path d="M10 15.4c.8 1.2 2.8 2.1 5 2.1 2.8 0 5-1.1 5-2.5v-4c0-1.4-2.2-2.5-5-2.5"/>'),
 };
 
 export const coin = (cls = 'coin') => `

@@ -13,7 +13,7 @@ export function renderOnboarding(s) {
       <div class="brand-big">${icons.ball}<span>GOAL<b>Z</b></span></div>
       <p class="tagline">Foot, basket, tennis, MMA, rugby… sur les vrais matchs.<br>Grimpe les rangs. Défie tes potes.</p>
 
-      <div class="free-pill">🎮 Jeu gratuit, sans argent réel</div>
+      <div class="free-pill">Jeu gratuit · sans argent réel</div>
 
       <form class="register" data-form="register" autocomplete="off">
         <label for="pseudo-input">Choisis ton pseudo</label>

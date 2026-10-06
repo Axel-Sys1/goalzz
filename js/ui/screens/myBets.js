@@ -14,7 +14,7 @@ const STATUS = {
   void: { label: 'Remboursés', empty: 'Aucun pari remboursé.' },
 };
 
-const LEG = { pending: '⏳', won: '✅', lost: '❌', void: '↩️' };
+const LEG = { pending: icons.clock, won: icons.check, lost: icons.cross, void: icons.undo };
 
 function comboCard(b) {
   const pill = { pending: 'En cours', won: 'Gagné', lost: 'Perdu', void: 'Remboursé' }[b.status];
@@ -22,7 +22,7 @@ function comboCard(b) {
   return `
   <article class="bet bet-${b.status} bet-combo">
     <header class="bet-head">
-      <span class="comp">🔗 Combiné · ${b.legs.length} matchs</span>
+      <span class="comp">Combiné · ${b.legs.length} matchs</span>
       <span class="bet-right">${b.status === 'pending' ? `<span class="kick">${left} restant${left > 1 ? 's' : ''}</span>` : ''}<span class="status-pill">${pill}</span></span>
     </header>
     <ul class="combo-legs">

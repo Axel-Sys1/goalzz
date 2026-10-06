@@ -44,7 +44,7 @@ export function renderSlip(s, p, { context = 'page' } = {}) {
         const started = matchStatus(m) !== 'upcoming';
         const inputId = `stake-${context}-${m.id}`;
         return `
-        <div class="slip-item ${started ? 'expired' : ''}">
+        <div class="slip-item ${started ? 'expired' : ''}" data-slip-item="${escapeHtml(m.id)}">
           <div class="slip-top">
             <div class="grow">
               <div class="slip-match">${teamMark(m.home, 'logo-img logo-sm')} ${escapeHtml(m.home.name)} – ${teamMark(m.away, 'logo-img logo-sm')} ${escapeHtml(m.away.name)}</div>

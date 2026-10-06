@@ -1,6 +1,6 @@
 import { escapeHtml, fmt, fmtOdds } from '../../util.js';
 import { BADGES } from '../../services/badges.js';
-import { coin } from '../icons.js';
+import { coin, icons } from '../icons.js';
 import { renderAccountCard } from './account.js';
 
 export function renderProfile(s, p) {
@@ -34,14 +34,14 @@ export function renderProfile(s, p) {
     <div class="badge-grid">
       ${BADGES.map((b) => `
         <div class="badge ${p.badges[b.id] ? 'unlocked' : 'locked'}">
-          <span class="badge-icon">${b.icon}</span>
+          <span class="badge-icon">${icons[b.icon] || ""}</span>
           <strong>${escapeHtml(b.name)}</strong>
           <span class="muted">${escapeHtml(b.desc)}</span>
         </div>`).join('')}
     </div>
 
     <section class="card disclaimer">
-      <h2>🎮 Jeu gratuit, sans argent réel</h2>
+      <h2>Jeu gratuit, sans argent réel</h2>
       <p class="muted">
         Les Goalz sont une monnaie 100 % virtuelle. Ils ne peuvent pas être achetés, ni échangés
         contre de l'argent, des lots ou quoi que ce soit d'autre. Les « matchs éclair » sont

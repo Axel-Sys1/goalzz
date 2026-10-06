@@ -5,7 +5,9 @@ import { clearSlip, placeSlip, quickStake, removeSelection, setSlipMode, setStak
 import { fastForward, refreshReal } from '../services/matches.js';
 import { createLeague, joinLeague, leaveLeague } from '../services/leagues.js';
 import { go, render } from './app.js';
-import { toast } from './effects.js';
+import { betStamp, flyToSlip, replay, toast } from './effects.js';
+import { getState } from '../store.js';
+import { slipCheck } from '../services/bets.js';
 import { confirmDialog } from './dialog.js';
 import { refreshSlipNumbers } from './screens/slip.js';
 import { ui } from './uiState.js';
@@ -38,8 +40,18 @@ const actions = {
   },
 
   pick: (el) => {
-    toggleSelection(el.dataset.match, el.dataset.outcome);
-    document.querySelector('.slipbar')?.classList.add('bump');
+    const { match, outcome } = el.dataset;
+    const from = el.getBoundingClientRect();
+    const label = el.querySelector('.odd-val')?.textContent || '';
+    toggleSelection(match, outcome);
+    // L'écran vient d'être redessiné : on anime les nouveaux boutons.
+    const picked = getState().players[getState().currentPlayerId]?.slip.some((x) => x.matchId === match && x.outcome === outcome);
+    const sel = `[data-action="pick"][data-match="${CSS.escape(match)}"][data-outcome="${CSS.escape(outcome)}"]`;
+    document.querySelectorAll(sel).forEach((b) => replay(b, picked ? 'just-picked' : 'just-unpicked'));
+    if (picked) {
+      flyToSlip(from, label);
+      document.querySelectorAll(`[data-slip-item="${CSS.escape(match)}"]`).forEach((it) => replay(it, 'is-new'));
+    }
   },
   'filter-sport': (el) => { ui.sport = el.dataset.sport; render(); },
   'filter-day': (el) => { ui.day = el.dataset.day; render(); },
@@ -55,16 +67,27 @@ const actions = {
   'slip-remove': (el) => removeSelection(el.dataset.match),
   'slip-clear': () => clearSlip(),
   'slip-mode': (el) => setSlipMode(el.dataset.mode),
-  'slip-quick': (el) => quickStake(el.dataset.match, el.dataset.amount),
-  'slip-place': () => {
-    const n = placeSlip();
-    toast(n > 1 ? `${n} paris validés. Bonne chance !` : 'Pari validé. Bonne chance !', 'success');
+  'slip-quick': (el) => {
+    quickStake(el.dataset.match, el.dataset.amount);
+    document.querySelectorAll(`[data-stake="${CSS.escape(el.dataset.match)}"]`).forEach((i) => replay(i, 'bumped'));
+  },
+  'slip-place': async () => {
+    const { error, combo } = slipCheck(getState());
+    if (error) throw new Error(error);
+    // Les sélections glissent hors du panier, puis le ticket est tamponné.
+    const lists = document.querySelectorAll('.slip-items');
+    lists.forEach((l) => l.classList.add('sending'));
+    await new Promise((r) => setTimeout(r, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 280));
+    let n;
+    try { n = placeSlip(); } finally { lists.forEach((l) => l.classList.remove('sending')); }
+    betStamp({ count: n, combo });
+    toast(combo ? 'Combiné validé. Bonne chance !' : n > 1 ? `${n} paris validés. Bonne chance !` : 'Pari validé. Bonne chance !', 'success');
   },
 
   'bets-tab': (el) => { ui.betsTab = el.dataset.tab; render(); },
   'fast-forward': async () => {
     await fastForward();
-    toast(`⏩ +${CONFIG.FAST_FORWARD_MIN} minutes pour les matchs éclair`, 'info');
+    toast(`+${CONFIG.FAST_FORWARD_MIN} minutes pour les matchs éclair`, 'info');
   },
 
   'rank-tab': (el) => { ui.rankTab = el.dataset.tab; render(); },

@@ -48,7 +48,7 @@ const shellHtml = () => `
         </div>
       </div>
     </div>
-    <div class="freebar">🎮 Jeu gratuit, sans argent réel<span class="hide-sm"> · Les Goalz n'ont aucune valeur monétaire</span></div>
+    <div class="freebar">Jeu gratuit, sans argent réel<span class="hide-sm"> · Les Goalz n'ont aucune valeur monétaire</span></div>
   </header>
   <div class="layout">
     <main id="content" class="content"></main>
@@ -74,17 +74,23 @@ function renderHeader(p) {
   animateBalance(p);
 }
 
+let lastPotential = null;
+
 function renderSlipBar(route, p) {
   const bar = root.querySelector('#slipbar');
-  if (!p.slip.length || route.id === 'panier') { bar.innerHTML = ''; return; }
+  if (!p.slip.length || route.id === 'panier') { bar.innerHTML = ''; lastPotential = null; return; }
   const { potential, combo } = slipCheck(getState());
+  const changed = lastPotential !== null && lastPotential !== potential;
+  const appeared = !bar.querySelector('.slipbar');
+  lastPotential = potential;
   bar.innerHTML = `
     <a class="slipbar" href="#panier">
       <span class="slipbar-count">${p.slip.length}</span>
       <span class="grow">${combo ? 'matchs en combiné' : p.slip.length > 1 ? 'sélections' : 'sélection'} dans le panier</span>
-      <span class="slipbar-gain">${fmt(potential)} ${coin('coin coin-sm')}</span>
+      <span class="slipbar-gain${changed ? ' roll' : ''}"><span>${fmt(potential)}</span> ${coin('coin coin-sm')}</span>
       ${icons.arrow}
     </a>`;
+  if (!appeared) bar.querySelector('.slipbar').classList.add('no-enter');
 }
 
 function captureFocus() {

@@ -82,7 +82,7 @@ function featuredCard(m, slipPick) {
   return `
   <article class="featured">
     <header class="featured-head">
-      <span class="featured-tag">🔥 Match à la une</span>
+      <span class="featured-tag">Match à la une</span>
       <span class="kick" data-kickoff="${m.startsAt}"${m.real ? ' data-real="1"' : ''}>${formatKickoff(m.startsAt, t)}</span>
     </header>
     <div class="ft-teams">${side(m.home)}<span class="ft-vs">VS</span>${side(m.away)}</div>
@@ -96,7 +96,7 @@ function howToCard() {
     <ol class="howto">
       <li><span>1</span>Touche une cote</li>
       <li><span>2</span>Choisis ta mise</li>
-      <li><span>3</span>Valide et croise les doigts 🤞</li>
+      <li><span>3</span>Valide ton pari</li>
     </ol>`;
 }
 
@@ -123,7 +123,7 @@ export function matchCard(m, { slipPick = null, grouped = false } = {}) {
   else if (status === 'live') extra = `<div class="live-clock" data-ends="${m.endsAt}"></div>`;
 
   return `
-  <article class="match match-${status}">
+  <article class="match match-${status}${slipPick ? ' has-pick' : ''}">
     <header class="match-head">
       <span class="comp">${head}</span>
       ${right}
@@ -164,10 +164,10 @@ function modeSwitch(mode) {
   return `
     <div class="mode-switch" role="tablist" aria-label="Type de matchs">
       <button class="mode ${mode === 'real' ? 'active' : ''}" role="tab" aria-selected="${mode === 'real'}" data-action="set-mode" data-mode="real" type="button">
-        <span class="mode-icon">🏟️</span><span><strong>Vrais matchs</strong><small>Résultats réels</small></span>
+        <span class="mode-icon">${icons.stadium}</span><span><strong>Vrais matchs</strong><small>Résultats réels</small></span>
       </button>
       <button class="mode ${mode === 'fake' ? 'active' : ''}" role="tab" aria-selected="${mode === 'fake'}" data-action="set-mode" data-mode="fake" type="button">
-        <span class="mode-icon">⚡</span><span><strong>Matchs éclair</strong><small>Fictifs · 2 min</small></span>
+        <span class="mode-icon">${icons.bolt}</span><span><strong>Matchs éclair</strong><small>Fictifs · 2 min</small></span>
       </button>
     </div>`;
 }
@@ -296,7 +296,7 @@ export function renderMatches(s, p) {
 
   return `
     <section class="greeting">
-      <h1>Salut ${escapeHtml(p.pseudo)} 👋</h1>
+      <h1>Salut <b>${escapeHtml(p.pseudo)}</b></h1>
       ${mode === 'fake' ? '<p class="muted">Des matchs fictifs de 2 minutes pour jouer tout de suite.</p>' : ''}
     </section>
 
