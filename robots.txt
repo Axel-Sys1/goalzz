@@ -5,4 +5,6 @@ Disallow: /tools/
 Disallow: /publish/
 Disallow: /data/
 
+Allow: /legal.html
+
 Sitemap: https://goalzz.pages.dev/sitemap.xml

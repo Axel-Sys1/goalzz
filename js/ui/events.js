@@ -12,8 +12,9 @@ import { confirmDialog } from './dialog.js';
 import { refreshSlipNumbers } from './screens/slip.js';
 import { ui } from './uiState.js';
 import { CONFIG } from '../config.js';
-import { cloud, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
+import { cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
 import { playerRR } from '../services/ranks.js';
+import { shareLeague } from '../services/invite.js';
 
 const actions = {
   login: (el) => login(el.dataset.id),
@@ -23,6 +24,27 @@ const actions = {
   'claim-bonus': () => claimBonus(),
 
   'profile-tab': (el) => { ui.profileTab = el.dataset.tab === 'settings' ? 'settings' : 'stats'; render(); },
+  'install-app': async () => {
+    const prompt = ui.installPrompt;
+    if (!prompt) return;
+    prompt.prompt();
+    await prompt.userChoice.catch(() => null);
+    ui.installPrompt = null;
+    render();
+  },
+  'delete-account': async () => {
+    const ok = await confirmDialog({
+      title: 'Supprimer ton compte ?',
+      message: 'Ton compte, ta partie en ligne, ta place dans les classements et tes ligues seront effacés définitivement. C\'est irréversible.',
+      confirmLabel: 'Supprimer définitivement',
+      danger: true,
+    });
+    if (!ok) return;
+    await deleteAccount();
+    toast('Ton compte a été supprimé.', 'info');
+    location.hash = '';
+    location.reload();
+  },
   'cloud-mode': (el) => { cloud.mode = el.dataset.mode === 'signup' ? 'signup' : 'login'; render(); },
   'cloud-google': () => signInWithGoogle(),
   'cloud-reset': async () => {
@@ -104,6 +126,10 @@ const actions = {
     else leaveLeague(el.dataset.code);
   },
   'leagues-refresh': () => loadMyLeagues({ force: true }),
+  'league-invite': async (el) => {
+    const res = await shareLeague(el.dataset.code, el.dataset.name);
+    if (res === 'copied') toast('Lien d\'invitation copié : colle-le dans WhatsApp, Discord ou Snap !', 'success');
+  },
   'copy-code': async (el) => {
     const code = el.dataset.code;
     try {

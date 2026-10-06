@@ -114,6 +114,9 @@ function onlineLeaguesView() {
             ${escapeHtml(l.code)} ${icons.copy}
           </button>
         </header>
+        <button class="btn btn-primary btn-block invite-btn" data-action="league-invite" data-code="${escapeHtml(l.code)}" data-name="${escapeHtml(l.name)}" type="button">
+          ${icons.share} Inviter des amis
+        </button>
         ${rankList(l.rows.map((r) => leagueRow(r, radiant.has(r.uid))), meId)}
         <button class="link-btn danger" data-action="league-leave" data-code="${escapeHtml(l.code)}" type="button">Quitter la ligue</button>
       </section>`).join('')}

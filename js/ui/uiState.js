@@ -3,6 +3,7 @@ export const ui = {
   sport: 'all',          // filtre de sport de la liste des matchs
   day: null,             // jour sélectionné (YYYY-MM-DD) pour les vrais matchs
   betsTab: 'pending',    // pending | won | lost | void
+  installPrompt: null,   // proposition d'installation du navigateur (Android, ordinateur)
   profileTab: 'stats',   // stats | settings (Profil)
   rankTab: 'division',   // division | leagues
 };

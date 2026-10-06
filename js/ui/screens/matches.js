@@ -8,6 +8,7 @@ import { isAwaitingKickoff, matchStatus, outcomeShort } from '../../services/mat
 import { realFeedState } from '../../services/matches.js';
 import { coin, icons } from '../icons.js';
 import { ui } from '../uiState.js';
+import { inviteBanner } from './account.js';
 
 const ORDER = { 1: 0, X: 1, 2: 2 };
 
@@ -299,6 +300,8 @@ export function renderMatches(s, p) {
       <h1>Salut <b>${escapeHtml(p.pseudo)}</b></h1>
       ${mode === 'fake' ? '<p class="muted">Des matchs fictifs de 2 minutes pour jouer tout de suite.</p>' : ''}
     </section>
+
+    ${inviteBanner()}
 
     ${canClaimBonus(p) ? `
       <button class="bonus-card" data-action="claim-bonus" type="button">

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <rect width="1200" height="630" fill="#08122a"/>
+  <path d="M820 0h120L700 630H580z" fill="#ff6b1a" opacity=".16"/>
+  <path d="M990 0h60L810 630h-60z" fill="#ff6b1a" opacity=".1"/>
+  <rect x="112" y="96" width="10" height="64" fill="#ff6b1a" transform="skewX(-14)"/>
+  <text x="110" y="150" font-family="Helvetica Neue, Arial, sans-serif" font-weight="900" font-style="italic" font-size="64" fill="#edf2fb" letter-spacing="2">GOAL<tspan fill="#ff6b1a">Z</tspan></text>
+  <text x="80" y="290" font-family="Helvetica Neue, Arial, sans-serif" font-weight="900" font-style="italic" font-size="84" fill="#edf2fb">PRONOSTIQUE. GRIMPE.</text>
+  <text x="80" y="385" font-family="Helvetica Neue, Arial, sans-serif" font-weight="900" font-style="italic" font-size="84" fill="#ff6b1a">DOMINE TES POTES.</text>
+  <text x="80" y="470" font-family="Helvetica Neue, Arial, sans-serif" font-weight="600" font-size="32" fill="#8a9abb">Foot, NBA, tennis, UFC, rugby · rangs de Fer à Radiant · ligues</text>
+  <rect x="80" y="520" width="470" height="58" rx="8" fill="#ff6b1a"/>
+  <text x="315" y="559" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-weight="800" font-size="28" fill="#1a0800">GRATUIT · SANS ARGENT RÉEL</text>
+</svg>

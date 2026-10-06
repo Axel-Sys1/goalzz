@@ -1,6 +1,7 @@
 // Carte « compte en ligne » : connexion (email + mot de passe ou Google) et état de la sauvegarde.
 import { escapeHtml } from '../../util.js';
 import { cloud } from '../../services/cloud.js';
+import { pendingInvite } from '../../services/invite.js';
 
 export function renderAccountCard({ compact = false } = {}) {
   if (!cloud.enabled || !cloud.ready) return '';
@@ -40,4 +41,17 @@ export function renderAccountCard({ compact = false } = {}) {
         ${signup ? '' : '<button class="link-btn" data-action="cloud-reset" type="button">Mot de passe oublié ?</button>'}
       </div>
     </form>`;
+}
+
+// Bandeau d'invitation (lien ?ligue=CODE) tant que la ligue n'est pas rejointe.
+export function inviteBanner() {
+  const code = pendingInvite();
+  if (!code) return '';
+  return `
+    <section class="card invite-banner">
+      <strong>Tu es invité dans une ligue</strong>
+      <span class="muted">Code <b>${escapeHtml(code)}</b>. ${cloud.user
+        ? 'Choisis ton pseudo : tu la rejoindras automatiquement.'
+        : 'Choisis ton pseudo, puis crée ton compte (gratuit) : tu la rejoindras automatiquement.'}</span>
+    </section>`;
 }

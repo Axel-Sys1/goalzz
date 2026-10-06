@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#08122a"/>
+  <path d="M330 0h70L250 512h-70z" fill="#ff6b1a" opacity=".18"/>
+  <path d="M420 0h36L306 512h-36z" fill="#ff6b1a" opacity=".1"/>
+  <text x="256" y="350" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif" font-weight="900" font-style="italic" font-size="300" fill="#ff6b1a">G</text>
+  <rect x="140" y="392" width="232" height="22" rx="4" fill="#ff6b1a" transform="skewX(-14)" transform-origin="256 403"/>
+</svg>

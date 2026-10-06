@@ -426,6 +426,46 @@ export async function leaveOnlineLeague(code) {
   await loadMyLeagues({ force: true });
 }
 
+// Suppression du compte (droit à l'effacement) : ligues, pseudos, fiche publique, partie, compte.
+// Firebase exige une connexion récente pour supprimer un compte : sinon on demande de se reconnecter
+// avant d'effacer quoi que ce soit.
+export async function deleteAccount() {
+  needAccount();
+  const { F, db, A, auth } = fb;
+  const user = auth.currentUser;
+  const lastLogin = Date.parse(user?.metadata?.lastSignInTime || 0);
+  if (!user || Date.now() - lastLogin > 4 * 60_000) {
+    await A.signOut(auth);
+    cloud.user = null;
+    throw new Error('Par sécurité, reconnecte-toi puis relance la suppression (Profil → Réglages).');
+  }
+  const uid = user.uid;
+  clearTimeout(pushTimer);
+  pushTimer = null;
+  cloud.user = null; // plus aucune sauvegarde ne doit recréer les données pendant l'effacement
+  const leagues = await F.getDocs(F.query(F.collection(db, 'leagues'), F.where('members', 'array-contains', uid)));
+  for (const d of leagues.docs) {
+    if ((d.data().members || []).length <= 1) await F.deleteDoc(d.ref);
+    else await F.updateDoc(d.ref, { members: F.arrayRemove(uid) });
+  }
+  const pseudos = new Set([...ownedPseudos, ...Object.values(getState().players).map((p) => pseudoKey(p.pseudo))]);
+  for (const key of pseudos) {
+    const ref = F.doc(db, 'pseudos', key);
+    const snap = await F.getDoc(ref).catch(() => null);
+    if (snap?.exists() && snap.data().uid === uid) await F.deleteDoc(ref);
+  }
+  await F.deleteDoc(F.doc(db, 'leaderboard', uid)).catch(() => {});
+  await F.deleteDoc(F.doc(db, 'users', uid));
+  await user.delete();
+  cloud.division = null;
+  cloud.leagues = null;
+  cloud.pseudoConflict = null;
+  cloud.pseudoBanned = false;
+  ownedPseudos.clear();
+  lastBoard = '';
+  resetAll();
+}
+
 export async function signOutCloud() {
   if (!fb || !cloud.user) return;
   await push();

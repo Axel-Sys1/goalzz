@@ -780,3 +780,44 @@ input::placeholder { color: var(--placeholder); }
 .seo-intro { max-width: 640px; margin: 18vh auto 0; padding: 0 20px; text-align: center; color: var(--muted); }
 .seo-intro h1 { font: italic 800 40px/1 var(--display); text-transform: uppercase; color: var(--text); margin-bottom: 14px; }
 .seo-intro p + p { margin-top: 10px; }
+
+/* ---------- Accueil (nouveaux visiteurs) ---------- */
+.landing { position: relative; width: 100%; max-width: 1040px; display: grid; gap: 28px; align-items: center; }
+.landing-hero { display: grid; gap: 16px; text-align: center; }
+.landing-hero .brand-big { font-size: 52px; }
+.landing-hero .brand-big svg { width: 44px; height: 44px; }
+.landing-title { font: italic 800 46px/0.95 var(--display); text-transform: uppercase; letter-spacing: 0.01em; }
+.landing-title b { color: var(--accent); }
+.landing-ladder { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+.landing-ladder span { animation: ladder-in 0.5s var(--ease-back) both; }
+.landing-ladder .rank-emblem { width: 28px; height: 32px; }
+@keyframes ladder-in { from { opacity: 0; transform: translateY(12px) scale(0.6); } }
+.features { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; text-align: left; }
+.features li { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: 10px; background: rgba(15, 31, 64, 0.7); border: 1px solid var(--line); }
+.features li > span:last-child { display: grid; gap: 2px; }
+.features strong { font: italic 800 17px/1.1 var(--display); text-transform: uppercase; letter-spacing: 0.02em; }
+.features .muted { font-size: 13px; line-height: 1.4; }
+.feature-icon { width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; flex-shrink: 0; background: var(--accent); color: var(--accent-ink); }
+.feature-icon svg { width: 20px; height: 20px; }
+.landing .onboarding-card { max-width: 440px; justify-self: center; text-align: left; }
+.landing .onboarding-card > .fineprint { text-align: center; }
+.register .fineprint { text-align: left; }
+.invite-banner { display: grid; gap: 4px; border-left: 3px solid var(--accent); background: linear-gradient(90deg, var(--accent-soft), var(--surface) 70%); animation: rise 0.4s var(--ease-out); }
+.invite-btn { margin-bottom: 4px; }
+.legal-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; margin-top: 14px; }
+.legal-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+.legal-links a:hover { color: var(--text); }
+@media (min-width: 900px) {
+  .landing { grid-template-columns: 1.15fr 1fr; gap: 48px; }
+  .landing-hero { text-align: left; }
+  .landing-hero .brand-big, .landing-ladder { justify-content: flex-start; }
+  .landing-title { font-size: 64px; }
+}
+
+/* ---------- Pages légales ---------- */
+.legal-page { max-width: 760px; margin: 0 auto; padding: 24px 16px 60px; display: grid; gap: 16px; }
+.legal-page .logo { justify-self: start; }
+.legal-page .card { display: grid; gap: 10px; }
+.legal-page h2 { font: italic 800 24px/1.1 var(--display); text-transform: uppercase; }
+.legal-page p { line-height: 1.55; }
+.legal-page a:not(.btn):not(.logo) { color: var(--accent); text-decoration: underline; }

@@ -5,6 +5,7 @@ import { coin, icons } from '../icons.js';
 import { renderAccountCard } from './account.js';
 import { cloud } from '../../services/cloud.js';
 import { ui } from '../uiState.js';
+import { legalLinks } from './legal.js';
 
 const pseudoTaken = (p) => !!cloud.pseudoConflict && cloud.pseudoConflict === p.pseudo;
 
@@ -77,15 +78,22 @@ function settingsView(p) {
 
     <h2 class="section-title">Appareil</h2>
     <section class="card settings-list">
+      ${installRow()}
       <div class="settings-row">
         <div class="grow"><strong>Changer de joueur</strong><span class="muted">Revenir à l'écran d'accueil pour jouer avec un autre profil.</span></div>
         <button class="btn btn-ghost" data-action="logout" type="button">Changer</button>
       </div>
+      ${cloud.user ? `
+      <div class="settings-row">
+        <div class="grow"><strong>Supprimer mon compte</strong><span class="muted">Efface définitivement ton compte, ta partie en ligne et ta place dans les classements.</span></div>
+        <button class="link-btn danger" data-action="delete-account" type="button">Supprimer</button>
+      </div>` : ''}
       <div class="settings-row">
         <div class="grow"><strong>Réinitialiser l'appli</strong><span class="muted">Efface tous les joueurs, paris et ligues de cet appareil.</span></div>
         <button class="link-btn danger" data-action="reset-app" type="button">Tout effacer</button>
       </div>
-    </section>`;
+    </section>
+    ${legalLinks()}`;
 }
 
 // Changement de pseudo : payant, sauf si un autre compte a déjà réservé le pseudo actuel.
@@ -112,4 +120,19 @@ function pseudoCard(p) {
 // Encadré affiché ailleurs (Rangs) quand le pseudo est pris par un autre compte.
 export function renamePanel(p) {
   return pseudoTaken(p) ? pseudoCard(p) : '';
+}
+
+// Installer Goalz comme une appli : bouton du navigateur (Android, ordinateur) ou consigne iPhone.
+function installRow() {
+  const standalone = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone;
+  if (standalone) return '';
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  if (!ui.installPrompt && !ios) return '';
+  return `
+      <div class="settings-row">
+        <div class="grow"><strong>Installer l'appli</strong><span class="muted">${ui.installPrompt
+          ? 'Ajoute Goalz à ton écran d\'accueil, comme une vraie appli.'
+          : 'Sur iPhone : touche Partager, puis « Sur l\'écran d\'accueil ».'}</span></div>
+        ${ui.installPrompt ? '<button class="btn btn-primary" data-action="install-app" type="button">Installer</button>' : ''}
+      </div>`;
 }
