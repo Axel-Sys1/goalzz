@@ -44,14 +44,19 @@ export function renderAccountCard({ compact = false } = {}) {
 }
 
 // Bandeau d'invitation (lien ?ligue=CODE) tant que la ligue n'est pas rejointe.
-export function inviteBanner() {
+// inGame : le joueur a déjà son pseudo, il ne lui manque que le compte.
+export function inviteBanner({ inGame = false } = {}) {
   const code = pendingInvite();
   if (!code) return '';
+  const text = inGame
+    ? 'Crée ton compte gratuit (ou connecte-toi) : tu la rejoindras automatiquement.'
+    : cloud.user
+      ? 'Choisis ton pseudo : tu la rejoindras automatiquement.'
+      : 'Choisis ton pseudo, puis crée ton compte (gratuit) : tu la rejoindras automatiquement.';
   return `
     <section class="card invite-banner">
       <strong>Tu es invité dans une ligue</strong>
-      <span class="muted">Code <b>${escapeHtml(code)}</b>. ${cloud.user
-        ? 'Choisis ton pseudo : tu la rejoindras automatiquement.'
-        : 'Choisis ton pseudo, puis crée ton compte (gratuit) : tu la rejoindras automatiquement.'}</span>
+      <span class="muted">Code <b>${escapeHtml(code)}</b>. ${text}</span>
+      ${inGame ? '<button class="btn btn-primary" data-action="go-account" type="button">Créer mon compte</button>' : ''}
     </section>`;
 }

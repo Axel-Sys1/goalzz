@@ -24,6 +24,7 @@ const actions = {
   'claim-bonus': () => claimBonus(),
 
   'profile-tab': (el) => { ui.profileTab = el.dataset.tab === 'settings' ? 'settings' : 'stats'; render(); },
+  'go-account': () => { ui.profileTab = 'settings'; cloud.mode = 'signup'; go('profil'); },
   'install-app': async () => {
     const prompt = ui.installPrompt;
     if (!prompt) return;

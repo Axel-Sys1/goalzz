@@ -805,6 +805,7 @@ input::placeholder { color: var(--placeholder); }
 .landing .onboarding-card { max-width: 440px; justify-self: center; text-align: left; }
 .landing .onboarding-card > .fineprint { text-align: center; }
 .register .fineprint { text-align: left; }
+.invite-banner .btn { justify-self: start; margin-top: 6px; }
 .invite-banner { display: grid; gap: 4px; border-left: 3px solid var(--accent); background: linear-gradient(90deg, var(--accent-soft), var(--surface) 70%); animation: rise 0.4s var(--ease-out); }
 .invite-btn { margin-bottom: 4px; }
 .legal-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; margin-top: 14px; }
