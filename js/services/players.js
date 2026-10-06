@@ -3,6 +3,7 @@ import { getState, update } from '../store.js';
 import { uid, todayKey } from '../util.js';
 import { checkBadges } from './badges.js';
 import { claimPseudo, cloud, isPseudoAvailable } from './cloud.js';
+import { isOffensivePseudo } from './moderation.js';
 
 const newStats = () => ({
   betsPlaced: 0, wins: 0, losses: 0, streak: 0, bestStreak: 0,
@@ -17,6 +18,7 @@ function cleanPseudo(raw) {
   const pseudo = String(raw || '').trim().replace(/\s+/g, ' ');
   if (pseudo.length < 2 || pseudo.length > 16) throw new Error('Ton pseudo doit faire entre 2 et 16 caractères.');
   if (!/^[\p{L}\p{N} _.-]+$/u.test(pseudo)) throw new Error('Ton pseudo ne peut contenir que des lettres, des chiffres, des espaces et _ . -');
+  if (isOffensivePseudo(pseudo)) throw new Error('Ce pseudo n\'est pas autorisé. Choisis-en un autre.');
   return pseudo;
 }
 

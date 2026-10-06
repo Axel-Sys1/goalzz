@@ -28,14 +28,20 @@ Puis ouvrir <http://localhost:5173>. En local, les vrais matchs sont lus **en di
   de build) : chaque `git push` le remet en ligne en une minute environ.
 - Publier depuis ce Mac : `./tools/deploy.sh "message"` (commit + push en HTTPS ; l'accès
   GitHub est géré par GitHub CLI, `~/.local/bin/gh`, connecté au compte Axel-Sys1).
-- En ligne, les vrais matchs sont lus **en direct** chez ESPN / TheSportsDB ; l'instantané
+- En ligne, les vrais matchs sont lus **en direct** chez ESPN / TheSportsDB, via le relais
+  `functions/api/fetch.js` (Cloudflare Pages Function) qui met les réponses en cache 1 à 10 min
+  pour tous les joueurs ; si le relais tombe, l'appli interroge les sources directement. L'instantané
   `data/real-matches.json` ne sert que de secours si ces sources ne répondent pas.
 
 ### Comptes (Firebase, projet `goalzz-5354f`)
 
 Connexion facultative (email + mot de passe ou Google) : sauvegarde de la partie
 (`users/<uid>`), classement par division (`leaderboard/<uid>`) et pseudos uniques
-(`pseudos/<pseudo>`). Les règles Firestore limitent chacun à ses propres documents.
+(`pseudos/<pseudo>`), ligues privées (`leagues/<CODE>`). Les règles Firestore limitent chacun
+à ses propres documents. Pour tenir dans le plan gratuit : sauvegarde au plus toutes les 30 s,
+classements rechargés au plus toutes les 5 min, 200 derniers paris réglés gardés en ligne par
+joueur (les RR des plus anciens sont résumés dans `rrBase`). Pseudos filtrés par
+`js/services/moderation.js`.
 
 ### Ancienne version claude.ai
 

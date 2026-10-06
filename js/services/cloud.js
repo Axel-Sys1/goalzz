@@ -12,12 +12,16 @@
 // compte ; les règles Firestore refusent une fiche de classement dont le pseudo est à quelqu'un d'autre.
 import { CONFIG } from '../config.js';
 import { emit, getState, onSave, replaceState, resetAll } from '../store.js';
-import { playerRR, RR_PER_DIVISION, TIERS, IMMORTAL_RR, RADIANT_SPOTS } from './ranks.js';
+import { playerRR, winRR, LOSS_RR, RR_PER_DIVISION, TIERS, IMMORTAL_RR, RADIANT_SPOTS } from './ranks.js';
 import { leagueCode } from '../util.js';
+import { isOffensivePseudo } from './moderation.js';
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2';
 const EMAIL_KEY = 'goalz:emailForSignIn';
-const PUSH_DELAY_MS = 3000;
+// Au plus une sauvegarde en ligne toutes les 30 s (et à la fermeture de la page) : le plan
+// gratuit de Firebase autorise 20 000 écritures par jour pour tout le site.
+const PUSH_INTERVAL_MS = 30_000;
+const KEEP_SETTLED_BETS = 200; // paris réglés gardés dans la sauvegarde en ligne, par joueur
 const MAX_DOC_CHARS = 900_000; // un document Firestore est limité à 1 Mo
 
 export const cloud = {
@@ -26,17 +30,19 @@ export const cloud = {
   user: null,         // { uid, email } une fois connecté
   mode: 'login',      // formulaire : 'login' (se connecter) ou 'signup' (créer un compte)
   division: null,     // { index, rows: [{ uid, pseudo, rr, balance }], radiant: Set<uid>, at, loading, error }
-  pseudoConflict: null, // pseudo du joueur actuel déjà réservé par un autre compte
+  pseudoConflict: null, // pseudo du joueur actuel à changer : déjà réservé par un autre compte…
+  pseudoBanned: false,  // … ou refusé par le filtre de pseudos
   leagues: null,      // { list: [{ code, name, ownerUid, members, rows }], at, loading, error }
 };
 
-const LEAGUES_TTL_MS = 60_000;
+const LEAGUES_TTL_MS = 5 * 60_000;
 export const LEAGUE_MAX_MEMBERS = 50;
 
 const pseudoKey = (pseudo) => String(pseudo).trim().toLowerCase();
 const ownedPseudos = new Set(); // pseudos (clés) déjà vérifiés comme appartenant à ce compte
 
-const DIVISION_TTL_MS = 60_000;
+const DIVISION_TTL_MS = 5 * 60_000; // classements rechargés au plus toutes les 5 min (quota de lectures)
+const DIVISION_LIMIT = 50;
 const LAST_DIVISION = TIERS.length * 3 - 1;
 export const divisionIndex = (rr) => Math.min(LAST_DIVISION, Math.floor(rr / RR_PER_DIVISION));
 let lastBoard = '';
@@ -64,16 +70,49 @@ const userDoc = () => fb.F.doc(fb.db, 'users', cloud.user.uid);
 
 // Ce qu'on sauvegarde : tout, sauf les matchs sans pari ni place dans un panier
 // (ils sont rechargés depuis les sources à chaque visite).
+// Ce qui est sauvegardé en ligne : la partie sans ce qui change tout seul (joueurs simulés,
+// scores en direct), sans les matchs inutiles, et seulement les KEEP_SETTLED_BETS derniers paris
+// réglés de chaque joueur. Les RR des paris retirés sont résumés dans player.rrBase / rrBaseAt.
 function snapshot(s) {
+  const players = {};
+  const bets = {};
+  for (const p of Object.values(s.players)) {
+    const mine = Object.values(s.bets).filter((b) => b.playerId === p.id);
+    const settled = mine.filter((b) => b.status !== 'pending').sort((a, b) => (a.settledAt || 0) - (b.settledAt || 0));
+    let cut = Math.max(0, settled.length - KEEP_SETTLED_BETS);
+    // Ne pas couper entre deux paris réglés au même instant (rrBaseAt doit les séparer nettement).
+    while (cut > 0 && (settled[cut - 1].settledAt || 0) === (settled[cut]?.settledAt ?? -1)) cut -= 1;
+    const dropped = settled.slice(0, cut);
+    const kept = new Set([...mine.filter((b) => b.status === 'pending'), ...settled.slice(dropped.length)].map((b) => b.id));
+    for (const b of mine) if (kept.has(b.id)) bets[b.id] = b;
+    players[p.id] = dropped.length
+      ? { ...p, inbox: [], rrBase: rrAfter(p, dropped), rrBaseAt: dropped[dropped.length - 1].settledAt || 0 }
+      : { ...p, inbox: [] };
+  }
   const keep = new Set();
-  for (const b of Object.values(s.bets)) {
+  for (const b of Object.values(bets)) {
     keep.add(b.matchId);
     (b.legs || []).forEach((l) => keep.add(l.matchId));
   }
   for (const p of Object.values(s.players)) (p.slip || []).forEach((x) => keep.add(x.matchId));
   const matches = {};
-  for (const id of keep) if (s.matches[id]) matches[id] = s.matches[id];
-  return { ...s, matches };
+  for (const id of keep) {
+    const m = s.matches[id];
+    if (m) matches[id] = { ...m, liveScore: null, clock: null };
+  }
+  const { bots, botsSimAt, ...rest } = s;
+  return { ...rest, players, bets, matches };
+}
+
+// RR d'un joueur après une liste de paris réglés (même calcul que ranks.playerRR).
+function rrAfter(p, settledBets) {
+  const since = p.rrBaseAt || 0;
+  let rr = p.rrBase || 0;
+  for (const b of settledBets) {
+    if ((b.settledAt || 0) <= since || (b.status !== 'won' && b.status !== 'lost')) continue;
+    rr = Math.max(0, rr + (b.status === 'won' ? winRR(b.finalOdds || b.odds) : -LOSS_RR));
+  }
+  return rr;
 }
 
 // Première connexion de cet appareil à ce compte : on garde la partie du compte et on y
@@ -109,16 +148,18 @@ async function pull(user) {
   await push();
 }
 
+let lastPushAt = 0;
+
 function schedulePush() {
-  if (!cloud.user || pulling) return;
-  clearTimeout(pushTimer);
-  pushTimer = setTimeout(push, PUSH_DELAY_MS);
+  if (!cloud.user || pulling || pushTimer) return;
+  pushTimer = setTimeout(push, Math.max(2000, PUSH_INTERVAL_MS - (Date.now() - lastPushAt)));
 }
 
 async function push() {
   clearTimeout(pushTimer);
   pushTimer = null;
   if (!cloud.user || !fb) return;
+  lastPushAt = Date.now();
   const data = JSON.stringify(snapshot(getState()));
   if (data === lastPushed) return;
   if (data.length > MAX_DOC_CHARS) { console.warn('Goalz : partie trop volumineuse pour la sauvegarde en ligne.'); return; }
@@ -172,10 +213,19 @@ export async function claimPseudo(pseudo) {
 async function publishRank() {
   const me = myEntry();
   if (!me || !fb) return;
+  // Pseudo refusé par le filtre : on retire la fiche publique et on demande d'en changer.
+  if (isOffensivePseudo(me.pseudo)) {
+    if (cloud.pseudoConflict !== me.pseudo || !cloud.pseudoBanned) { cloud.pseudoConflict = me.pseudo; cloud.pseudoBanned = true; emit(); }
+    if (lastBoard !== 'banned') {
+      lastBoard = 'banned';
+      fb.F.deleteDoc(fb.F.doc(fb.db, 'leaderboard', me.uid)).catch(() => {});
+    }
+    return;
+  }
   let mine = false;
   try { mine = await claimPseudo(me.pseudo); } catch (err) { console.warn('Goalz : vérification du pseudo impossible', err); return; }
   const conflict = mine ? null : me.pseudo;
-  if (conflict !== cloud.pseudoConflict) { cloud.pseudoConflict = conflict; emit(); }
+  if (conflict !== cloud.pseudoConflict || cloud.pseudoBanned) { cloud.pseudoConflict = conflict; cloud.pseudoBanned = false; emit(); }
   if (!mine) return;
   const key = JSON.stringify(me);
   if (key === lastBoard) return;
@@ -190,7 +240,7 @@ async function publishRank() {
 }
 
 // Joueurs de la même division que `rr` (ex. tous les Or 2), du meilleur au moins bon.
-// Rechargé au plus une fois par minute, sauf `force`.
+// Rechargé au plus toutes les 5 minutes, sauf `force`.
 export async function loadDivision(rr, { force = false } = {}) {
   if (!cloud.user || !fb) return;
   const index = divisionIndex(rr);
@@ -204,7 +254,7 @@ export async function loadDivision(rr, { force = false } = {}) {
   if (index < LAST_DIVISION) filters.push(F.where('rr', '<', low + RR_PER_DIVISION));
   try {
     const [snap, top] = await Promise.all([
-      F.getDocs(F.query(col, ...filters, F.orderBy('rr', 'desc'), F.limit(100))),
+      F.getDocs(F.query(col, ...filters, F.orderBy('rr', 'desc'), F.limit(DIVISION_LIMIT))),
       // Radiant : les meilleurs Immortels de tout le jeu.
       F.getDocs(F.query(col, F.where('rr', '>=', IMMORTAL_RR), F.orderBy('rr', 'desc'), F.limit(RADIANT_SPOTS))),
     ]);
@@ -222,7 +272,7 @@ export function divisionRows() {
   const d = cloud.division;
   const me = myEntry();
   if (!d) return [];
-  let rows = d.rows.filter((r) => r.uid !== me?.uid);
+  let rows = d.rows.filter((r) => r.uid !== me?.uid && !isOffensivePseudo(r.pseudo));
   if (me && divisionIndex(me.rr) === d.index) rows.push(me);
   return rows.sort((a, b) => b.rr - a.rr || b.balance - a.balance || String(a.pseudo).localeCompare(String(b.pseudo)));
 }
@@ -303,12 +353,12 @@ async function memberRows(uids) {
     snap.forEach((d) => rows.push({ uid: d.id, ...d.data() }));
   }
   const me = myEntry();
-  const out = rows.filter((r) => r.uid !== me?.uid);
+  const out = rows.filter((r) => r.uid !== me?.uid && !isOffensivePseudo(r.pseudo));
   if (me && uids.includes(me.uid)) out.push(me);
   return out.sort((a, b) => b.rr - a.rr || b.balance - a.balance);
 }
 
-// Mes ligues et le classement de chacune. Rechargé au plus une fois par minute, sauf `force`.
+// Mes ligues et le classement de chacune. Rechargé au plus toutes les 5 minutes, sauf `force`.
 export async function loadMyLeagues({ force = false } = {}) {
   if (!cloud.user || !fb) return;
   const cur = cloud.leagues;
@@ -383,6 +433,7 @@ export async function signOutCloud() {
   cloud.user = null; // avant resetAll : la partie vide ne doit pas écraser celle du compte
   cloud.division = null;
   cloud.pseudoConflict = null;
+  cloud.pseudoBanned = false;
   cloud.leagues = null;
   ownedPseudos.clear();
   lastBoard = '';

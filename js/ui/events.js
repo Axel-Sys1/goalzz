@@ -143,6 +143,7 @@ const forms = {
     }
     await renamePlayer(pseudo, { free });
     cloud.pseudoConflict = null;
+    cloud.pseudoBanned = false;
     form.reset();
     render();
     toast(free ? 'Pseudo changé !' : `Pseudo changé (−${CONFIG.RENAME_COST.toLocaleString('fr-FR')} Goalz)`, 'success');

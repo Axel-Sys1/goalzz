@@ -95,9 +95,9 @@ function pseudoCard(p) {
   const short = !taken && p.balance < cost;
   return `
     <form class="card rename-card ${taken ? 'is-conflict' : ''}" data-form="rename" autocomplete="off">
-      <strong>${taken ? `Le pseudo « ${escapeHtml(p.pseudo)} » est déjà pris` : 'Changer de pseudo'}</strong>
+      <strong>${!taken ? 'Changer de pseudo' : cloud.pseudoBanned ? `Le pseudo « ${escapeHtml(p.pseudo)} » n'est pas autorisé` : `Le pseudo « ${escapeHtml(p.pseudo)} » est déjà pris`}</strong>
       <span class="muted">${taken
-        ? 'Un autre joueur l\'utilise déjà. Choisis-en un nouveau (gratuit) pour apparaître dans le classement.'
+        ? `${cloud.pseudoBanned ? 'Il contient un mot interdit.' : 'Un autre joueur l\'utilise déjà.'} Choisis-en un nouveau (gratuit) pour apparaître dans le classement.`
         : `Ton pseudo doit être unique dans tout le jeu. Le changer coûte ${fmt(cost)} Goalz.`}</span>
       <div class="input-row">
         <input id="rename-input" name="pseudo" maxlength="16" placeholder="Nouveau pseudo" required ${short ? 'disabled' : ''}>

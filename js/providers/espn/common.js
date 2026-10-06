@@ -11,7 +11,7 @@ export const DAY = 24 * HOUR;
 // ─── Réseau ──────────────────────────────────────────────────────────────────
 // Toute fonction qui appelle le réseau reçoit `getJson` en paramètre, pour pouvoir
 // être testée avec des réponses enregistrées (voir tests/).
-export async function defaultGetJson(url, { timeoutMs = 15_000 } = {}) {
+async function getJsonDirect(url, { timeoutMs = 15_000 } = {}) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
@@ -21,6 +21,25 @@ export async function defaultGetJson(url, { timeoutMs = 15_000 } = {}) {
   } finally {
     clearTimeout(timer);
   }
+}
+
+// Sur le site en ligne, les requêtes passent par le relais Cloudflare (functions/api/fetch.js)
+// qui partage un cache entre tous les joueurs. En cas de panne du relais, on interroge la source
+// directement (et on n'essaie plus le relais pendant cette visite).
+const PROXY = typeof location !== 'undefined' && location.hostname === 'goalzz.pages.dev' ? '/api/fetch?u=' : null;
+let proxyDown = false;
+
+export async function defaultGetJson(url, opts = {}) {
+  if (PROXY && !proxyDown) {
+    try {
+      return await getJsonDirect(PROXY + encodeURIComponent(url), opts);
+    } catch (err) {
+      // Erreur de la source elle-même (ex. 404) : inutile de réessayer en direct.
+      if (err instanceof HttpError && err.status < 500 && err.status !== 403) throw new HttpError(err.status, url);
+      proxyDown = true;
+    }
+  }
+  return getJsonDirect(url, opts);
 }
 
 export class HttpError extends Error {

@@ -24,11 +24,15 @@ export const LOSS_RR = 15;
 export const winRR = (odds) => Math.max(12, Math.min(40, Math.round(10 + 10 * (odds - 1))));
 
 // RR d'un joueur humain, recalculés à partir de ses paris réglés (dans l'ordre).
+// Les paris les plus anciens peuvent avoir été résumés (sauvegarde en ligne allégée) :
+// player.rrBase = RR atteints au moment player.rrBaseAt, on repart de là.
 export function playerRR(playerId, s) {
+  const p = s.players?.[playerId];
+  const since = p?.rrBaseAt || 0;
   const settled = Object.values(s.bets)
-    .filter((b) => b.playerId === playerId && (b.status === 'won' || b.status === 'lost'))
+    .filter((b) => b.playerId === playerId && (b.status === 'won' || b.status === 'lost') && (b.settledAt || 0) > since)
     .sort((a, b) => (a.settledAt || 0) - (b.settledAt || 0));
-  let rr = 0;
+  let rr = p?.rrBase || 0;
   for (const b of settled) rr = Math.max(0, rr + (b.status === 'won' ? winRR(b.finalOdds || b.odds) : -LOSS_RR));
   return rr;
 }
