@@ -782,7 +782,10 @@ input::placeholder { color: var(--placeholder); }
 .seo-intro p + p { margin-top: 10px; }
 
 /* ---------- Accueil (nouveaux visiteurs) ---------- */
-.landing { position: relative; width: 100%; max-width: 1040px; display: grid; gap: 28px; align-items: center; }
+.landing { position: relative; width: 100%; max-width: 1040px; display: grid; gap: 24px; align-items: start; grid-template-areas: "hero" "card" "features"; }
+.landing-hero { grid-area: hero; }
+.landing .features { grid-area: features; }
+.landing .onboarding-card { grid-area: card; }
 .landing-hero { display: grid; gap: 16px; text-align: center; }
 .landing-hero .brand-big { font-size: 52px; }
 .landing-hero .brand-big svg { width: 44px; height: 44px; }
@@ -808,7 +811,7 @@ input::placeholder { color: var(--placeholder); }
 .legal-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
 .legal-links a:hover { color: var(--text); }
 @media (min-width: 900px) {
-  .landing { grid-template-columns: 1.15fr 1fr; gap: 48px; }
+  .landing { grid-template-columns: 1.15fr 1fr; gap: 20px 48px; grid-template-areas: "hero card" "features card"; align-items: center; }
   .landing-hero { text-align: left; }
   .landing-hero .brand-big, .landing-ladder { justify-content: flex-start; }
   .landing-title { font-size: 64px; }

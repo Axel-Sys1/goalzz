@@ -27,14 +27,15 @@ export function renderOnboarding(s) {
         <div class="landing-ladder" aria-label="Les rangs, de Fer à Radiant">
           ${ladder.map((r, i) => `<span style="animation-delay:${0.15 + i * 0.07}s">${rankEmblem(r)}</span>`).join('')}
         </div>
-        <ul class="features">
+      </section>
+
+      <ul class="features">
           ${FEATURES.map((f) => `
             <li>
               <span class="feature-icon">${icons[f.icon]}</span>
               <span><strong>${f.title}</strong><span class="muted">${f.text}</span></span>
             </li>`).join('')}
-        </ul>
-      </section>
+      </ul>
 
       <section class="onboarding-card">
         ${inviteBanner()}
