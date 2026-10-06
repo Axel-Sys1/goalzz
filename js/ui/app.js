@@ -103,12 +103,27 @@ function restoreFocus(f) {
   try { if (f.sel && f.sel[0] != null) el.setSelectionRange(f.sel[0], f.sel[1]); } catch { /* ignoré */ }
 }
 
+// Un rafraîchissement (ex. nouveaux matchs) ne doit pas effacer ce que l'utilisateur est en train de taper.
+function captureInputs() {
+  const values = {};
+  root.querySelectorAll('input[id]').forEach((el) => { if (el.value) values[el.id] = el.value; });
+  return values;
+}
+
+function restoreInputs(values) {
+  for (const [id, v] of Object.entries(values)) {
+    const el = document.getElementById(id);
+    if (el && !el.value) el.value = v;
+  }
+}
+
 // Liste des matchs dont les paris sont fermés : si elle change, on redessine.
 const liveSignature = (s) =>
   Object.values(s.matches).filter((m) => matchStatus(m) !== 'upcoming').map((m) => m.id).join(',');
 
 export function render() {
   const focus = captureFocus();
+  const typed = captureInputs();
   const s = getState();
   const p = currentPlayer(s);
 
@@ -116,6 +131,7 @@ export function render() {
     shellMounted = false;
     lastRouteId = null;
     root.innerHTML = renderOnboarding(s);
+    restoreInputs(typed);
     restoreFocus(focus);
     return;
   }
@@ -140,6 +156,7 @@ export function render() {
     lastRouteId = route.id;
   }
   liveSig = liveSignature(s);
+  restoreInputs(typed);
   restoreFocus(focus);
   updateClocks();
   processInbox(p);

@@ -10,7 +10,7 @@ import { confirmDialog } from './dialog.js';
 import { refreshSlipNumbers } from './screens/slip.js';
 import { ui } from './uiState.js';
 import { CONFIG } from '../config.js';
-import { cloud, sendLoginLink, signOutCloud } from '../services/cloud.js';
+import { cloud, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
 
 const actions = {
   login: (el) => login(el.dataset.id),
@@ -19,7 +19,12 @@ const actions = {
 
   'claim-bonus': () => claimBonus(),
 
-  'cloud-retry': () => { cloud.linkSentTo = null; render(); },
+  'cloud-mode': (el) => { cloud.mode = el.dataset.mode === 'signup' ? 'signup' : 'login'; render(); },
+  'cloud-google': () => signInWithGoogle(),
+  'cloud-reset': async () => {
+    const email = await resetPassword(document.getElementById('email-input')?.value);
+    toast(`Si un compte existe pour ${email}, un email pour changer ton mot de passe vient de partir. Pense aux spams.`, 'info');
+  },
   'cloud-logout': async () => {
     const ok = await confirmDialog({
       title: 'Se déconnecter ?',
@@ -93,15 +98,18 @@ const actions = {
 
 const forms = {
   register: (data) => register(data.get('pseudo')),
-  'cloud-login': async (data, form) => {
+  'cloud-auth': async (data, form) => {
     const btn = form.querySelector('button[type="submit"]');
-    if (btn) { btn.disabled = true; btn.textContent = 'Envoi…'; }
+    const label = btn?.textContent;
+    if (btn) { btn.disabled = true; btn.textContent = 'Connexion…'; }
     try {
-      await sendLoginLink(data.get('email'));
+      await signInWithEmail(data.get('email'), data.get('password'), cloud.mode);
+      toast(cloud.mode === 'signup' ? 'Compte créé ! Ta partie est sauvegardée en ligne.' : 'Connecté ! Ta partie est récupérée.', 'success');
     } finally {
-      if (btn && btn.isConnected) { btn.disabled = false; btn.textContent = 'Recevoir le lien'; }
+      if (btn && btn.isConnected) { btn.disabled = false; btn.textContent = label; }
     }
   },
+
   'league-create': (data, form) => {
     const code = createLeague(data.get('name'));
     form.reset();

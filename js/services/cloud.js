@@ -1,5 +1,6 @@
-// Compte en ligne, facultatif : connexion par un lien reçu par email (sans mot de passe) et
+// Compte en ligne, facultatif : connexion par email + mot de passe (ou compte Google) et
 // sauvegarde de la partie dans Firebase, pour la retrouver sur un autre appareil.
+// Pas de connexion par lien email : le plan gratuit de Firebase n'en envoie que 5 par jour.
 // Inactif tant que CONFIG.FIREBASE n'est pas rempli : l'appli reste alors 100 % locale.
 //
 // Stockage : un document Firestore par compte, users/<uid> = { data: <JSON>, savedAt }.
@@ -17,7 +18,7 @@ export const cloud = {
   enabled: !!CONFIG.FIREBASE?.apiKey,
   ready: false,       // l'état de connexion est connu
   user: null,         // { uid, email } une fois connecté
-  linkSentTo: null,   // email auquel le dernier lien a été envoyé
+  mode: 'login',      // formulaire : 'login' (se connecter) ou 'signup' (créer un compte)
 };
 
 let fb = null;
@@ -112,26 +113,61 @@ async function push() {
 
 const ERRORS = {
   'auth/invalid-email': 'Adresse email invalide.',
-  'auth/quota-exceeded': 'Trop de demandes de connexion aujourd\'hui. Réessaie plus tard.',
+  'auth/invalid-credential': 'Email ou mot de passe incorrect.',
+  'auth/wrong-password': 'Email ou mot de passe incorrect.',
+  'auth/user-not-found': 'Email ou mot de passe incorrect.',
+  'auth/email-already-in-use': 'Un compte existe déjà avec cet email : connecte-toi.',
+  'auth/weak-password': 'Mot de passe trop court : 6 caractères minimum.',
+  'auth/missing-password': 'Entre ton mot de passe.',
   'auth/too-many-requests': 'Trop de tentatives. Patiente quelques minutes.',
   'auth/network-request-failed': 'Pas de connexion internet.',
-  'auth/invalid-action-code': 'Ce lien de connexion a expiré ou a déjà servi. Demandes-en un nouveau.',
-  'auth/expired-action-code': 'Ce lien de connexion a expiré. Demandes-en un nouveau.',
+  'auth/popup-blocked': 'Ton navigateur a bloqué la fenêtre Google. Autorise les pop-ups et réessaie.',
+  'auth/quota-exceeded': 'Trop de demandes aujourd\'hui. Réessaie demain.',
+  'auth/invalid-action-code': 'Ce lien a expiré ou a déjà servi.',
+  'auth/expired-action-code': 'Ce lien a expiré.',
 };
+const SILENT = new Set(['auth/popup-closed-by-user', 'auth/cancelled-popup-request']);
 const friendly = (err) => new Error(ERRORS[err?.code] || 'Connexion impossible pour le moment. Réessaie plus tard.');
 
-export async function sendLoginLink(rawEmail) {
-  const email = String(rawEmail || '').trim();
+function checkEmail(raw) {
+  const email = String(raw || '').trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('Adresse email invalide.');
+  return email;
+}
+
+// mode 'login' : compte existant · 'signup' : nouveau compte.
+export async function signInWithEmail(rawEmail, password, mode = 'login') {
+  const email = checkEmail(rawEmail);
+  if (mode === 'signup' && String(password || '').length < 6) throw new Error('Mot de passe trop court : 6 caractères minimum.');
   const { auth, A } = await sdk();
   try {
-    await A.sendSignInLinkToEmail(auth, email, { url: location.origin + location.pathname, handleCodeInApp: true });
+    if (mode === 'signup') await A.createUserWithEmailAndPassword(auth, email, password);
+    else await A.signInWithEmailAndPassword(auth, email, password);
   } catch (err) {
     throw friendly(err);
   }
-  try { localStorage.setItem(EMAIL_KEY, email); } catch { /* ignoré */ }
-  cloud.linkSentTo = email;
-  emit();
+}
+
+export async function signInWithGoogle() {
+  const { auth, A } = await sdk();
+  try {
+    await A.signInWithPopup(auth, new A.GoogleAuthProvider());
+  } catch (err) {
+    if (SILENT.has(err?.code)) return;
+    throw friendly(err);
+  }
+}
+
+// Mot de passe oublié : Firebase envoie un email de réinitialisation (quota limité sur le plan gratuit).
+export async function resetPassword(rawEmail) {
+  const email = checkEmail(rawEmail);
+  const { auth, A } = await sdk();
+  try {
+    await A.sendPasswordResetEmail(auth, email, { url: location.origin + location.pathname });
+  } catch (err) {
+    throw friendly(err);
+  }
+  return email;
 }
 
 export async function signOutCloud() {
@@ -157,7 +193,7 @@ export async function initCloud({ notify } = {}) {
   window.addEventListener('pagehide', push);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') push(); });
 
-  // Retour depuis le lien reçu par email.
+  // Anciens liens de connexion envoyés par email (avant le passage au mot de passe).
   if (A.isSignInWithEmailLink(auth, location.href)) {
     let email = null;
     try { email = localStorage.getItem(EMAIL_KEY); } catch { /* ignoré */ }
@@ -177,7 +213,6 @@ export async function initCloud({ notify } = {}) {
   A.onAuthStateChanged(auth, async (user) => {
     cloud.user = user ? { uid: user.uid, email: user.email } : null;
     cloud.ready = true;
-    cloud.linkSentTo = null;
     if (user) {
       try { await pull(cloud.user); } catch (err) { console.warn('Goalz : récupération de la partie impossible', err); }
     }
