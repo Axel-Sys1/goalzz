@@ -4,6 +4,7 @@ import { myLeagues } from '../../services/leagues.js';
 import { TIERS, RADIANT, RR_PER_DIVISION, LOSS_RR, RADIANT_SPOTS, rankOf, playerRR } from '../../services/ranks.js';
 import { cloud, divisionRows, loadDivision } from '../../services/cloud.js';
 import { renderAccountCard } from './account.js';
+import { renamePanel } from './profile.js';
 import { coin, icons, rankEmblem } from '../icons.js';
 import { ui } from '../uiState.js';
 
@@ -134,6 +135,7 @@ function divisionView(s, p) {
   const me = rows[pos - 1] || { rank: myRank };
 
   return `
+    ${renamePanel(p)}
     ${myRankCard(me, pos || 1, rows.length || 1, myRank.label)}
     ${ladder()}
     <div class="section-row">

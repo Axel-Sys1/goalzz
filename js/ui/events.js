@@ -1,6 +1,6 @@
 // Délégation d'événements : les boutons portent data-action, les formulaires data-form.
 import { resetAll, update } from '../store.js';
-import { claimBonus, login, logout, register } from '../services/players.js';
+import { claimBonus, currentPlayer, login, logout, register, renamePlayer } from '../services/players.js';
 import { clearSlip, placeSlip, quickStake, removeSelection, setSlipMode, setStake, toggleSelection } from '../services/bets.js';
 import { fastForward, refreshReal } from '../services/matches.js';
 import { createLeague, joinLeague, leaveLeague } from '../services/leagues.js';
@@ -22,6 +22,7 @@ const actions = {
 
   'claim-bonus': () => claimBonus(),
 
+  'profile-tab': (el) => { ui.profileTab = el.dataset.tab === 'settings' ? 'settings' : 'stats'; render(); },
   'cloud-mode': (el) => { cloud.mode = el.dataset.mode === 'signup' ? 'signup' : 'login'; render(); },
   'cloud-google': () => signInWithGoogle(),
   'cloud-reset': async () => {
@@ -126,6 +127,23 @@ const actions = {
 
 const forms = {
   register: (data) => register(data.get('pseudo')),
+  rename: async (data, form) => {
+    const free = cloud.pseudoConflict === currentPlayer()?.pseudo;
+    const pseudo = String(data.get('pseudo') || '').trim();
+    if (!free) {
+      const ok = await confirmDialog({
+        title: 'Changer de pseudo ?',
+        message: `Ton pseudo deviendra « ${pseudo} » pour ${CONFIG.RENAME_COST.toLocaleString('fr-FR')} Goalz.`,
+        confirmLabel: 'Payer et changer',
+      });
+      if (!ok) return;
+    }
+    await renamePlayer(pseudo, { free });
+    cloud.pseudoConflict = null;
+    form.reset();
+    render();
+    toast(free ? 'Pseudo changé !' : `Pseudo changé (−${CONFIG.RENAME_COST.toLocaleString('fr-FR')} Goalz)`, 'success');
+  },
   'cloud-auth': async (data, form) => {
     const btn = form.querySelector('button[type="submit"]');
     const label = btn?.textContent;

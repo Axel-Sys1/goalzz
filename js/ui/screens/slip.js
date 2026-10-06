@@ -1,3 +1,4 @@
+import { CONFIG } from '../../config.js';
 import { getState } from '../../store.js';
 import { escapeHtml, fmt, fmtOdds } from '../../util.js';
 import { potentialGain, slipCheck, COMBO_KEY, COMBO_MIN } from '../../services/bets.js';
@@ -61,9 +62,7 @@ export function renderSlip(s, p, { context = 'page' } = {}) {
               ${coin('coin coin-sm')}
             </label>
             <div class="quick">
-              <button type="button" data-action="slip-quick" data-match="${escapeHtml(m.id)}" data-amount="10">+10</button>
-              <button type="button" data-action="slip-quick" data-match="${escapeHtml(m.id)}" data-amount="50">+50</button>
-              <button type="button" data-action="slip-quick" data-match="${escapeHtml(m.id)}" data-amount="100">+100</button>
+              ${CONFIG.QUICK_STAKES.map((a) => `<button type="button" data-action="slip-quick" data-match="${escapeHtml(m.id)}" data-amount="${a}">+${a}</button>`).join('')}
               <button type="button" data-action="slip-quick" data-match="${escapeHtml(m.id)}" data-amount="max">Max</button>
             </div>
           </div>
@@ -100,7 +99,7 @@ function comboBox(context, odds, stake) {
           ${coin('coin coin-sm')}
         </label>
         <div class="quick">
-          ${[10, 50, 100].map((a) => `<button type="button" data-action="slip-quick" data-match="${COMBO_KEY}" data-amount="${a}">+${a}</button>`).join('')}
+          ${CONFIG.QUICK_STAKES.map((a) => `<button type="button" data-action="slip-quick" data-match="${COMBO_KEY}" data-amount="${a}">+${a}</button>`).join('')}
           <button type="button" data-action="slip-quick" data-match="${COMBO_KEY}" data-amount="max">Max</button>
         </div>
       </div>

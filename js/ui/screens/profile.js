@@ -1,11 +1,16 @@
+import { CONFIG } from '../../config.js';
 import { escapeHtml, fmt, fmtOdds } from '../../util.js';
 import { BADGES } from '../../services/badges.js';
 import { coin, icons } from '../icons.js';
 import { renderAccountCard } from './account.js';
+import { cloud } from '../../services/cloud.js';
+import { ui } from '../uiState.js';
+
+const pseudoTaken = (p) => !!cloud.pseudoConflict && cloud.pseudoConflict === p.pseudo;
 
 export function renderProfile(s, p) {
-  const st = p.stats;
-  const unlocked = BADGES.filter((b) => p.badges[b.id]).length;
+  if (pseudoTaken(p)) ui.profileTab = 'settings';
+  const tab = ui.profileTab === 'settings' ? 'settings' : 'stats';
   const since = new Date(p.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 
   return `
@@ -18,7 +23,20 @@ export function renderProfile(s, p) {
       <div class="profile-balance">${fmt(p.balance)} ${coin()}</div>
     </section>
 
-    ${renderAccountCard()}
+    <div class="tabs" role="tablist">
+      <button class="tab ${tab === 'stats' ? 'active' : ''}" data-action="profile-tab" data-tab="stats" role="tab" aria-selected="${tab === 'stats'}" type="button">Profil</button>
+      <button class="tab ${tab === 'settings' ? 'active' : ''}" data-action="profile-tab" data-tab="settings" role="tab" aria-selected="${tab === 'settings'}" type="button">Réglages</button>
+    </div>
+
+    ${tab === 'settings' ? settingsView(p) : statsView(p)}
+  `;
+}
+
+function statsView(p) {
+  const st = p.stats;
+  const unlocked = BADGES.filter((b) => p.badges[b.id]).length;
+  return `
+    ${cloud.user ? '' : renderAccountCard()}
 
     <div class="stat-row stat-row-4">
       <div class="stat"><span class="muted">Paris</span><strong>${st.betsPlaced}</strong></div>
@@ -34,7 +52,7 @@ export function renderProfile(s, p) {
     <div class="badge-grid">
       ${BADGES.map((b) => `
         <div class="badge ${p.badges[b.id] ? 'unlocked' : 'locked'}">
-          <span class="badge-icon">${icons[b.icon] || ""}</span>
+          <span class="badge-icon">${icons[b.icon] || ''}</span>
           <strong>${escapeHtml(b.name)}</strong>
           <span class="muted">${escapeHtml(b.desc)}</span>
         </div>`).join('')}
@@ -47,11 +65,51 @@ export function renderProfile(s, p) {
         contre de l'argent, des lots ou quoi que ce soit d'autre. Les « matchs éclair » sont
         fictifs ; les « vrais matchs » suivent les résultats officiels.
       </p>
-    </section>
+    </section>`;
+}
 
-    <div class="profile-actions">
-      <button class="btn btn-ghost" data-action="logout" type="button">Changer de joueur</button>
-      <button class="link-btn danger" data-action="reset-app" type="button">Réinitialiser l'appli</button>
-    </div>
-  `;
+function settingsView(p) {
+  return `
+    ${pseudoCard(p)}
+
+    <h2 class="section-title">Compte</h2>
+    ${renderAccountCard()}
+
+    <h2 class="section-title">Appareil</h2>
+    <section class="card settings-list">
+      <div class="settings-row">
+        <div class="grow"><strong>Changer de joueur</strong><span class="muted">Revenir à l'écran d'accueil pour jouer avec un autre profil.</span></div>
+        <button class="btn btn-ghost" data-action="logout" type="button">Changer</button>
+      </div>
+      <div class="settings-row">
+        <div class="grow"><strong>Réinitialiser l'appli</strong><span class="muted">Efface tous les joueurs, paris et ligues de cet appareil.</span></div>
+        <button class="link-btn danger" data-action="reset-app" type="button">Tout effacer</button>
+      </div>
+    </section>`;
+}
+
+// Changement de pseudo : payant, sauf si un autre compte a déjà réservé le pseudo actuel.
+function pseudoCard(p) {
+  const taken = pseudoTaken(p);
+  const cost = CONFIG.RENAME_COST;
+  const short = !taken && p.balance < cost;
+  return `
+    <form class="card rename-card ${taken ? 'is-conflict' : ''}" data-form="rename" autocomplete="off">
+      <strong>${taken ? `Le pseudo « ${escapeHtml(p.pseudo)} » est déjà pris` : 'Changer de pseudo'}</strong>
+      <span class="muted">${taken
+        ? 'Un autre joueur l\'utilise déjà. Choisis-en un nouveau (gratuit) pour apparaître dans le classement.'
+        : `Ton pseudo doit être unique dans tout le jeu. Le changer coûte ${fmt(cost)} Goalz.`}</span>
+      <div class="input-row">
+        <input id="rename-input" name="pseudo" maxlength="16" placeholder="Nouveau pseudo" required ${short ? 'disabled' : ''}>
+        <button class="btn btn-primary" type="submit" ${short ? 'disabled' : ''}>
+          ${taken ? 'Valider' : `${fmt(cost)} ${coin('coin coin-sm')}`}
+        </button>
+      </div>
+      ${short ? `<span class="warn">Il te manque ${fmt(cost - p.balance)} Goalz.</span>` : ''}
+    </form>`;
+}
+
+// Encadré affiché ailleurs (Rangs) quand le pseudo est pris par un autre compte.
+export function renamePanel(p) {
+  return pseudoTaken(p) ? pseudoCard(p) : '';
 }

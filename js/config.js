@@ -1,10 +1,12 @@
 // Réglages du jeu. Tout ce qui touche à l'équilibrage est ici.
 export const CONFIG = {
   STORAGE_KEY: 'goalz:v1',
-  STARTING_BALANCE: 1000,
-  DAILY_BONUS: 100,
+  STARTING_BALANCE: 100,  // monnaie rare : on démarre petit et on gagne en pariant juste
+  DAILY_BONUS: 50,
   MIN_STAKE: 1,
-  DEFAULT_STAKE: 50,
+  DEFAULT_STAKE: 10,
+  QUICK_STAKES: [5, 10, 25], // boutons de mise rapide du panier (+ Max)
+  RENAME_COST: 1000,       // prix d'un changement de pseudo (gratuit si le pseudo est déjà pris)
   UPCOMING_TARGET: 18,   // matchs fictifs "à venir" maintenus dans la liste
   TICK_MS: 3000,         // fréquence à laquelle on vérifie si un provider doit être rappelé
   FAST_FORWARD_MIN: 15,  // bouton "avancer le temps" (matchs fictifs uniquement)

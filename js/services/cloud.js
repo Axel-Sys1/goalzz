@@ -6,6 +6,8 @@
 // Stockage : un document Firestore par compte, users/<uid> = { data: <JSON>, savedAt }, lisible
 // par son seul propriétaire ; et une fiche publique leaderboard/<uid> = { pseudo, rr, balance,
 // updatedAt }, lisible par tous les joueurs connectés, pour le classement par division.
+// Pseudos uniques : pseudos/<pseudo en minuscules> = { uid, pseudo } réserve un pseudo pour un
+// compte ; les règles Firestore refusent une fiche de classement dont le pseudo est à quelqu'un d'autre.
 import { CONFIG } from '../config.js';
 import { emit, getState, onSave, replaceState, resetAll } from '../store.js';
 import { playerRR, RR_PER_DIVISION, TIERS, IMMORTAL_RR, RADIANT_SPOTS } from './ranks.js';
@@ -21,7 +23,11 @@ export const cloud = {
   user: null,         // { uid, email } une fois connecté
   mode: 'login',      // formulaire : 'login' (se connecter) ou 'signup' (créer un compte)
   division: null,     // { index, rows: [{ uid, pseudo, rr, balance }], radiant: Set<uid>, at, loading, error }
+  pseudoConflict: null, // pseudo du joueur actuel déjà réservé par un autre compte
 };
+
+const pseudoKey = (pseudo) => String(pseudo).trim().toLowerCase();
+const ownedPseudos = new Set(); // pseudos (clés) déjà vérifiés comme appartenant à ce compte
 
 const DIVISION_TTL_MS = 60_000;
 const LAST_DIVISION = TIERS.length * 3 - 1;
@@ -126,9 +132,44 @@ function myEntry(s = getState()) {
   return { uid: cloud.user.uid, pseudo: p.pseudo, rr: playerRR(p.id, s), balance: Math.round(p.balance) };
 }
 
+// Le pseudo est-il libre (ou déjà à ce compte) ? Sans service en ligne, on ne peut pas vérifier.
+export async function isPseudoAvailable(pseudo) {
+  if (!cloud.enabled) return true;
+  const { F, db } = await sdk();
+  const snap = await F.getDoc(F.doc(db, 'pseudos', pseudoKey(pseudo)));
+  return !snap.exists() || snap.data().uid === cloud.user?.uid;
+}
+
+// Réserve le pseudo pour ce compte. Renvoie false s'il appartient déjà à un autre joueur.
+export async function claimPseudo(pseudo) {
+  if (!cloud.user || !fb) return true;
+  const key = pseudoKey(pseudo);
+  if (ownedPseudos.has(key)) return true;
+  const ref = fb.F.doc(fb.db, 'pseudos', key);
+  const snap = await fb.F.getDoc(ref);
+  if (snap.exists()) {
+    if (snap.data().uid !== cloud.user.uid) return false;
+  } else {
+    try {
+      await fb.F.setDoc(ref, { uid: cloud.user.uid, pseudo: String(pseudo).trim() });
+    } catch (err) {
+      // Réservé par quelqu'un d'autre entre-temps (les règles refusent d'écraser).
+      const again = await fb.F.getDoc(ref);
+      if (!again.exists() || again.data().uid !== cloud.user.uid) return false;
+    }
+  }
+  ownedPseudos.add(key);
+  return true;
+}
+
 async function publishRank() {
   const me = myEntry();
   if (!me || !fb) return;
+  let mine = false;
+  try { mine = await claimPseudo(me.pseudo); } catch (err) { console.warn('Goalz : vérification du pseudo impossible', err); return; }
+  const conflict = mine ? null : me.pseudo;
+  if (conflict !== cloud.pseudoConflict) { cloud.pseudoConflict = conflict; emit(); }
+  if (!mine) return;
   const key = JSON.stringify(me);
   if (key === lastBoard) return;
   lastBoard = key;
@@ -244,6 +285,8 @@ export async function signOutCloud() {
   await fb.A.signOut(fb.auth);
   cloud.user = null; // avant resetAll : la partie vide ne doit pas écraser celle du compte
   cloud.division = null;
+  cloud.pseudoConflict = null;
+  ownedPseudos.clear();
   lastBoard = '';
   resetAll(); // la partie reste sur le compte ; on ne la laisse pas sur cet appareil
 }
