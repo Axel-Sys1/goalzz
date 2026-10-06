@@ -12,4 +12,14 @@ export const CONFIG = {
   REAL_DAYS_AHEAD: 7,    // fenêtre des vrais matchs
   REAL_FINISHED_KEEP_H: 36, // vrais matchs terminés gardés pour l'affichage (hors paris)
   REAL_STALE_H: 8,       // vrai match jamais terminé après ce délai et sans pari : supprimé
+
+  // Compte en ligne (connexion par email + sauvegarde de la partie). Coller ici la config
+  // « Web app » du projet Firebase ; laissé vide, l'appli reste 100 % locale.
+  // Ces valeurs sont publiques par nature : la protection vient des règles Firestore.
+  FIREBASE: {
+    apiKey: 'AIzaSyA8NTHTF1M42L6p9mbzwrj0e8XEglFtufM',
+    authDomain: 'goalzz-5354f.firebaseapp.com',
+    projectId: 'goalzz-5354f',
+    appId: '1:666078573502:web:f2e1b35f49ed08b4987fef',
+  },
 };

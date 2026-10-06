@@ -2,6 +2,7 @@ import { CONFIG } from '../../config.js';
 import { escapeHtml, fmt } from '../../util.js';
 import { listProfiles } from '../../services/players.js';
 import { coin, icons } from '../icons.js';
+import { renderAccountCard } from './account.js';
 
 export function renderOnboarding(s) {
   const profiles = listProfiles(s);
@@ -32,6 +33,8 @@ export function renderOnboarding(s) {
               <span class="amount">${fmt(p.balance)} ${coin('coin coin-sm')}</span>
             </button>`).join('')}
         </div>` : ''}
+
+      ${renderAccountCard({ compact: true })}
 
       <p class="fineprint">
         Les Goalz sont une monnaie 100 % virtuelle : ils ne s'achètent pas et ne s'échangent

@@ -4,6 +4,7 @@
 import { CONFIG } from './config.js';
 
 const listeners = new Set();
+const saveListeners = new Set();
 
 function initialState() {
   return {
@@ -17,6 +18,7 @@ function initialState() {
     botsSimAt: null,      // dernière simulation des bots (heure réelle)
     clockOffset: 0,       // décalage de l'horloge des matchs fictifs (bouton "avancer le temps")
     prefs: { mode: 'real' }, // 'real' : vrais matchs · 'fake' : matchs éclair fictifs
+    cloudUid: null,       // compte en ligne auquel cet appareil est relié (services/cloud.js)
   };
 }
 
@@ -53,6 +55,20 @@ let state = load();
 
 function save() {
   try { localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(state)); } catch { /* ignoré */ }
+  saveListeners.forEach((fn) => fn(state));
+}
+
+// Prévient à chaque sauvegarde, même silencieuse (utilisé par la sauvegarde en ligne).
+export function onSave(fn) {
+  saveListeners.add(fn);
+  return () => saveListeners.delete(fn);
+}
+
+// Remplace tout l'état (ex. partie récupérée depuis le compte en ligne).
+export function replaceState(next) {
+  state = migrate({ ...initialState(), ...next });
+  save();
+  emit();
 }
 
 export const getState = () => state;

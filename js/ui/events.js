@@ -10,6 +10,7 @@ import { confirmDialog } from './dialog.js';
 import { refreshSlipNumbers } from './screens/slip.js';
 import { ui } from './uiState.js';
 import { CONFIG } from '../config.js';
+import { cloud, sendLoginLink, signOutCloud } from '../services/cloud.js';
 
 const actions = {
   login: (el) => login(el.dataset.id),
@@ -17,6 +18,19 @@ const actions = {
   go: (el) => go(el.dataset.route),
 
   'claim-bonus': () => claimBonus(),
+
+  'cloud-retry': () => { cloud.linkSentTo = null; render(); },
+  'cloud-logout': async () => {
+    const ok = await confirmDialog({
+      title: 'Se déconnecter ?',
+      message: 'Ta partie reste sauvegardée sur ton compte. Elle sera retirée de cet appareil.',
+      confirmLabel: 'Se déconnecter',
+    });
+    if (!ok) return;
+    await signOutCloud();
+    location.hash = '';
+    location.reload();
+  },
 
   pick: (el) => {
     toggleSelection(el.dataset.match, el.dataset.outcome);
@@ -79,6 +93,15 @@ const actions = {
 
 const forms = {
   register: (data) => register(data.get('pseudo')),
+  'cloud-login': async (data, form) => {
+    const btn = form.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'Envoi…'; }
+    try {
+      await sendLoginLink(data.get('email'));
+    } finally {
+      if (btn && btn.isConnected) { btn.disabled = false; btn.textContent = 'Recevoir le lien'; }
+    }
+  },
   'league-create': (data, form) => {
     const code = createLeague(data.get('name'));
     form.reset();

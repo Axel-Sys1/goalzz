@@ -1,6 +1,7 @@
 import { escapeHtml, fmt, fmtOdds } from '../../util.js';
 import { BADGES } from '../../services/badges.js';
 import { coin } from '../icons.js';
+import { renderAccountCard } from './account.js';
 
 export function renderProfile(s, p) {
   const st = p.stats;
@@ -16,6 +17,8 @@ export function renderProfile(s, p) {
       </div>
       <div class="profile-balance">${fmt(p.balance)} ${coin()}</div>
     </section>
+
+    ${renderAccountCard()}
 
     <div class="stat-row stat-row-4">
       <div class="stat"><span class="muted">Paris</span><strong>${st.betsPlaced}</strong></div>

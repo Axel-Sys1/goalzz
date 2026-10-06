@@ -640,3 +640,12 @@ input::placeholder { color: #5b6778; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 .btn-danger { background: var(--red); color: #2a0006; }
 .btn-danger:hover { background: #ff7384; }
+
+/* Compte en ligne */
+.account-card { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; text-align: left; }
+.account-card > .grow { display: grid; gap: 2px; min-width: 0; }
+.account-card .muted { overflow-wrap: anywhere; }
+.account-form, .account-sent { display: grid; gap: 8px; }
+.account-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.account-row input { flex: 1 1 180px; min-width: 0; }
+.onboarding-card .account-card { margin: 16px 0 0; }
