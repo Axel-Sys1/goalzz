@@ -22,24 +22,26 @@ Puis ouvrir <http://localhost:5173>. En local, les vrais matchs sont lus **en di
 
 ## Version en ligne
 
-<https://claude.ai/artifact/QF2GimwS3nT8S3PyJDRtDi> (page Claude privée, à partager depuis son menu « Partager »).
+<https://goalzz.pages.dev> (Cloudflare Pages), copie sur <https://axel-sys1.github.io/goalzz/>.
 
-Une page Claude ne peut pas contacter d'autres sites : elle lit l'**instantané**
-`data/real-matches.json`, publié avec elle. L'appli choisit toute seule : sources en direct
-si elles répondent, instantané sinon.
+- Le site est servi depuis le dépôt GitHub **Axel-Sys1/goalzz** (branche `main`, sans étape
+  de build) : chaque `git push` le remet en ligne en une minute environ.
+- Publier depuis ce Mac : `./tools/deploy.sh "message"` (commit + push en HTTPS ; l'accès
+  GitHub est géré par GitHub CLI, `~/.local/bin/gh`, connecté au compte Axel-Sys1).
+- En ligne, les vrais matchs sont lus **en direct** chez ESPN / TheSportsDB ; l'instantané
+  `data/real-matches.json` ne sert que de secours si ces sources ne répondent pas.
 
-### Mise à jour automatique
+### Comptes (Firebase, projet `goalzz-5354f`)
 
-La tâche planifiée **« Goalz : mise à jour des vrais matchs »** (application Claude, section
-*Scheduled*) tourne chaque heure à h05, de 10 h à 2 h du matin :
+Connexion facultative (email + mot de passe ou Google) : sauvegarde de la partie
+(`users/<uid>`), classement par division (`leaderboard/<uid>`) et pseudos uniques
+(`pseudos/<pseudo>`). Les règles Firestore limitent chacun à ses propres documents.
 
-1. `python3 tools/update_snapshot.py` télécharge les matchs, cotes et résultats et réécrit
-   l'instantané ;
-2. la page en ligne est republiée au même lien.
+### Ancienne version claude.ai
 
-Elle tourne quand l'application Claude est ouverte sur ce Mac ; si elle était fermée, la
-mise à jour se fait à la réouverture. Pour mettre à jour à la main : même commande, puis
-republier la page.
+<https://claude.ai/artifact/QF2GimwS3nT8S3PyJDRtDi> lit uniquement l'instantané (une page
+Claude ne peut pas contacter d'autres sites). Sa tâche planifiée de mise à jour est en pause ;
+pour la rafraîchir à la main : `python3 tools/update_snapshot.py`, puis republier la page.
 
 `tools/update_snapshot.py` n'a besoin de rien d'installer : il exécute les providers
 JavaScript avec le moteur de macOS (`jsc`) et se charge lui-même du réseau. Chaque résultat
