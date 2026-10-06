@@ -1,7 +1,9 @@
 import { escapeHtml, fmt } from '../../util.js';
 import { globalRanking, leagueRanking } from '../../services/leaderboard.js';
 import { myLeagues } from '../../services/leagues.js';
-import { TIERS, RADIANT, RR_PER_DIVISION, LOSS_RR, RADIANT_SPOTS, rankOf } from '../../services/ranks.js';
+import { TIERS, RADIANT, RR_PER_DIVISION, LOSS_RR, RADIANT_SPOTS, rankOf, playerRR } from '../../services/ranks.js';
+import { cloud, divisionRows, loadDivision } from '../../services/cloud.js';
+import { renderAccountCard } from './account.js';
 import { coin, icons, rankEmblem } from '../icons.js';
 import { ui } from '../uiState.js';
 
@@ -28,7 +30,7 @@ function rankList(rows, meId) {
   </ol>`;
 }
 
-function myRankCard(me, pos, total) {
+function myRankCard(me, pos, total, where = null) {
   const r = me.rank;
   return `
     <section class="card my-rank-card" style="--rank-color:${r.color}">
@@ -39,7 +41,7 @@ function myRankCard(me, pos, total) {
         <div class="rr-bar"><span style="width:${Math.round(r.progress * 100)}%"></span></div>
         <span class="muted rr-text">
           ${r.top ? `${fmt(r.rr)} RR` : `${r.inDivision} / ${RR_PER_DIVISION} RR`}
-          · ${pos}<sup>${pos === 1 ? 'er' : 'e'}</sup> sur ${total}
+          · ${pos}<sup>${pos === 1 ? 'er' : 'e'}</sup> sur ${total}${where ? ` en ${escapeHtml(where)}` : ''}
         </span>
       </div>
     </section>`;
@@ -104,18 +106,65 @@ function leaguesView(s, p) {
   `;
 }
 
-export function renderRanking(s, p) {
+// Classement en ligne : les joueurs connectés qui sont dans la même division que toi.
+function divisionView(s, p) {
+  const myRR = playerRR(p.id, s);
+  const myRank = rankOf(myRR);
+
+  if (!cloud.enabled) return localView(s, p);
+  if (!cloud.ready) return '<div class="skeletons"><div class="skeleton"></div></div>';
+  if (!cloud.user) {
+    return `
+      <div class="card division-locked">
+        <strong>Vois les joueurs de ta division</strong>
+        <span class="muted">Connecte-toi pour te mesurer à tous les ${escapeHtml(myRank.label)} du jeu et voir qui est premier.</span>
+      </div>
+      ${renderAccountCard()}
+      ${localView(s, p)}`;
+  }
+
+  loadDivision(myRR);
+  const d = cloud.division;
+  const rows = divisionRows().map((r) => ({
+    id: r.uid, name: r.pseudo, rr: r.rr, balance: r.balance, isBot: false,
+    rank: rankOf(r.rr, { radiant: d?.radiant?.has(r.uid) }),
+  }));
+  const meId = cloud.user.uid;
+  const pos = rows.findIndex((r) => r.id === meId) + 1;
+  const me = rows[pos - 1] || { rank: myRank };
+
+  return `
+    ${myRankCard(me, pos || 1, rows.length || 1, myRank.label)}
+    ${ladder()}
+    <div class="section-row">
+      <h2 class="section-title">Division ${escapeHtml(myRank.label)}</h2>
+      <button class="link-btn" data-action="division-refresh" type="button">Actualiser</button>
+    </div>
+    ${d?.error ? `<div class="empty feed-error"><p class="muted">${escapeHtml(d.error)}</p></div>` : ''}
+    ${!rows.length && d?.loading ? '<div class="skeletons"><div class="skeleton"></div></div>' : ''}
+    ${rows.length ? rankList(rows, meId) : ''}
+    ${rows.length === 1 ? '<p class="muted division-note">Tu es seul dans cette division pour l\'instant. Les autres joueurs apparaîtront ici dès qu\'ils y arriveront.</p>' : ''}`;
+}
+
+// Sans compte en ligne : les joueurs de cet appareil.
+function localView(s, p) {
   const rows = globalRanking(s);
   const myPos = rows.findIndex((r) => r.id === p.id) + 1;
   return `
+    ${cloud.user ? '' : myRankCard(rows[myPos - 1], myPos, rows.length)}
+    ${cloud.user ? '' : ladder()}
+    <h2 class="section-title">Joueurs de cet appareil</h2>
+    ${rankList(rows, p.id)}`;
+}
+
+export function renderRanking(s, p) {
+  if (ui.rankTab !== 'leagues') ui.rankTab = 'division';
+  return `
     <h1 class="page-title">Rangs</h1>
     <div class="tabs" role="tablist">
-      <button class="tab ${ui.rankTab === 'global' ? 'active' : ''}" data-action="rank-tab" data-tab="global" role="tab" type="button">Général</button>
+      <button class="tab ${ui.rankTab === 'division' ? 'active' : ''}" data-action="rank-tab" data-tab="division" role="tab" type="button">Ma division</button>
       <button class="tab ${ui.rankTab === 'leagues' ? 'active' : ''}" data-action="rank-tab" data-tab="leagues" role="tab" type="button">Ligues privées</button>
     </div>
-    ${ui.rankTab === 'global' ? `
-      ${myRankCard(rows[myPos - 1], myPos, rows.length)}
-      ${ladder()}
-      ${rankList(rows, p.id)}` : leaguesView(s, p)}
+    ${ui.rankTab === 'division' ? divisionView(s, p) : leaguesView(s, p)}
   `;
 }

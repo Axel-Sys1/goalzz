@@ -16,7 +16,7 @@ export const RADIANT = { id: 'radiant', name: 'Radiant', color: '#fff2a8' };
 
 export const RR_PER_DIVISION = 100;
 const DIVISIONS = TIERS.length * 3;             // Fer 1 → Immortel 3
-const IMMORTAL_RR = (DIVISIONS - 3) * RR_PER_DIVISION;
+export const IMMORTAL_RR = (DIVISIONS - 3) * RR_PER_DIVISION;
 export const RADIANT_SPOTS = 3;                  // les 3 meilleurs Immortels sont Radiant
 export const LOSS_RR = 15;
 

@@ -3,11 +3,12 @@
 // Pas de connexion par lien email : le plan gratuit de Firebase n'en envoie que 5 par jour.
 // Inactif tant que CONFIG.FIREBASE n'est pas rempli : l'appli reste alors 100 % locale.
 //
-// Stockage : un document Firestore par compte, users/<uid> = { data: <JSON>, savedAt }.
-// Règles Firestore attendues (chacun ne lit et n'écrit que son propre document) :
-//   match /users/{uid} { allow read, write: if request.auth != null && request.auth.uid == uid; }
+// Stockage : un document Firestore par compte, users/<uid> = { data: <JSON>, savedAt }, lisible
+// par son seul propriétaire ; et une fiche publique leaderboard/<uid> = { pseudo, rr, balance,
+// updatedAt }, lisible par tous les joueurs connectés, pour le classement par division.
 import { CONFIG } from '../config.js';
 import { emit, getState, onSave, replaceState, resetAll } from '../store.js';
+import { playerRR, RR_PER_DIVISION, TIERS, IMMORTAL_RR, RADIANT_SPOTS } from './ranks.js';
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2';
 const EMAIL_KEY = 'goalz:emailForSignIn';
@@ -19,7 +20,13 @@ export const cloud = {
   ready: false,       // l'état de connexion est connu
   user: null,         // { uid, email } une fois connecté
   mode: 'login',      // formulaire : 'login' (se connecter) ou 'signup' (créer un compte)
+  division: null,     // { index, rows: [{ uid, pseudo, rr, balance }], radiant: Set<uid>, at, loading, error }
 };
+
+const DIVISION_TTL_MS = 60_000;
+const LAST_DIVISION = TIERS.length * 3 - 1;
+export const divisionIndex = (rr) => Math.min(LAST_DIVISION, Math.floor(rr / RR_PER_DIVISION));
+let lastBoard = '';
 
 let fb = null;
 let pushTimer = null;
@@ -109,6 +116,67 @@ async function push() {
     lastPushed = '';
     console.warn('Goalz : sauvegarde en ligne impossible', err);
   }
+  await publishRank();
+}
+
+// Fiche publique du joueur actuel de ce compte, pour le classement par division.
+function myEntry(s = getState()) {
+  const p = s.players[s.currentPlayerId];
+  if (!p || !cloud.user) return null;
+  return { uid: cloud.user.uid, pseudo: p.pseudo, rr: playerRR(p.id, s), balance: Math.round(p.balance) };
+}
+
+async function publishRank() {
+  const me = myEntry();
+  if (!me || !fb) return;
+  const key = JSON.stringify(me);
+  if (key === lastBoard) return;
+  lastBoard = key;
+  try {
+    await fb.F.setDoc(fb.F.doc(fb.db, 'leaderboard', me.uid),
+      { pseudo: me.pseudo, rr: me.rr, balance: me.balance, updatedAt: fb.F.serverTimestamp() });
+  } catch (err) {
+    lastBoard = '';
+    console.warn('Goalz : publication du rang impossible', err);
+  }
+}
+
+// Joueurs de la même division que `rr` (ex. tous les Or 2), du meilleur au moins bon.
+// Rechargé au plus une fois par minute, sauf `force`.
+export async function loadDivision(rr, { force = false } = {}) {
+  if (!cloud.user || !fb) return;
+  const index = divisionIndex(rr);
+  const d = cloud.division;
+  if (d && d.index === index && !force && (d.loading || Date.now() - d.at < DIVISION_TTL_MS)) return;
+  cloud.division = { index, rows: d?.index === index ? d.rows : [], radiant: d?.radiant || new Set(), at: Date.now(), loading: true, error: null };
+  const { F, db } = fb;
+  const col = F.collection(db, 'leaderboard');
+  const low = index * RR_PER_DIVISION;
+  const filters = [F.where('rr', '>=', low)];
+  if (index < LAST_DIVISION) filters.push(F.where('rr', '<', low + RR_PER_DIVISION));
+  try {
+    const [snap, top] = await Promise.all([
+      F.getDocs(F.query(col, ...filters, F.orderBy('rr', 'desc'), F.limit(100))),
+      // Radiant : les meilleurs Immortels de tout le jeu.
+      F.getDocs(F.query(col, F.where('rr', '>=', IMMORTAL_RR), F.orderBy('rr', 'desc'), F.limit(RADIANT_SPOTS))),
+    ]);
+    const rows = snap.docs.map((doc) => ({ uid: doc.id, ...doc.data() }));
+    cloud.division = { index, rows, radiant: new Set(top.docs.map((doc) => doc.id)), at: Date.now(), loading: false, error: null };
+  } catch (err) {
+    console.warn('Goalz : classement de division indisponible', err);
+    cloud.division = { ...cloud.division, loading: false, error: 'Classement indisponible pour le moment.' };
+  }
+  emit();
+}
+
+// Lignes de la division, avec le joueur actuel toujours à jour (même avant sa publication).
+export function divisionRows() {
+  const d = cloud.division;
+  const me = myEntry();
+  if (!d) return [];
+  let rows = d.rows.filter((r) => r.uid !== me?.uid);
+  if (me && divisionIndex(me.rr) === d.index) rows.push(me);
+  return rows.sort((a, b) => b.rr - a.rr || b.balance - a.balance || String(a.pseudo).localeCompare(String(b.pseudo)));
 }
 
 const ERRORS = {
@@ -175,6 +243,8 @@ export async function signOutCloud() {
   await push();
   await fb.A.signOut(fb.auth);
   cloud.user = null; // avant resetAll : la partie vide ne doit pas écraser celle du compte
+  cloud.division = null;
+  lastBoard = '';
   resetAll(); // la partie reste sur le compte ; on ne la laisse pas sur cet appareil
 }
 
@@ -186,6 +256,8 @@ export async function initCloud({ notify } = {}) {
     ({ auth, A } = await sdk());
   } catch (err) {
     console.warn('Goalz : service de compte injoignable', err);
+    cloud.enabled = false; // l'appli reste jouable, sans compte
+    emit();
     return;
   }
 

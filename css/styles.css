@@ -758,3 +758,7 @@ input::placeholder { color: var(--placeholder); }
 @keyframes gain-roll { 0% { transform: translateY(8px); opacity: 0.3; } 100% { transform: none; opacity: 1; } }
 
 .slip-head h2.bump { animation: nav-bump 0.45s var(--ease-back); }
+
+/* ---------- Classement par division ---------- */
+.division-locked { display: grid; gap: 4px; border-left: 3px solid var(--accent); }
+.division-note { font-size: 13px; text-align: center; }

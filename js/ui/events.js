@@ -12,7 +12,8 @@ import { confirmDialog } from './dialog.js';
 import { refreshSlipNumbers } from './screens/slip.js';
 import { ui } from './uiState.js';
 import { CONFIG } from '../config.js';
-import { cloud, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
+import { cloud, loadDivision, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
+import { playerRR } from '../services/ranks.js';
 
 const actions = {
   login: (el) => login(el.dataset.id),
@@ -91,6 +92,10 @@ const actions = {
   },
 
   'rank-tab': (el) => { ui.rankTab = el.dataset.tab; render(); },
+  'division-refresh': async () => {
+    const s = getState();
+    await loadDivision(playerRR(s.currentPlayerId, s), { force: true });
+  },
   'league-leave': async (el) => {
     const ok = await confirmDialog({ title: 'Quitter cette ligue ?', message: 'Tu pourras la rejoindre à nouveau avec son code.', confirmLabel: 'Quitter', danger: true });
     if (ok) leaveLeague(el.dataset.code);
