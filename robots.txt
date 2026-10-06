@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /tests/
+Disallow: /tools/
+Disallow: /publish/
+Disallow: /data/
+
+Sitemap: https://goalzz.pages.dev/sitemap.xml

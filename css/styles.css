@@ -775,3 +775,8 @@ input::placeholder { color: var(--placeholder); }
 .settings-row .grow { display: grid; gap: 2px; }
 .settings-row .muted { font-size: 13px; }
 .rename-card .btn .coin { width: 16px; height: 16px; }
+
+/* Texte d'accueil statique (moteurs de recherche, avant le chargement de l'appli) */
+.seo-intro { max-width: 640px; margin: 18vh auto 0; padding: 0 20px; text-align: center; color: var(--muted); }
+.seo-intro h1 { font: italic 800 40px/1 var(--display); text-transform: uppercase; color: var(--text); margin-bottom: 14px; }
+.seo-intro p + p { margin-top: 10px; }
