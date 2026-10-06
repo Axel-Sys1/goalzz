@@ -3,7 +3,7 @@ import { resetAll, update } from '../store.js';
 import { claimBonus, currentPlayer, login, logout, register, renamePlayer } from '../services/players.js';
 import { clearSlip, placeSlip, quickStake, removeSelection, setSlipMode, setStake, toggleSelection } from '../services/bets.js';
 import { fastForward, refreshReal } from '../services/matches.js';
-import { createLeague, joinLeague, leaveLeague } from '../services/leagues.js';
+import { createLeague, joinLeague, leaveLeague, noteLeagueCreated } from '../services/leagues.js';
 import { go, render } from './app.js';
 import { betStamp, flyToSlip, replay, toast } from './effects.js';
 import { getState } from '../store.js';
@@ -12,7 +12,7 @@ import { confirmDialog } from './dialog.js';
 import { refreshSlipNumbers } from './screens/slip.js';
 import { ui } from './uiState.js';
 import { CONFIG } from '../config.js';
-import { cloud, loadDivision, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
+import { cloud, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
 import { playerRR } from '../services/ranks.js';
 
 const actions = {
@@ -99,8 +99,11 @@ const actions = {
   },
   'league-leave': async (el) => {
     const ok = await confirmDialog({ title: 'Quitter cette ligue ?', message: 'Tu pourras la rejoindre à nouveau avec son code.', confirmLabel: 'Quitter', danger: true });
-    if (ok) leaveLeague(el.dataset.code);
+    if (!ok) return;
+    if (cloud.user) await leaveOnlineLeague(el.dataset.code);
+    else leaveLeague(el.dataset.code);
   },
+  'leagues-refresh': () => loadMyLeagues({ force: true }),
   'copy-code': async (el) => {
     const code = el.dataset.code;
     try {
@@ -156,13 +159,19 @@ const forms = {
     }
   },
 
-  'league-create': (data, form) => {
-    const code = createLeague(data.get('name'));
+  'league-create': async (data, form) => {
+    let code;
+    if (cloud.user) {
+      code = await createOnlineLeague(data.get('name'));
+      noteLeagueCreated();
+    } else {
+      code = createLeague(data.get('name'));
+    }
     form.reset();
     toast(`Ligue créée ! Code à partager : ${code}`, 'success');
   },
-  'league-join': (data, form) => {
-    const name = joinLeague(data.get('code'));
+  'league-join': async (data, form) => {
+    const name = cloud.user ? await joinOnlineLeague(data.get('code')) : joinLeague(data.get('code'));
     form.reset();
     toast(`Bienvenue dans « ${name} » !`, 'success');
   },

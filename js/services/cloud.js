@@ -6,11 +6,14 @@
 // Stockage : un document Firestore par compte, users/<uid> = { data: <JSON>, savedAt }, lisible
 // par son seul propriétaire ; et une fiche publique leaderboard/<uid> = { pseudo, rr, balance,
 // updatedAt }, lisible par tous les joueurs connectés, pour le classement par division.
+// Ligues privées en ligne : leagues/<CODE> = { code, name, ownerUid, members: [uid], createdAt } ;
+// chacun ne peut que s'y ajouter ou s'en retirer lui-même.
 // Pseudos uniques : pseudos/<pseudo en minuscules> = { uid, pseudo } réserve un pseudo pour un
 // compte ; les règles Firestore refusent une fiche de classement dont le pseudo est à quelqu'un d'autre.
 import { CONFIG } from '../config.js';
 import { emit, getState, onSave, replaceState, resetAll } from '../store.js';
 import { playerRR, RR_PER_DIVISION, TIERS, IMMORTAL_RR, RADIANT_SPOTS } from './ranks.js';
+import { leagueCode } from '../util.js';
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2';
 const EMAIL_KEY = 'goalz:emailForSignIn';
@@ -24,7 +27,11 @@ export const cloud = {
   mode: 'login',      // formulaire : 'login' (se connecter) ou 'signup' (créer un compte)
   division: null,     // { index, rows: [{ uid, pseudo, rr, balance }], radiant: Set<uid>, at, loading, error }
   pseudoConflict: null, // pseudo du joueur actuel déjà réservé par un autre compte
+  leagues: null,      // { list: [{ code, name, ownerUid, members, rows }], at, loading, error }
 };
+
+const LEAGUES_TTL_MS = 60_000;
+export const LEAGUE_MAX_MEMBERS = 50;
 
 const pseudoKey = (pseudo) => String(pseudo).trim().toLowerCase();
 const ownedPseudos = new Set(); // pseudos (clés) déjà vérifiés comme appartenant à ce compte
@@ -279,6 +286,96 @@ export async function resetPassword(rawEmail) {
   return email;
 }
 
+// ---------- Ligues privées en ligne ----------
+function leagueRef(code) { return fb.F.doc(fb.db, 'leagues', code); }
+
+function needAccount() {
+  if (!cloud.user || !fb) throw new Error('Connecte-toi pour créer ou rejoindre une ligue avec tes amis.');
+}
+
+// Fiches de classement des membres (par paquets de 30, la limite d'une requête « in »).
+async function memberRows(uids) {
+  const { F, db } = fb;
+  const rows = [];
+  for (let i = 0; i < uids.length; i += 30) {
+    const chunk = uids.slice(i, i + 30);
+    const snap = await F.getDocs(F.query(F.collection(db, 'leaderboard'), F.where(F.documentId(), 'in', chunk)));
+    snap.forEach((d) => rows.push({ uid: d.id, ...d.data() }));
+  }
+  const me = myEntry();
+  const out = rows.filter((r) => r.uid !== me?.uid);
+  if (me && uids.includes(me.uid)) out.push(me);
+  return out.sort((a, b) => b.rr - a.rr || b.balance - a.balance);
+}
+
+// Mes ligues et le classement de chacune. Rechargé au plus une fois par minute, sauf `force`.
+export async function loadMyLeagues({ force = false } = {}) {
+  if (!cloud.user || !fb) return;
+  const cur = cloud.leagues;
+  if (cur && !force && (cur.loading || Date.now() - cur.at < LEAGUES_TTL_MS)) return;
+  cloud.leagues = { list: cur?.list || [], at: Date.now(), loading: true, error: null };
+  const { F, db } = fb;
+  try {
+    const snap = await F.getDocs(F.query(F.collection(db, 'leagues'), F.where('members', 'array-contains', cloud.user.uid)));
+    const list = await Promise.all(snap.docs.map(async (d) => {
+      const l = d.data();
+      return { ...l, code: d.id, rows: await memberRows(l.members || []) };
+    }));
+    list.sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0));
+    cloud.leagues = { list, at: Date.now(), loading: false, error: null };
+  } catch (err) {
+    console.warn('Goalz : ligues indisponibles', err);
+    cloud.leagues = { ...cloud.leagues, loading: false, error: 'Ligues indisponibles pour le moment.' };
+  }
+  emit();
+}
+
+export async function createOnlineLeague(rawName) {
+  needAccount();
+  const name = String(rawName || '').trim();
+  if (name.length < 3 || name.length > 24) throw new Error('Le nom de la ligue doit faire entre 3 et 24 caractères.');
+  await publishRank(); // pour apparaître tout de suite dans le classement de la ligue
+  const { F } = fb;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = leagueCode();
+    try {
+      // « create » seulement : les règles refusent d'écraser une ligue qui existe déjà.
+      await F.setDoc(leagueRef(code), { code, name, ownerUid: cloud.user.uid, members: [cloud.user.uid], createdAt: F.serverTimestamp() });
+      await loadMyLeagues({ force: true });
+      return code;
+    } catch (err) {
+      if (err?.code !== 'permission-denied') throw new Error('Impossible de créer la ligue pour le moment.');
+    }
+  }
+  throw new Error('Impossible de créer la ligue pour le moment.');
+}
+
+export async function joinOnlineLeague(rawCode) {
+  needAccount();
+  const code = String(rawCode || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  const { F } = fb;
+  const snap = await F.getDoc(leagueRef(code)).catch(() => null);
+  if (!snap || !snap.exists()) throw new Error('Aucune ligue trouvée avec ce code.');
+  const l = snap.data();
+  if (l.members.includes(cloud.user.uid)) throw new Error('Tu fais déjà partie de cette ligue.');
+  if (l.members.length >= LEAGUE_MAX_MEMBERS) throw new Error(`Cette ligue est complète (${LEAGUE_MAX_MEMBERS} joueurs).`);
+  await publishRank();
+  await F.updateDoc(leagueRef(code), { members: F.arrayUnion(cloud.user.uid) });
+  await loadMyLeagues({ force: true });
+  return l.name;
+}
+
+export async function leaveOnlineLeague(code) {
+  needAccount();
+  const { F } = fb;
+  const snap = await F.getDoc(leagueRef(code));
+  if (!snap.exists()) return;
+  const l = snap.data();
+  if (l.members.length <= 1) await F.deleteDoc(leagueRef(code));
+  else await F.updateDoc(leagueRef(code), { members: F.arrayRemove(cloud.user.uid) });
+  await loadMyLeagues({ force: true });
+}
+
 export async function signOutCloud() {
   if (!fb || !cloud.user) return;
   await push();
@@ -286,6 +383,7 @@ export async function signOutCloud() {
   cloud.user = null; // avant resetAll : la partie vide ne doit pas écraser celle du compte
   cloud.division = null;
   cloud.pseudoConflict = null;
+  cloud.leagues = null;
   ownedPseudos.clear();
   lastBoard = '';
   resetAll(); // la partie reste sur le compte ; on ne la laisse pas sur cet appareil

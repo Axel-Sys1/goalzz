@@ -2,7 +2,7 @@ import { escapeHtml, fmt } from '../../util.js';
 import { globalRanking, leagueRanking } from '../../services/leaderboard.js';
 import { myLeagues } from '../../services/leagues.js';
 import { TIERS, RADIANT, RR_PER_DIVISION, LOSS_RR, RADIANT_SPOTS, rankOf, playerRR } from '../../services/ranks.js';
-import { cloud, divisionRows, loadDivision } from '../../services/cloud.js';
+import { cloud, divisionRows, loadDivision, loadMyLeagues, LEAGUE_MAX_MEMBERS } from '../../services/cloud.js';
 import { renderAccountCard } from './account.js';
 import { renamePanel } from './profile.js';
 import { coin, icons, rankEmblem } from '../icons.js';
@@ -66,9 +66,70 @@ function ladder() {
     </details>`;
 }
 
+const leagueForms = () => `
+    <div class="league-forms">
+      <form class="card form-inline" data-form="league-create" autocomplete="off">
+        <label for="league-name">Créer une ligue</label>
+        <div class="input-row">
+          <input id="league-name" name="name" maxlength="24" placeholder="ex. Les Potes du Jeudi" required>
+          <button class="btn btn-primary" type="submit">Créer</button>
+        </div>
+      </form>
+      <form class="card form-inline" data-form="league-join" autocomplete="off">
+        <label for="league-code">Rejoindre avec un code</label>
+        <div class="input-row">
+          <input id="league-code" name="code" maxlength="6" placeholder="ABC123" class="code-input" required>
+          <button class="btn btn-ghost" type="submit">Rejoindre</button>
+        </div>
+      </form>
+    </div>`;
+
+const leagueRow = (r, radiant) => ({
+  id: r.uid, name: r.pseudo, rr: r.rr, balance: r.balance, isBot: false, rank: rankOf(r.rr, { radiant }),
+});
+
+// Ligues en ligne : partagées entre les appareils de tous les membres.
+function onlineLeaguesView() {
+  loadMyLeagues();
+  const L = cloud.leagues;
+  const meId = cloud.user.uid;
+  const radiant = cloud.division?.radiant || new Set();
+  return `
+    ${leagueForms()}
+    ${L?.error ? `<div class="empty feed-error"><p class="muted">${escapeHtml(L.error)}</p></div>` : ''}
+    ${!L || (L.loading && !L.list.length) ? '<div class="skeletons"><div class="skeleton"></div></div>' : ''}
+    ${L && !L.loading && !L.list.length ? `
+      <div class="empty">
+        <p><strong>Pas encore de ligue</strong></p>
+        <p class="muted">Crée une ligue et envoie son code à tes amis : chacun la rejoint depuis son téléphone et vous avez votre propre classement.</p>
+      </div>` : ''}
+    ${(L?.list || []).map((l) => `
+      <section class="card league">
+        <header class="league-head">
+          <div class="grow">
+            <h3>${escapeHtml(l.name)}</h3>
+            <span class="muted">${l.members.length} / ${LEAGUE_MAX_MEMBERS} membres${l.ownerUid === meId ? ' · tu l\'as créée' : ''}</span>
+          </div>
+          <button class="code-chip" data-action="copy-code" data-code="${escapeHtml(l.code)}" type="button" title="Copier le code">
+            ${escapeHtml(l.code)} ${icons.copy}
+          </button>
+        </header>
+        ${rankList(l.rows.map((r) => leagueRow(r, radiant.has(r.uid))), meId)}
+        <button class="link-btn danger" data-action="league-leave" data-code="${escapeHtml(l.code)}" type="button">Quitter la ligue</button>
+      </section>`).join('')}
+    ${L?.list?.length ? '<p class="muted division-note"><button class="link-btn" data-action="leagues-refresh" type="button">Actualiser les ligues</button></p>' : ''}`;
+}
+
 function leaguesView(s, p) {
+  if (cloud.user) return onlineLeaguesView();
   const leagues = myLeagues(p.id, s);
   return `
+    ${cloud.enabled ? `
+      <div class="card division-locked">
+        <strong>Joue en ligue avec tes amis</strong>
+        <span class="muted">Connecte-toi pour créer des ligues que tes amis rejoignent depuis leur propre téléphone. Sans compte, les ligues restent sur cet appareil.</span>
+      </div>
+      ${renderAccountCard()}` : ''}
     <div class="league-forms">
       <form class="card form-inline" data-form="league-create" autocomplete="off">
         <label for="league-name">Créer une ligue</label>

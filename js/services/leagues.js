@@ -44,3 +44,14 @@ export function leaveLeague(code) {
 
 export const myLeagues = (playerId, s = getState()) =>
   Object.values(s.leagues).filter((l) => l.members.includes(playerId)).sort((a, b) => a.createdAt - b.createdAt);
+
+// Ligue créée en ligne : compte pour le badge « Fondateur ».
+export function noteLeagueCreated() {
+  const p = currentPlayer();
+  if (!p) return;
+  update((s) => {
+    const me = s.players[p.id];
+    me.stats.leaguesCreated += 1;
+    checkBadges(me);
+  });
+}
