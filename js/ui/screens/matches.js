@@ -65,13 +65,23 @@ function oddsButtons(m, status, slipPick) {
     </div>`;
 }
 
+// Noms courts lisibles sur les cartes « À l'affiche » (les sigles ESPN sont parfois ambigus : MAN…).
+const SHORT_NAMES = {
+  'Manchester United': 'Man United', 'Manchester City': 'Man City', 'Paris Saint-Germain': 'PSG',
+  'Tottenham Hotspur': 'Tottenham', 'Newcastle United': 'Newcastle', 'Wolverhampton Wanderers': 'Wolves',
+  'Brighton & Hove Albion': 'Brighton', 'Nottingham Forest': 'Nottingham', 'Bayern Munich': 'Bayern',
+  'Borussia Dortmund': 'Dortmund', 'Bayer Leverkusen': 'Leverkusen', 'Atlético Madrid': 'Atlético',
+  'ASM Clermont Auvergne': 'Clermont', 'Union Bordeaux Begles': 'Bordeaux-Bègles', 'Stade Toulousain': 'Toulouse',
+};
+const displayName = (team) => SHORT_NAMES[team.name] || (team.name.length > 20 && team.short && team.short.length > 3 ? team.short : team.name);
+
 // « À l'affiche » : carrousel des matchs les plus intéressants (derbys, gros clubs, chocs…).
 function spotlightCard({ m, tag }, slipPick, first) {
   const t = clockFor(m);
   const side = (team) => `
     <div class="ft-team">
       ${teamMark(team, `logo-img ${first ? 'logo-xl' : 'logo-lg'}`)}
-      <strong>${escapeHtml(team.short && team.name.length > 16 ? team.short : team.name)}</strong>
+      <strong>${escapeHtml(displayName(team))}</strong>
     </div>`;
   return `
   <article class="featured spot-card ${first ? 'spot-first' : ''}">
