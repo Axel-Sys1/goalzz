@@ -825,3 +825,26 @@ input::placeholder { color: var(--placeholder); }
 .legal-page h2 { font: italic 800 24px/1.1 var(--display); text-transform: uppercase; }
 .legal-page p { line-height: 1.55; }
 .legal-page a:not(.btn):not(.logo) { color: var(--accent); text-decoration: underline; }
+
+/* ---------- À l'affiche ---------- */
+.spotlight { margin-top: 18px !important; }
+.spot-head { margin-top: 0 !important; margin-bottom: 10px; }
+.spot-hint { font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.spot-track {
+  display: grid; grid-auto-flow: column; grid-auto-columns: min(300px, 86%); gap: 12px;
+  overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+  margin: 0 -16px; padding: 2px 16px 6px; scroll-padding: 0 16px;
+}
+.spot-track::-webkit-scrollbar { display: none; }
+.spot-card { scroll-snap-align: start; display: flex; flex-direction: column; }
+.spot-card .ft-teams { margin: 12px 0 4px; }
+.spot-card .ft-team strong { font-size: 17px; }
+.spot-card .ft-comp { margin-bottom: 12px; }
+.spot-card .odds { margin-top: auto; }
+.spot-first { border-color: rgba(var(--accent-rgb), 0.5); }
+.logo-lg { width: 44px; height: 44px; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45)); }
+.ft-team .dot { width: 44px; height: 44px; border-radius: 12px; }
+.spot-first .ft-team .dot { width: 56px; height: 56px; }
+@media (min-width: 1000px) {
+  .spot-track { grid-auto-columns: 300px; margin: 0; padding: 2px 0 6px; }
+}

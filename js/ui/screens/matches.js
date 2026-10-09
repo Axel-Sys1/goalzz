@@ -6,6 +6,7 @@ import { SPORT_ORDER, sportMeta } from '../../sports.js';
 import { canClaimBonus } from '../../services/players.js';
 import { isAwaitingKickoff, matchStatus, outcomeShort } from '../../services/matchInfo.js';
 import { realFeedState } from '../../services/matches.js';
+import { spotlight } from '../../services/spotlight.js';
 import { coin, icons } from '../icons.js';
 import { ui } from '../uiState.js';
 import { inviteBanner } from './account.js';
@@ -64,33 +65,38 @@ function oddsButtons(m, status, slipPick) {
     </div>`;
 }
 
-// Match à la une, choisi parmi les matchs des prochaines 36 h.
-function pickFeatured(list, t) {
-  const soon = list.filter((m) => m.startsAt - t < 36 * 3_600_000 && m.odds?.['1'] && m.odds?.['2']);
-  if (!soon.length) return null;
-  // Plus le score est bas, mieux c'est : match serré, foot, cotes de bookmakers, bientôt.
-  const score = (m) => Math.abs(m.odds['1'] - m.odds['2']) + (m.oddsSource === 'model' ? 1 : 0)
-    + (m.sport === 'football' ? 0 : 1.5) + (m.startsAt - t) / 3_600_000 / 24;
-  return soon.sort((a, b) => score(a) - score(b) || a.startsAt - b.startsAt)[0];
-}
-
-function featuredCard(m, slipPick) {
+// « À l'affiche » : carrousel des matchs les plus intéressants (derbys, gros clubs, chocs…).
+function spotlightCard({ m, tag }, slipPick, first) {
   const t = clockFor(m);
   const side = (team) => `
     <div class="ft-team">
-      ${teamMark(team, 'logo-img logo-xl')}
-      <strong>${escapeHtml(team.name)}</strong>
+      ${teamMark(team, `logo-img ${first ? 'logo-xl' : 'logo-lg'}`)}
+      <strong>${escapeHtml(team.short && team.name.length > 16 ? team.short : team.name)}</strong>
     </div>`;
   return `
-  <article class="featured">
+  <article class="featured spot-card ${first ? 'spot-first' : ''}">
     <header class="featured-head">
-      <span class="featured-tag">Match à la une</span>
+      <span class="featured-tag">${escapeHtml(first && tag === m.competition ? 'Match à la une' : tag)}</span>
       <span class="kick" data-kickoff="${m.startsAt}"${m.real ? ' data-real="1"' : ''}>${formatKickoff(m.startsAt, t)}</span>
     </header>
     <div class="ft-teams">${side(m.home)}<span class="ft-vs">VS</span>${side(m.away)}</div>
     <p class="ft-comp">${sportMeta(m.sport).icon} ${escapeHtml(m.competition)}${m.round ? ` · ${escapeHtml(m.round)}` : ''}</p>
     ${oddsButtons(m, 'upcoming', slipPick)}
   </article>`;
+}
+
+function spotlightSection(list, picks) {
+  if (!list.length) return '';
+  return `
+    <section class="spotlight" aria-label="Matchs à l'affiche">
+      <div class="section-row spot-head">
+        <h2 class="section-title">À l'affiche</h2>
+        ${list.length > 1 ? `<span class="muted spot-hint">${list.length} gros matchs →</span>` : ''}
+      </div>
+      <div class="spot-track">
+        ${list.map((x, i) => spotlightCard(x, picks.get(x.m.id), i === 0)).join('')}
+      </div>
+    </section>`;
 }
 
 function howToCard() {
@@ -203,8 +209,8 @@ function renderReal(s, p, picks) {
   const upcoming = inSport.filter((m) => matchStatus(m, t) === 'upcoming');
   const days = [...new Set(upcoming.map((m) => todayKey(new Date(m.startsAt))))].sort();
   if (!days.includes(ui.day)) ui.day = days[0] || null;
-  const featured = pickFeatured(upcoming, t);
-  const dayMatches = upcoming.filter((m) => todayKey(new Date(m.startsAt)) === ui.day && m !== featured);
+  const spot = spotlight(upcoming, t);
+  const dayMatches = upcoming.filter((m) => todayKey(new Date(m.startsAt)) === ui.day);
 
   // Groupes par compétition, dans l'ordre du premier match de chaque groupe.
   const groups = new Map();
@@ -219,9 +225,9 @@ function renderReal(s, p, picks) {
     .slice(0, 8);
 
   return `
-    ${sportChips(all, (m) => matchStatus(m, t) === 'upcoming')}
+    ${spotlightSection(spot, picks)}
 
-    ${featured ? featuredCard(featured, picks.get(featured.id)) : ''}
+    ${sportChips(all, (m) => matchStatus(m, t) === 'upcoming')}
 
     ${days.length ? `
       <div class="day-chips" role="toolbar" aria-label="Choisir un jour">
