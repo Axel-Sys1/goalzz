@@ -1,7 +1,7 @@
 // Délégation d'événements : les boutons portent data-action, les formulaires data-form.
 import { resetAll, update } from '../store.js';
 import { claimBonus, currentPlayer, login, logout, register, renamePlayer } from '../services/players.js';
-import { clearSlip, placeSlip, quickStake, removeSelection, setSlipMode, setStake, toggleSelection } from '../services/bets.js';
+import { acceptOdds, clearSlip, placeSlip, quickStake, removeSelection, setSlipMode, setStake, toggleSelection } from '../services/bets.js';
 import { fastForward, refreshReal } from '../services/matches.js';
 import { createLeague, joinLeague, leaveLeague, noteLeagueCreated } from '../services/leagues.js';
 import { go, render } from './app.js';
@@ -67,7 +67,7 @@ const actions = {
   pick: (el) => {
     const { match, outcome } = el.dataset;
     const from = el.getBoundingClientRect();
-    const label = el.querySelector('.odd-val')?.textContent || '';
+    const label = (el.querySelector('.odd-val')?.textContent || '').replace(/[▲▼]/g, '');
     toggleSelection(match, outcome);
     // L'écran vient d'être redessiné : on anime les nouveaux boutons.
     const picked = getState().players[getState().currentPlayerId]?.slip.some((x) => x.matchId === match && x.outcome === outcome);
@@ -78,7 +78,8 @@ const actions = {
       document.querySelectorAll(`[data-slip-item="${CSS.escape(match)}"]`).forEach((it) => replay(it, 'is-new'));
     }
   },
-  'filter-sport': (el) => { ui.sport = el.dataset.sport; render(); },
+  'filter-sport': (el) => { ui.sport = el.dataset.sport; ui.gender = 'all'; render(); window.scrollTo({ top: 0 }); },
+  'filter-gender': (el) => { ui.gender = el.dataset.gender; render(); },
   'filter-day': (el) => { ui.day = el.dataset.day; render(); },
   'set-mode': (el) => {
     ui.sport = 'all';
@@ -92,6 +93,7 @@ const actions = {
   'slip-remove': (el) => removeSelection(el.dataset.match),
   'slip-clear': () => clearSlip(),
   'slip-mode': (el) => setSlipMode(el.dataset.mode),
+  'slip-accept': () => acceptOdds(),
   'slip-quick': (el) => {
     quickStake(el.dataset.match, el.dataset.amount);
     document.querySelectorAll(`[data-stake="${CSS.escape(el.dataset.match)}"]`).forEach((i) => replay(i, 'bumped'));

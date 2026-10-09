@@ -7,7 +7,7 @@ import { coin, icons } from '../icons.js';
 import { teamMark } from '../logos.js';
 
 export function renderSlip(s, p, { context = 'page' } = {}) {
-  const { items, total, potential, error, combo, comboOdds, comboStake } = slipCheck(s);
+  const { items, total, potential, error, combo, comboOdds, comboStake, oddsChanged, hasLive } = slipCheck(s);
 
   const head = `
     <div class="slip-head">
@@ -28,7 +28,8 @@ export function renderSlip(s, p, { context = 'page' } = {}) {
     </div>`;
   }
 
-  const modes = items.length >= COMBO_MIN ? `
+  const modes = items.length >= COMBO_MIN && hasLive ? `
+    <p class="muted slip-note">${icons.bolt} Les paris en direct se jouent en simple.</p>` : items.length >= COMBO_MIN ? `
     <div class="tabs slip-modes" role="tablist">
       <button class="tab ${combo ? '' : 'active'}" data-action="slip-mode" data-mode="single" role="tab" type="button">Simples</button>
       <button class="tab ${combo ? 'active' : ''}" data-action="slip-mode" data-mode="combo" role="tab" type="button">Combiné</button>
@@ -41,17 +42,21 @@ export function renderSlip(s, p, { context = 'page' } = {}) {
     <div class="slip-items">
       ${items.map((x) => {
         const m = x.match;
-        const odds = m.odds[x.outcome];
-        const started = matchStatus(m) !== 'upcoming';
+        const { odds } = x;
+        const started = !x.live && matchStatus(m) !== 'upcoming';
+        const moved = x.live && x.current && x.current !== odds;
         const inputId = `stake-${context}-${m.id}`;
         return `
-        <div class="slip-item ${started ? 'expired' : ''}" data-slip-item="${escapeHtml(m.id)}">
+        <div class="slip-item ${started ? 'expired' : ''} ${x.live ? 'is-live' : ''}" data-slip-item="${escapeHtml(m.id)}">
           <div class="slip-top">
             <div class="grow">
+              ${x.live ? `<div class="slip-live"><span class="live-pill">EN DIRECT</span>${m.liveScore ? ` <strong>${escapeHtml(m.liveScore)}</strong>` : ''}${m.clock ? ` <span class="muted">${escapeHtml(m.clock)}</span>` : ''}</div>` : ''}
               <div class="slip-match">${teamMark(m.home, 'logo-img logo-sm')} ${escapeHtml(m.home.name)} – ${teamMark(m.away, 'logo-img logo-sm')} ${escapeHtml(m.away.name)}</div>
               <div class="slip-pick">${escapeHtml(outcomeLabel(m, x.outcome))}</div>
             </div>
-            <div class="slip-odd">${fmtOdds(odds)}</div>
+            <div class="slip-odd ${moved ? 'is-moved' : ''}">${moved
+              ? `<s>${fmtOdds(odds)}</s> <span class="${x.current > odds ? 'up' : 'down'}">${fmtOdds(x.current)}</span>`
+              : x.live && !x.current ? `<span class="muted slip-suspended">${icons.lock} Suspendu</span>` : fmtOdds(odds)}</div>
             <button class="icon-btn" data-action="slip-remove" data-match="${escapeHtml(m.id)}" type="button" aria-label="Retirer">${icons.close}</button>
           </div>
           ${started ? '<p class="warn">Ce match a commencé.</p>' : combo ? '' : `
@@ -79,9 +84,12 @@ export function renderSlip(s, p, { context = 'page' } = {}) {
       <div class="slip-sum"><span>Mise totale</span><strong><span data-slip-total>${fmt(total)}</span> ${coin('coin coin-sm')}</strong></div>
       <div class="slip-sum big"><span>Gain potentiel</span><strong class="gain"><span data-slip-potential>${fmt(potential)}</span> ${coin('coin coin-sm')}</strong></div>
       <p class="slip-error" data-slip-error ${error ? '' : 'hidden'}>${escapeHtml(error || '')}</p>
+      ${oddsChanged ? `
+      <button class="btn btn-primary btn-lg btn-block" data-action="slip-accept" type="button">Accepter les nouvelles cotes</button>` : `
       <button class="btn btn-primary btn-lg btn-block" data-action="slip-place" data-slip-submit type="button" ${error ? 'disabled' : ''}>
         ${combo ? `Valider le combiné (${items.length} matchs)` : `Valider ${items.length > 1 ? `${items.length} paris` : 'le pari'}`}
-      </button>
+      </button>`}
+      ${hasLive && items.some((x) => x.live && x.match.real) ? `<p class="muted slip-note">Pari en direct sur un vrai match : validé si le score ne bouge pas pendant ${Math.round(CONFIG.LIVE.CONFIRM_MS / 1000)} s, sinon remboursé.</p>` : ''}
     </div>
   </div>`;
 }
@@ -110,7 +118,7 @@ function comboBox(context, odds, stake) {
 export function refreshSlipNumbers() {
   const { items, total, potential, error, combo } = slipCheck(getState());
   for (const x of combo ? [] : items) {
-    const g = potentialGain(x.stake, x.match.odds[x.outcome]);
+    const g = potentialGain(x.stake, x.odds);
     document.querySelectorAll(`[data-gain="${CSS.escape(x.matchId)}"]`).forEach((el) => { el.textContent = fmt(g); });
   }
   document.querySelectorAll('[data-slip-total]').forEach((el) => { el.textContent = fmt(total); });

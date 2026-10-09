@@ -196,6 +196,41 @@ input::placeholder { color: var(--placeholder); }
 .aside { display: none; }
 .content > * + * { margin-top: 16px; }
 
+/* ---------- Emplacements publicitaires ---------- */
+.ad { container-type: inline-size; display: grid; justify-items: center; gap: 4px; }
+.ad-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.ad-box { width: 100%; max-width: var(--ad-w); min-height: var(--ad-h); border-radius: var(--radius-sm); }
+.ad-live .ad-box { background: var(--bg-2); }
+.ad-box > ins { display: block; }
+.ad-top .ad-box > ins, .ad-side .ad-box > ins { width: var(--ad-w); max-width: 100%; height: var(--ad-h); }
+.ad-ph {
+  height: var(--ad-h); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; align-content: center; gap: 2px 10px;
+  padding: 6px 12px; overflow: hidden; text-align: center; color: var(--muted);
+  border: 1px dashed var(--line-2); border-radius: var(--radius-sm);
+  background: repeating-linear-gradient(-45deg, transparent 0 10px, rgba(255, 255, 255, 0.018) 10px 20px), var(--bg-2);
+}
+.ad-ph strong { font: 700 15px/1.1 var(--display); letter-spacing: 0.06em; text-transform: uppercase; }
+.ad-ph small { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+a.ad-ph { transition: border-color 0.2s, color 0.2s; }
+a.ad-ph:hover { border-color: rgba(var(--accent-rgb), 0.55); color: var(--accent); }
+a.ad-ph:focus-visible { outline-offset: -2px; }
+.ad-size-lg { display: none; }
+.ad-top { --ad-w: 320px; --ad-h: 50px; }
+.ad-side, .ad-bottom { --ad-w: 300px; --ad-h: 250px; }
+.ad-band { max-width: 1160px; margin: 0 auto; padding: 0 16px; }
+.ad-band > .ad { margin-top: 12px; }
+.ads-off .ad-band, .ads-off .ad-bottom { display: none; }
+/* Annonce non servie ou bloquée : on replie le pavé et le bas de page. La bannière garde sa place,
+   sinon toute la page sauterait sous l'en-tête. */
+.ad-live:not(.ad-top):has(ins[data-ad-status="unfilled"]),
+.ad-live.ad-empty:not(.ad-top):not(:has(ins[data-ad-status="filled"])),
+.no-ads .ad-live:not(.ad-top) { display: none; }
+@container (min-width: 728px) {
+  .ad-size-sm { display: none; }
+  .ad-size-lg { display: inline; }
+  .ad-top .ad-box, .ad-bottom .ad-box { --ad-w: 728px; --ad-h: 90px; }
+}
+
 .greeting h1 { font: italic 800 34px/1 var(--display); text-transform: uppercase; letter-spacing: 0.01em; }
 .greeting h1 b { color: var(--accent); }
 .greeting p { margin-top: 4px; }
@@ -238,6 +273,32 @@ input::placeholder { color: var(--placeholder); }
 .chip.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); animation: pop 0.25s var(--ease-back); }
 .chip:active { transform: scale(0.95); }
 .chip-count { font-size: 12px; opacity: 0.65; }
+
+/* Barre des sports : grosses tuiles, toujours visible sous l'en-tête. */
+.sports-bar {
+  position: sticky; top: var(--sports-top, 86px); z-index: 20; margin: 0 -16px; padding: 10px 16px;
+  display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+  background: rgba(8, 18, 42, 0.94); border-bottom: 1px solid var(--line);
+}
+@supports (backdrop-filter: blur(10px)) { .sports-bar { background: rgba(8, 18, 42, 0.82); backdrop-filter: blur(12px); } }
+.sports-bar::-webkit-scrollbar { display: none; }
+.sport-tile {
+  flex: 0 0 auto; min-width: 72px; display: grid; justify-items: center; gap: 2px; padding: 8px 10px 7px;
+  border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+}
+.sport-tile:hover { border-color: var(--line-2); }
+.sport-tile:active { transform: scale(0.95); }
+.sport-icon { font-size: 24px; line-height: 1; }
+.sport-name { font: 700 13px/1.1 var(--body); }
+.sport-count { font-size: 11px; font-weight: 700; color: var(--muted); }
+.sport-tile.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); animation: pop 0.25s var(--ease-back); }
+.sport-tile.active .sport-count { color: var(--accent-ink); opacity: 0.75; }
+.sport-heading {
+  display: flex; align-items: center; gap: 10px; margin-top: 30px !important; padding-bottom: 8px;
+  font: italic 800 26px/1 var(--display); text-transform: uppercase; border-bottom: 2px solid var(--line);
+}
+.gender-switch { display: flex; gap: 8px; }
 
 /* ---------- Cartes de match ---------- */
 .match-grid { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
@@ -314,6 +375,38 @@ input::placeholder { color: var(--placeholder); }
 .odd.selected .odd-label, .odd.selected .odd-val { color: var(--accent-ink); }
 .odd.won:disabled { opacity: 1; border-color: var(--green); background: rgba(61, 220, 132, 0.12); }
 .odd.won .odd-val { color: var(--green); }
+
+/* ---------- Paris en direct ---------- */
+.odd-val { display: inline-flex; align-items: center; gap: 3px; }
+.odd-val svg { width: 15px; height: 15px; color: var(--muted); }
+.odd-move { font-style: normal; font-size: 10px; line-height: 1; }
+.odd-up { border-color: rgba(61, 220, 132, 0.6); }
+.odd-up .odd-move { color: var(--green); }
+.odd-down { border-color: rgba(255, 77, 99, 0.6); }
+.odd-down .odd-move { color: var(--red); }
+.odd-up:not(.selected) .odd-val { animation: odd-flash-up 1.2s ease; }
+.odd-down:not(.selected) .odd-val { animation: odd-flash-down 1.2s ease; }
+.odd.selected .odd-move { color: var(--accent-ink); }
+@keyframes odd-flash-up { 0%, 40% { color: var(--green); } }
+@keyframes odd-flash-down { 0%, 40% { color: var(--red); } }
+.match-live .odd:disabled { opacity: 0.45; }
+.live-note { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.live-note svg { width: 14px; height: 14px; flex-shrink: 0; }
+.live-note.is-open { color: var(--live); }
+.match-bettable { border-color: rgba(255, 61, 90, 0.6); }
+.slip-item.is-live { border-left-color: var(--live); }
+.slip-live { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 13px; }
+.slip-live .live-pill { font-size: 9px; padding: 2px 6px; }
+.slip-odd s { color: var(--muted); font-size: 15px; }
+.slip-odd .up { color: var(--green); }
+.slip-odd .down { color: var(--red); }
+.slip-suspended { display: inline-flex; align-items: center; gap: 4px; font: 700 12px/1 var(--body); }
+.slip-suspended svg { width: 13px; height: 13px; }
+.slip-note { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.slip-note svg { width: 14px; height: 14px; color: var(--live); flex-shrink: 0; }
+.tag-live { display: inline-flex; align-items: center; gap: 3px; margin-left: 8px; background: var(--live-soft); color: var(--live); vertical-align: 2px; }
+.tag-live svg { width: 11px; height: 11px; }
+.bet-note { font-size: 12px; margin-top: 6px; }
 
 /* ---------- Pastille envoyée au panier ---------- */
 .fly-chip {
@@ -688,9 +781,15 @@ input::placeholder { color: var(--placeholder); }
   .nav-top .nav-icon svg { width: 18px; height: 18px; }
   .nav-top .nav-icon { display: flex; align-items: center; gap: 5px; }
   .nav-top .nav-badge { position: static; }
-  .layout { grid-template-columns: minmax(0, 1fr) 360px; padding-bottom: 60px; }
+  .layout { grid-template-columns: minmax(0, 1fr) 360px; grid-template-rows: auto 1fr; padding-bottom: 60px; }
+  .sports-bar { margin: 0; border-radius: 12px; border: 1px solid var(--line); --sports-top: 72px; }
   .layout.no-aside { grid-template-columns: minmax(0, 1fr); }
-  .aside { display: block; position: sticky; top: 104px; align-self: start; max-height: calc(100vh - 124px); overflow-y: auto; }
+  .layout > .content, .layout > .ad-bottom { grid-column: 1; }
+  .layout > .ad-bottom { align-self: start; }
+  /* Colonne de droite : le pavé publicitaire défile avec la page, le panier reste collé en haut. */
+  .aside { display: flex; flex-direction: column; gap: 16px; grid-column: 2; grid-row: 1 / span 2; }
+  .aside-slip { position: sticky; top: 104px; max-height: calc(100vh - 124px); overflow-y: auto; }
+  .layout.no-aside .aside { display: none; }
   .aside .slip { background: var(--bg-2); border: 1px solid var(--line); border-top: 3px solid var(--accent); border-radius: 12px; padding: 16px; }
   .aside .slip-empty { border: 0; padding: 20px 8px; }
   .aside .stake-row { flex-direction: column; }

@@ -20,7 +20,8 @@
 //       `matches` : matchs de ce provider commencés (ou sur le point de l'être) et non réglés.
 //       Update : { matchId, status: 'scheduled'|'live'|'finished'|'void',
 //                  outcome?: '1'|'X'|'2' (obligatoire si finished),
-//                  score?, liveScore?, clock?, startsAt? }
+//                  score?, liveScore?, clock?, startsAt?, meta? }
+//       meta est fusionné dans match.meta (ex. état de la simulation des matchs fictifs).
 //       'void' = reporté / annulé / sans résultat → les paris sont remboursés.
 //       Ne jamais renvoyer 'void' à cause d'une erreur réseau.
 // }

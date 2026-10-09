@@ -65,8 +65,9 @@ function betCard(b) {
     if (st === 'live') when = isAwaitingKickoff(m, t) ? '<span class="soon-pill">PARIS FERMÉS</span>' : '<span class="live-pill">EN DIRECT</span>';
     else when = `<span class="kick" data-kickoff="${m.startsAt}"${m.real ? ' data-real="1"' : ''}>${formatKickoff(m.startsAt, t)}</span>`;
   }
-  const pill = { pending: 'En cours', won: 'Gagné', lost: 'Perdu', void: 'Remboursé' }[b.status];
+  const pill = b.check ? 'Validation…' : b.refused ? 'Refusé' : { pending: 'En cours', won: 'Gagné', lost: 'Perdu', void: 'Remboursé' }[b.status];
   const score = m.score || (st === 'live' && m.liveScore ? m.liveScore : '');
+  const live = b.live ? `<span class="tag tag-live">${icons.bolt} En direct${b.live.score ? ` à ${escapeHtml(b.live.score)}` : ''}${b.live.clock ? ` (${escapeHtml(b.live.clock)})` : ''}</span>` : '';
   return `
   <article class="bet bet-${b.status}">
     <header class="bet-head">
@@ -77,7 +78,9 @@ function betCard(b) {
       <span class="bet-teams">${teamMark(m.home, 'logo-img logo-sm')} ${escapeHtml(m.home.name)} – ${teamMark(m.away, 'logo-img logo-sm')} ${escapeHtml(m.away.name)}</span>
       ${score ? `<span class="bet-score">${escapeHtml(score)}</span>` : ''}
     </div>
-    <div class="bet-pick">${escapeHtml(outcomeLabel(m, b.outcome))} <span class="at">@ ${fmtOdds(b.odds)}</span></div>
+    <div class="bet-pick">${escapeHtml(outcomeLabel(m, b.outcome))} <span class="at">@ ${fmtOdds(b.odds)}</span>${live}</div>
+    ${b.check ? '<p class="muted bet-note">Validé si le score ne bouge pas dans la minute, sinon remboursé.</p>' : ''}
+    ${b.refused ? '<p class="muted bet-note">Le score a changé avant la validation : mise rendue.</p>' : ''}
     ${betNums(b)}
   </article>`;
 }

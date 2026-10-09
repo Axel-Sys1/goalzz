@@ -1,11 +1,14 @@
 // Panier (une sélection par match) et paris. Deux modes : « simples » (une mise par
 // sélection) ou « combiné » (une seule mise, cotes multipliées, tout doit passer).
+// Paris en direct : la cote est celle que le joueur a vue (et acceptée si elle a bougé) ;
+// ils se jouent en simple uniquement.
 import { CONFIG } from '../config.js';
 import { getState, update, clockFor } from '../store.js';
 import { uid } from '../util.js';
 import { checkBadges } from './badges.js';
 import { currentPlayer } from './players.js';
 import { matchStatus, outcomeLabel, matchTitle } from './matchInfo.js';
+import { liveMarket } from '../providers/liveOdds.js';
 
 export const potentialGain = (stake, odds) => Math.floor((Number(stake) || 0) * odds);
 
@@ -17,7 +20,16 @@ export const betMatchIds = (b) => (b.legs ? b.legs.map((l) => l.matchId) : [b.ma
 
 const productOdds = (list) => Math.round(list.reduce((x, o) => x * o, 1) * 100) / 100;
 
-export const isCombo = (p) => p.slipMode === 'combo' && p.slip.length >= COMBO_MIN;
+export const isCombo = (p) => p.slipMode === 'combo' && p.slip.length >= COMBO_MIN && !p.slip.some((x) => x.live);
+
+// Cote proposée maintenant pour une issue : avant le match, ou en direct ; null si fermée.
+export function offeredOdds(m, outcome, t = clockFor(m)) {
+  const status = matchStatus(m, t);
+  if (status === 'upcoming') return m.odds[outcome] ?? null;
+  if (status !== 'live') return null;
+  const market = liveMarket(m, t);
+  return market.open ? market.odds[outcome] ?? null : null;
+}
 
 export function setSlipMode(mode) {
   update((s) => {
@@ -31,11 +43,26 @@ export function toggleSelection(matchId, outcome) {
   update((s) => {
     const p = currentPlayer(s);
     const m = s.matches[matchId];
-    if (!p || !m || matchStatus(m) !== 'upcoming' || !m.odds[outcome]) return;
+    if (!p || !m) return;
     const i = p.slip.findIndex((x) => x.matchId === matchId);
-    if (i === -1) p.slip.push({ matchId, outcome, stake: CONFIG.DEFAULT_STAKE });
-    else if (p.slip[i].outcome === outcome) p.slip.splice(i, 1);
-    else p.slip[i].outcome = outcome;
+    if (i !== -1 && p.slip[i].outcome === outcome) { p.slip.splice(i, 1); return; }
+    const odds = offeredOdds(m, outcome);
+    if (!odds) return;
+    const live = matchStatus(m) === 'live';
+    const item = { matchId, outcome, stake: i === -1 ? CONFIG.DEFAULT_STAKE : p.slip[i].stake, ...(live && { live: true, odds }) };
+    if (i === -1) p.slip.push(item);
+    else p.slip[i] = item;
+  });
+}
+
+// Le joueur accepte les nouvelles cotes en direct de son panier.
+export function acceptOdds() {
+  update((s) => {
+    for (const x of currentPlayer(s).slip) {
+      const m = s.matches[x.matchId];
+      const now = x.live && m ? offeredOdds(m, x.outcome) : null;
+      if (now) x.odds = now;
+    }
   });
 }
 
@@ -81,24 +108,33 @@ export function quickStake(matchId, kind) {
 // Résumé et validation du panier du joueur courant.
 export function slipCheck(s = getState()) {
   const p = currentPlayer(s);
+  // odds : cote retenue (vue par le joueur pour le direct) ; current : cote proposée en ce moment.
   const items = p.slip
-    .map((x) => ({ ...x, match: s.matches[x.matchId] }))
-    .filter((x) => x.match);
+    .filter((x) => s.matches[x.matchId])
+    .map((x) => {
+      const match = s.matches[x.matchId];
+      const current = x.live && matchStatus(match) === 'live' ? offeredOdds(match, x.outcome) : match.odds[x.outcome];
+      return { ...x, match, odds: x.live ? x.odds : match.odds[x.outcome], current };
+    });
   const combo = isCombo(p);
-  const comboOdds = productOdds(items.map((x) => x.match.odds[x.outcome]));
+  const comboOdds = productOdds(items.map((x) => x.odds));
   const comboStake = Number(p.comboStake ?? CONFIG.DEFAULT_STAKE);
   const total = combo ? comboStake || 0 : items.reduce((sum, x) => sum + (Number(x.stake) || 0), 0);
   const potential = combo
     ? potentialGain(comboStake, comboOdds)
-    : items.reduce((sum, x) => sum + potentialGain(x.stake, x.match.odds[x.outcome]), 0);
+    : items.reduce((sum, x) => sum + potentialGain(x.stake, x.odds), 0);
   const stakes = combo ? [comboStake] : items.map((x) => Number(x.stake));
+  const live = items.filter((x) => x.live);
+  const oddsChanged = live.some((x) => x.current && x.current !== x.odds);
   let error = null;
   if (!items.length) error = 'Ton panier est vide.';
-  else if (items.some((x) => matchStatus(x.match) !== 'upcoming')) error = 'Un match a déjà commencé : retire-le du panier.';
+  else if (items.some((x) => !x.live && matchStatus(x.match) !== 'upcoming')) error = 'Un match a déjà commencé : retire-le du panier.';
+  else if (live.some((x) => !x.current)) error = 'Paris suspendus sur un match en direct : attends la reprise ou retire-le.';
+  else if (oddsChanged) error = 'Une cote en direct a changé : accepte la nouvelle cote pour valider.';
   else if (combo && items.length > COMBO_MAX) error = `Un combiné peut contenir ${COMBO_MAX} matchs au maximum.`;
   else if (stakes.some((x) => !Number.isInteger(x) || x < CONFIG.MIN_STAKE)) error = `Mise minimum : ${CONFIG.MIN_STAKE} Goalz par pari.`;
   else if (total > p.balance) error = 'Solde insuffisant pour ces mises.';
-  return { items, total, potential, error, combo, comboOdds, comboStake: p.comboStake ?? CONFIG.DEFAULT_STAKE };
+  return { items, total, potential, error, combo, comboOdds, comboStake: p.comboStake ?? CONFIG.DEFAULT_STAKE, oddsChanged, hasLive: live.length > 0 };
 }
 
 export function placeSlip() {
@@ -108,13 +144,17 @@ export function placeSlip() {
   return update((s) => {
     const p = currentPlayer(s);
     for (const x of items) {
-      const odds = x.match.odds[x.outcome];
+      const { odds } = x;
       const stake = Number(x.stake);
       const id = uid('b');
+      const t = clockFor(x.match);
       s.bets[id] = {
         id, playerId: p.id, matchId: x.matchId, outcome: x.outcome,
         odds, stake, potential: potentialGain(stake, odds),
-        status: 'pending', payout: 0, placedAt: clockFor(x.match), settledAt: null, real: !!x.match.real,
+        status: 'pending', payout: 0, placedAt: t, settledAt: null, real: !!x.match.real,
+        ...(x.live && { live: { score: x.match.liveScore ?? null, clock: x.match.clock ?? null } }),
+        // Vrai match : validé seulement si le score ne bouge pas pendant CONFIG.LIVE.CONFIRM_MS (la source a du retard).
+        ...(x.live && x.match.real && { check: { score: x.match.liveScore ?? null, until: t + CONFIG.LIVE.CONFIRM_MS } }),
       };
       p.balance -= stake;
       p.stats.betsPlaced += 1;
@@ -134,7 +174,7 @@ function placeCombo(items, odds, stake) {
     const first = items[0].match;
     s.bets[id] = {
       id, playerId: p.id, matchId: first.id, combo: true,
-      legs: items.map((x) => ({ matchId: x.matchId, outcome: x.outcome, odds: x.match.odds[x.outcome], status: 'pending' })),
+      legs: items.map((x) => ({ matchId: x.matchId, outcome: x.outcome, odds: x.odds, status: 'pending' })),
       odds, stake, potential: potentialGain(stake, odds),
       status: 'pending', payout: 0, placedAt: clockFor(first), settledAt: null, real: items.every((x) => !!x.match.real),
     };
@@ -197,6 +237,40 @@ function settleCombos(s, m) {
   }
 }
 
+function refund(p, bet, t, label) {
+  bet.status = 'void';
+  bet.payout = bet.stake;
+  bet.settledAt = t;
+  p.balance += bet.stake;
+  p.inbox.push({ type: 'void', amount: bet.stake, label });
+}
+
+// Basket : des paniers toutes les 30 s ; seul un écart qui bouge de 3 points ou plus compte.
+function scoreMoved(m, before) {
+  if (m.liveScore === before) return false;
+  if (m.sport !== 'basketball') return true;
+  const gap = (x) => { const [h, a] = String(x ?? '').split(' - ').map(Number); return h - a; };
+  const d = gap(m.liveScore) - gap(before);
+  return !(Math.abs(d) < 3);
+}
+
+// Vrais matchs, dans un update() à chaque lecture du score : un pari en direct est refusé (mise rendue)
+// si le score a bougé avant la fin de sa validation, et validé quand le délai est passé sans changement.
+export function reviewLiveBets(s, m, t) {
+  for (const bet of Object.values(s.bets)) {
+    if (!bet.check || bet.matchId !== m.id || bet.status !== 'pending') continue;
+    const p = s.players[bet.playerId];
+    if (!p) continue;
+    if (scoreMoved(m, bet.check.score)) {
+      delete bet.check;
+      bet.refused = true;
+      refund(p, bet, t, `${matchTitle(m)} : pari en direct refusé, le score a changé`);
+    } else if (t >= bet.check.until) {
+      delete bet.check;
+    }
+  }
+}
+
 // Appelé à l'intérieur d'un update() quand un match se termine ou est annulé.
 export function settleMatch(s, m) {
   const bets = Object.values(s.bets)
@@ -207,12 +281,14 @@ export function settleMatch(s, m) {
     if (!p) continue;
     bet.settledAt = clockFor(m);
     const label = `${matchTitle(m)} · ${outcomeLabel(m, bet.outcome)}`;
-    if (m.outcome === 'void') {
+    if (bet.check) {
+      // Pari en direct pas encore validé quand le match se termine : remboursé.
+      delete bet.check;
+      bet.refused = true;
+      refund(p, bet, bet.settledAt, `${matchTitle(m)} : pari en direct non validé avant la fin`);
+    } else if (m.outcome === 'void') {
       // Reporté, annulé ou nul sur un pari à 2 issues : mise rendue, série intacte.
-      bet.status = 'void';
-      bet.payout = bet.stake;
-      p.balance += bet.stake;
-      p.inbox.push({ type: 'void', amount: bet.stake, label });
+      refund(p, bet, bet.settledAt, label);
     } else if (bet.outcome === m.outcome) {
       bet.status = 'won';
       bet.payout = bet.potential;

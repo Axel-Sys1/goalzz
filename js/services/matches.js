@@ -6,10 +6,11 @@ import { CONFIG } from '../config.js';
 import { getState, update, emit, now, realNow } from '../store.js';
 import { MIN } from '../util.js';
 import { providers, realProviders, fakeProvider, initProviders, owns } from '../providers/index.js';
-import { settleMatch, betMatchIds } from './bets.js';
+import { settleMatch, betMatchIds, reviewLiveBets } from './bets.js';
 import { simulateBots } from './bots.js';
 import { matchStatus, matchTitle } from './matchInfo.js';
 import { frenchTeamName } from '../countries.js';
+import { LIVE_SPORTS } from '../providers/liveOdds.js';
 
 const HOUR = 60 * MIN;
 const RETRY_MS = 60_000;
@@ -125,6 +126,8 @@ function upsertMatch(s, incoming, p) {
   }
 
   if (!cur) { s.matches[m.id] = m; return true; }
+  // Match en cours : score et horloge ne viennent que de fetchResults (applyUpdate date leurs changements).
+  if (cur.status === 'live') { delete m.liveScore; delete m.clock; delete m.status; }
   const next = { ...cur, ...m, meta: { ...cur.meta, ...m.meta } };
   if (JSON.stringify(next) === JSON.stringify(cur)) return false;
   s.matches[m.id] = next;
@@ -172,9 +175,20 @@ function applyUpdate(s, u, { trusted = false } = {}) {
 
   const before = JSON.stringify([m.status, m.liveScore, m.clock, m.startsAt]);
   if (u.status === 'live' || u.status === 'scheduled') m.status = u.status;
-  if (u.liveScore !== undefined) m.liveScore = u.liveScore;
-  if (u.clock !== undefined) m.clock = u.clock;
+  // Cotes d'avant-match figées au coup d'envoi : base des cotes en direct (voir providers/liveOdds.js).
+  if (m.status === 'live' && !m.kickoffOdds) m.kickoffOdds = { ...m.odds };
+  // Heures (horloge du match) des derniers changements : suspension après un but, minute en cours…
+  if (u.liveScore !== undefined && u.liveScore !== m.liveScore) {
+    if (m.liveScore != null) m.scoreAt = settledAt;
+    m.liveScore = u.liveScore;
+  }
+  if (u.clock !== undefined && u.clock !== m.clock) { m.clock = u.clock; m.clockAt = settledAt; }
+  if (u.meta) m.meta = { ...m.meta, ...u.meta };
   if (u.startsAt) m.startsAt = u.startsAt;
+  if (m.real) {
+    m.seenAt = settledAt;
+    reviewLiveBets(s, m, settledAt);
+  }
   return before !== JSON.stringify([m.status, m.liveScore, m.clock, m.startsAt]);
 }
 
@@ -185,13 +199,20 @@ export function fastForward(minutes = CONFIG.FAST_FORWARD_MIN) {
 
 export const refreshReal = () => syncAll({ force: true, only: (p) => p.real });
 
+// Sélections d'avant-match retirées au coup d'envoi (la cote n'est plus valable) ; sélections en direct
+// retirées à la fin du match.
 function dropStartedFromSlips(s) {
   for (const p of Object.values(s.players)) {
     const kept = [];
     for (const x of p.slip) {
       const m = s.matches[x.matchId];
-      if (m && matchStatus(m) === 'upcoming') kept.push(x);
-      else if (m) p.inbox.push({ type: 'info', text: `${matchTitle(m)} a commencé : retiré de ton panier.` });
+      const status = m && matchStatus(m);
+      if (status === 'upcoming' || (x.live && status === 'live')) kept.push(x);
+      else if (m && x.live) p.inbox.push({ type: 'info', text: `${matchTitle(m)} est terminé : retiré de ton panier.` });
+      else if (m) {
+        const again = LIVE_SPORTS.has(m.sport) ? ' Tu peux le rejouer en direct.' : '';
+        p.inbox.push({ type: 'info', text: `${matchTitle(m)} a commencé : retiré de ton panier.${again}` });
+      }
     }
     p.slip = kept;
   }

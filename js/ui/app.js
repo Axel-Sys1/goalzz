@@ -1,6 +1,6 @@
 // Coque de l'appli : en-tête, navigation, routeur et rendu des écrans.
 import { CONFIG } from '../config.js';
-import { getState, now, realNow } from '../store.js';
+import { clockFor, getState, now, realNow } from '../store.js';
 import { countdown, fmt, formatKickoff } from '../util.js';
 import { canClaimBonus, currentPlayer } from '../services/players.js';
 import { icons, coin } from './icons.js';
@@ -8,11 +8,13 @@ import { animateBalance, processInbox } from './effects.js';
 import { renderOnboarding } from './screens/onboarding.js';
 import { renderMatches, kickoffShort } from './screens/matches.js';
 import { matchStatus } from '../services/matchInfo.js';
+import { LIVE_SPORTS, liveMarket } from '../providers/liveOdds.js';
 import { renderSlip } from './screens/slip.js';
 import { slipCheck } from '../services/bets.js';
 import { renderMyBets } from './screens/myBets.js';
 import { renderRanking } from './screens/ranking.js';
 import { renderProfile } from './screens/profile.js';
+import { adSlot, mountAds } from './ads.js';
 
 const ROUTES = [
   { id: 'matchs', label: 'Matchs', icon: 'ball', render: renderMatches },
@@ -50,9 +52,14 @@ const shellHtml = () => `
     </div>
     <div class="freebar">Jeu gratuit, sans argent réel<span class="hide-sm"> · Les Goalz n'ont aucune valeur monétaire</span></div>
   </header>
+  ${adSlot('top') ? `<div class="ad-band">${adSlot('top')}</div>` : ''}
   <div class="layout">
     <main id="content" class="content"></main>
-    <aside id="aside" class="aside" aria-label="Panier"></aside>
+    <div class="aside">
+      ${adSlot('side')}
+      <aside id="aside" class="aside-slip" aria-label="Panier"></aside>
+    </div>
+    ${adSlot('bottom')}
   </div>
   <div id="slipbar"></div>
   <nav class="nav-bottom" id="nav-bottom" aria-label="Navigation"></nav>`;
@@ -123,9 +130,15 @@ function restoreInputs(values) {
   }
 }
 
-// Liste des matchs dont les paris sont fermés : si elle change, on redessine.
+// Matchs commencés et cotes en direct proposées : si l'une change (coup d'envoi, minute qui passe,
+// marché suspendu ou rouvert), on redessine.
+function marketSig(m) {
+  if (matchStatus(m) !== 'live' || !LIVE_SPORTS.has(m.sport)) return '';
+  const { open, odds } = liveMarket(m, clockFor(m));
+  return open ? Object.values(odds).join('/') : 'x';
+}
 const liveSignature = (s) =>
-  Object.values(s.matches).filter((m) => matchStatus(m) !== 'upcoming').map((m) => m.id).join(',');
+  Object.values(s.matches).filter((m) => matchStatus(m) !== 'upcoming').map((m) => `${m.id}:${marketSig(m)}`).join(',');
 
 export function render() {
   const focus = captureFocus();
@@ -142,7 +155,7 @@ export function render() {
     return;
   }
 
-  if (!shellMounted) { root.innerHTML = shellHtml(); shellMounted = true; }
+  if (!shellMounted) { root.innerHTML = shellHtml(); shellMounted = true; mountAds(root); }
   const route = currentRoute();
 
   renderHeader(p);
@@ -154,6 +167,8 @@ export function render() {
 
   const showAside = route.id !== 'panier';
   root.querySelector('.layout').classList.toggle('no-aside', !showAside);
+  // Pas de pub sur le panier : écran de validation, une pub sous « Valider » attirerait les clics.
+  root.classList.toggle('ads-off', route.id === 'panier');
   root.querySelector('#aside').innerHTML = showAside ? renderSlip(s, p, { context: 'aside' }) : '';
   renderSlipBar(route, p);
 

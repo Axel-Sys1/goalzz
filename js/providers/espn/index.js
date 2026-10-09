@@ -37,7 +37,8 @@ export function createEspnProvider({ getJson: rawGetJson = defaultGetJson, adapt
     id: 'espn',
     label: 'ESPN',
     real: true,
-    refresh: { upcomingMs: 15 * MIN, resultsMs: 60_000, idleResultsMs: 3 * MIN },
+    // 30 s pendant les matchs : les cotes en direct suivent le score.
+    refresh: { upcomingMs: 15 * MIN, resultsMs: 30_000, idleResultsMs: 3 * MIN },
 
     async probe() {
       const url = list.find((a) => a.probeUrl)?.probeUrl;

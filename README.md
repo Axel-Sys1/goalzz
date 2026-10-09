@@ -44,6 +44,34 @@ classements rechargés au plus toutes les 5 min, 200 derniers paris réglés gar
 joueur (les RR des plus anciens sont résumés dans `rrBase`). Pseudos filtrés par
 `js/services/moderation.js`.
 
+### Publicité
+
+Trois emplacements, réglés dans `CONFIG.ADS` (`js/config.js`) et dessinés par `js/ui/ads.js` :
+bannière sous l'en-tête (320×50, 728×90 dès 728 px de large), pavé 300×250 au-dessus du panier
+(ordinateur) et bas de page (300×250 ou 728×90). Aucun sur l'accueil ni sur l'écran Panier. Ils
+vivent dans la coque de l'appli, jamais dans les écrans redessinés en continu : une annonce n'est
+ainsi jamais rechargée toute seule. Sans régie, ils affichent un encart « Espace publicitaire »
+(lien vers `contact` si renseigné, sans annonceur de jeux d'argent ni de casino) ;
+`enabled: false` les retire.
+
+Passer à Google AdSense :
+
+1. Compte AdSense (titulaire majeur), site `goalzz.pages.dev`, vérifié par la balise
+   `<meta name="google-adsense-account" content="ca-pub-…">` dans le `<head>` d'`index.html` (le
+   script n'est chargé qu'après le choix d'un pseudo : le robot de Google ne le voit pas).
+2. Fichier `ads.txt` donné par AdSense à la racine du dépôt.
+3. Confidentialité et messages : message RGPD en français avec le bouton « Ne pas autoriser ».
+4. Annonces automatiques désactivées : seuls les trois blocs de la coque sont prévus.
+5. Contrôles de blocage : laisser bloquée la catégorie « Jeux d'argent et paris » et bloquer les
+   sites des opérateurs de paris (public dès 15 ans).
+6. Créer trois blocs d'annonces display, coller l'identifiant éditeur dans `client` et leurs id
+   dans `slots`. Les vraies annonces ne s'affichent que sur les domaines de `hosts` ; ailleurs
+   (local, miroir GitHub Pages), les encarts restent.
+7. Mettre à jour `legal.html#confidentialite`, qui dit aujourd'hui « pas de publicité ciblée,
+   pas de cookies publicitaires » : section Publicité (Google, cookies, consentement et comment le
+   retirer, liens policies.google.com/technologies/partner-sites et adssettings.google.com).
+   Avec des revenus réguliers, l'éditeur n'est plus « non professionnel » (mentions légales).
+
 ### Ancienne version claude.ai
 
 <https://claude.ai/artifact/QF2GimwS3nT8S3PyJDRtDi> lit uniquement l'instantané (une page
@@ -56,7 +84,15 @@ est lu deux fois, à 25 secondes d'écart, avant d'être validé.
 
 ## Règles de règlement des paris
 
-- Les paris ferment au coup d'envoi.
+- Les paris d'avant-match ferment au coup d'envoi (la sélection quitte le panier).
+- Paris en direct (foot, basket, hockey, foot US, rugby, tennis ; pas MMA ni boxe) : cotes recalculées
+  par Goalz selon le score et le temps restant (`js/providers/liveOdds.js`), à partir des cotes figées
+  au coup d'envoi, avec la même marge de 7 %. En simple uniquement. Une cote qui bouge doit être
+  acceptée. Issue sous 1,25 ou au-dessus de 15 non proposée ; marché suspendu juste après un but,
+  si la source se tait, et en fin de match (foot dès 85', rugby dès 75', 2 dernières minutes au
+  basket, hockey et foot US, prolongations). Vrais matchs : le pari n'est validé que si le score ne
+  bouge pas pendant 60 s (la source a du retard sur la télé), sinon il est remboursé ; scores lus
+  toutes les 30 s. Matchs éclair : le score se joue en direct pendant les 2 minutes.
 - Un résultat n'est validé que s'il est officiel et lu deux fois de suite.
 - Foot : le 1N2 se règle sur le score à 90 minutes (prolongations et tirs au but exclus).
 - Basket, hockey, foot US, tennis, MMA : pari à 2 issues, prolongations comprises. Un nul
@@ -86,7 +122,7 @@ js/
 │   └── fakeProvider.js    matchs éclair
 ├── services/              logique métier (synchro, paris, badges, ligues…)
 ├── tools/                 génération de l'instantané
-└── ui/                    écrans, effets, événements
+└── ui/                    écrans, effets, événements, emplacements pub (ads.js)
 ```
 
 ### Tests

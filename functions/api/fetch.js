@@ -7,10 +7,10 @@ const ALLOWED = new Set([
   'sports.core.api.espn.com',
 ]);
 
-// Durée de cache (secondes) : courte pour les scores, plus longue pour les fiches (cotes, statuts).
+// Durée de cache (secondes) : courte pour les scores (paris en direct), plus longue pour les fiches (cotes, statuts).
 function ttlFor(url) {
   if (url.hostname === 'sports.core.api.espn.com') return 300;
-  return 60;
+  return 20;
 }
 
 const json = (body, status, extra = {}) => new Response(body, {
