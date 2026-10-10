@@ -2,7 +2,6 @@
 import { update } from '../store.js';
 import { BADGES } from '../services/badges.js';
 import { fmt, rand, pick, escapeHtml } from '../util.js';
-import { notifyInbox } from './notify.js';
 import { icons } from './icons.js';
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -201,7 +200,6 @@ export function processInbox(player) {
   if (!player.inbox?.length) return;
   const items = player.inbox.slice();
   update((s) => { s.players[player.id].inbox = []; }, { silent: true });
-  notifyInbox(items);
 
   const wins = items.filter((i) => i.type === 'win');
   const losses = items.filter((i) => i.type === 'loss');

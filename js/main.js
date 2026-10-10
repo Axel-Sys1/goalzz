@@ -8,7 +8,6 @@ import { toast } from './ui/effects.js';
 import { initCloud } from './services/cloud.js';
 import { joinPendingInvite, readInviteFromUrl } from './services/invite.js';
 import { ui } from './ui/uiState.js';
-import { checkKickoffs } from './ui/notify.js';
 
 readInviteFromUrl();
 update((s) => ensureBots(s), { silent: true });
@@ -39,7 +38,6 @@ subscribe(async () => {
 startSync();
 setInterval(syncAll, CONFIG.TICK_MS);
 setInterval(tick, 1000);
-setInterval(checkKickoffs, 60_000);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') syncAll();
 });

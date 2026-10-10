@@ -12,7 +12,6 @@ import { confirmDialog } from './dialog.js';
 import { refreshSlipNumbers } from './screens/slip.js';
 import { ui } from './uiState.js';
 import { shareBet } from './share.js';
-import { notifState, setNotif } from './notify.js';
 import { CONFIG } from '../config.js';
 import { cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
 import { playerRR } from '../services/ranks.js';
@@ -123,12 +122,6 @@ const actions = {
   },
 
   'bets-tab': (el) => { ui.betsTab = el.dataset.tab; render(); },
-  'toggle-notif': async () => {
-    const res = await setNotif(notifState() !== 'on');
-    if (res === 'blocked') toast('Notifications bloquées : autorise-les dans les réglages du navigateur.', 'error');
-    else if (res === 'off' && notifState() !== 'on') toast('Notifications désactivées.', 'info');
-    render();
-  },
   'share-bet': async (el) => {
     el.disabled = true;
     try {
