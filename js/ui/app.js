@@ -15,6 +15,7 @@ import { renderMyBets } from './screens/myBets.js';
 import { renderRanking } from './screens/ranking.js';
 import { renderProfile } from './screens/profile.js';
 import { adSlot, mountAds } from './ads.js';
+import { legalLinks } from './screens/legal.js';
 
 const ROUTES = [
   { id: 'matchs', label: 'Matchs', icon: 'ball', render: renderMatches },
@@ -60,6 +61,11 @@ const shellHtml = () => `
       <aside id="aside" class="aside-slip" aria-label="Panier"></aside>
     </div>
     ${adSlot('bottom')}
+    <footer class="site-footer">
+      <p>Une question, un partenariat ? <a href="mailto:${CONFIG.CONTACT_EMAIL}">${CONFIG.CONTACT_EMAIL}</a></p>
+      ${legalLinks()}
+      <p class="muted">© ${new Date().getFullYear()} Goalzz · Jeu gratuit, sans argent réel</p>
+    </footer>
   </div>
   <div id="slipbar"></div>
   <nav class="nav-bottom" id="nav-bottom" aria-label="Navigation"></nav>`;

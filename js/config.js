@@ -1,6 +1,7 @@
 // Réglages du jeu. Tout ce qui touche à l'équilibrage est ici.
 export const CONFIG = {
   STORAGE_KEY: 'goalz:v1',
+  CONTACT_EMAIL: 'contact.goalzzbusiness@gmail.com', // pied de page et mentions légales
   STARTING_BALANCE: 100,  // monnaie rare : on démarre petit et on gagne en pariant juste
   DAILY_BONUS: 50,
   MIN_STAKE: 1,

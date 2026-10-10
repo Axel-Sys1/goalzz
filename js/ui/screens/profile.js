@@ -5,7 +5,6 @@ import { coin, icons } from '../icons.js';
 import { renderAccountCard } from './account.js';
 import { cloud } from '../../services/cloud.js';
 import { ui } from '../uiState.js';
-import { legalLinks } from './legal.js';
 
 const pseudoTaken = (p) => !!cloud.pseudoConflict && cloud.pseudoConflict === p.pseudo;
 
@@ -93,7 +92,7 @@ function settingsView(p) {
         <button class="link-btn danger" data-action="reset-app" type="button">Tout effacer</button>
       </div>
     </section>
-    ${legalLinks()}`;
+    `;
 }
 
 // Changement de pseudo : payant, sauf si un autre compte a déjà réservé le pseudo actuel.
