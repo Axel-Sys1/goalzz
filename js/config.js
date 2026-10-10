@@ -30,7 +30,7 @@ export const CONFIG = {
   // « Espace publicitaire » à sa taille. Passer à Google AdSense : voir README.md, « Publicité ».
   ADS: {
     enabled: true,                       // false : aucun emplacement
-    client: '',                          // identifiant éditeur AdSense, ex. 'ca-pub-1234567890123456'
+    client: 'ca-pub-2648122457549094',   // identifiant éditeur AdSense (vraies pubs dès que `slots` est rempli)
     slots: { top: '', side: '', bottom: '' }, // id des blocs d'annonces
     hosts: ['goalzz.fr', 'www.goalzz.fr'], // vraies annonces seulement ici (ailleurs : encarts)
     personalized: false,                 // public dès 15 ans : annonces non personnalisées
