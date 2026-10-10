@@ -131,7 +131,7 @@ function installRow() {
   return `
       <div class="settings-row">
         <div class="grow"><strong>Installer l'appli</strong><span class="muted">${ui.installPrompt
-          ? 'Ajoute Goalz à ton écran d\'accueil, comme une vraie appli.'
+          ? 'Ajoute Goalzz à ton écran d\'accueil, comme une vraie appli.'
           : 'Sur iPhone : touche Partager, puis « Sur l\'écran d\'accueil ».'}</span></div>
         ${ui.installPrompt ? '<button class="btn btn-primary" data-action="install-app" type="button">Installer</button>' : ''}
       </div>`;

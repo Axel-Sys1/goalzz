@@ -41,7 +41,7 @@ let liveSig = '';
 const shellHtml = () => `
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="logo" href="#matchs" aria-label="Goalz, accueil">${icons.ball}<span>GOAL<b>Z</b></span></a>
+      <a class="logo" href="#matchs" aria-label="Goalzz, accueil">${icons.ball}<span>GOAL<b>ZZ</b></span></a>
       <nav class="nav-top" id="nav-top" aria-label="Navigation principale"></nav>
       <div class="top-right">
         <button class="bonus-btn" id="bonus-btn" data-action="claim-bonus" type="button">${icons.gift}<span class="bonus-dot"></span></button>

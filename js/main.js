@@ -44,7 +44,7 @@ document.addEventListener('visibilitychange', () => {
 
 // Application installable (écran d'accueil du téléphone) et utilisable hors ligne.
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); ui.installPrompt = e; render(); });
-window.addEventListener('appinstalled', () => { ui.installPrompt = null; toast('Goalz est installé sur ton écran d\'accueil !', 'success'); });
+window.addEventListener('appinstalled', () => { ui.installPrompt = null; toast('Goalzz est installé sur ton écran d\'accueil !', 'success'); });
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }

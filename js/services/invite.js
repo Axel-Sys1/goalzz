@@ -52,9 +52,9 @@ export async function joinPendingInvite() {
 // Partage d'une ligue : feuille de partage du téléphone, sinon copie du lien.
 export async function shareLeague(code, name) {
   const url = inviteLink(code);
-  const text = `Rejoins ma ligue « ${name} » sur Goalz, le jeu de pronos gratuit entre potes !`;
+  const text = `Rejoins ma ligue « ${name} » sur Goalzz, le jeu de pronos gratuit entre potes !`;
   if (navigator.share) {
-    try { await navigator.share({ title: 'Goalz', text, url }); return 'shared'; } catch (err) {
+    try { await navigator.share({ title: 'Goalzz', text, url }); return 'shared'; } catch (err) {
       if (err?.name === 'AbortError') return 'cancelled';
     }
   }

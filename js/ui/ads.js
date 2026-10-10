@@ -29,7 +29,7 @@ function placeholder(id) {
   if (!contact) return `<div class="ad-ph">${body}</div>`;
   const newTab = !/^mailto:/i.test(contact);
   return `<a class="ad-ph" href="${escapeHtml(contact)}"${newTab ? ' target="_blank" rel="noopener"' : ''}
-    aria-label="Annoncer sur Goalz${newTab ? ' (nouvel onglet)' : ''}">${body}</a>`;
+    aria-label="Annoncer sur Goalzz${newTab ? ' (nouvel onglet)' : ''}">${body}</a>`;
 }
 
 // HTML d'un emplacement ('' si les pubs sont désactivées).

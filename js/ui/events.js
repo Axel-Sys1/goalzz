@@ -154,7 +154,7 @@ const actions = {
 
   'reset-app': async () => {
     const ok = await confirmDialog({
-      title: 'Réinitialiser Goalz ?',
+      title: 'Réinitialiser Goalzz ?',
       message: 'Tous les joueurs, paris et ligues de cet appareil seront effacés.',
       confirmLabel: 'Tout effacer',
       danger: true,

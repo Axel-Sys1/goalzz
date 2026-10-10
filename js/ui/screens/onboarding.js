@@ -50,7 +50,7 @@ export function renderOnboarding(s) {
     <div class="hero-glow"></div>
     <div class="landing">
       <section class="landing-hero">
-        <div class="brand-big">${icons.ball}<span>GOAL<b>Z</b></span></div>
+        <div class="brand-big">${icons.ball}<span>GOAL<b>ZZ</b></span></div>
         <h1 class="landing-title">Pronostique.<br>Grimpe.<br><b>Domine tes potes.</b></h1>
         <p class="tagline">Le jeu de pronos sportifs gratuit avec une monnaie 100 % virtuelle.</p>
         <div class="landing-ladder" aria-label="Les rangs, de Fer à Radiant">
