@@ -28,7 +28,7 @@ export const cloud = {
   enabled: !!CONFIG.FIREBASE?.apiKey,
   ready: false,       // l'état de connexion est connu
   user: null,         // { uid, email } une fois connecté
-  mode: 'login',      // formulaire : 'login' (se connecter) ou 'signup' (créer un compte)
+  mode: 'signup',     // formulaire : 'signup' (créer un compte) ou 'login' (se connecter)
   division: null,     // { index, rows: [{ uid, pseudo, rr, balance }], radiant: Set<uid>, at, loading, error }
   top: null,          // classement général : { rows, above (joueurs devant moi), at, loading, error }
   pseudoConflict: null, // pseudo du joueur actuel à changer : déjà réservé par un autre compte…

@@ -3,7 +3,8 @@ import { escapeHtml, fmt } from '../../util.js';
 import { listProfiles } from '../../services/players.js';
 import { TIERS, RADIANT, RR_PER_DIVISION, rankOf } from '../../services/ranks.js';
 import { coin, icons, rankEmblem } from '../icons.js';
-import { inviteBanner, renderAccountCard } from './account.js';
+import { inviteBanner, renderAccountCard, PERKS } from './account.js';
+import { cloud } from '../../services/cloud.js';
 import { legalLinks } from './legal.js';
 import { matchCard } from './matches.js';
 import { matchStatus } from '../../services/matchInfo.js';
@@ -42,6 +43,46 @@ const FEATURES = [
   { icon: 'bolt', title: 'Matchs éclair', text: 'Envie de jouer tout de suite ? Des matchs fictifs de 2 minutes, à toute heure.' },
 ];
 
+function pseudoForm(title, note = '') {
+  return `
+        <form class="register" data-form="register" autocomplete="off">
+          <label for="pseudo-input">${title}</label>
+          ${note ? `<span class="muted">${note}</span>` : ''}
+          <input id="pseudo-input" name="pseudo" maxlength="16" placeholder="ex. LeRoiDuProno" required>
+          <button class="btn btn-primary btn-lg" type="submit">
+            Jouer avec ${fmt(CONFIG.STARTING_BALANCE)} ${coin('coin coin-sm')} offerts
+          </button>
+        </form>`;
+}
+
+// Inscription : le compte d'abord (Google en un clic, ou email), « jouer sans compte » en option.
+function signupFirst() {
+  const login = cloud.mode === 'login';
+  return `
+        <section class="register signup-first">
+          <h2>${login ? 'Content de te revoir' : 'Crée ton compte gratuit'}</h2>
+          ${login ? '<span class="muted">Connecte-toi pour retrouver ta partie.</span>' : `
+          <ul class="perks">${PERKS.map(([icon, text]) => `<li>${icons[icon]}<span>${text}</span></li>`).join('')}</ul>`}
+          <button class="btn btn-primary btn-lg" data-action="cloud-google" type="button">Continuer avec Google</button>
+          <div class="or"><span>ou avec un email</span></div>
+          <form class="account-form" data-form="cloud-auth">
+            <input id="email-input" name="email" type="email" autocomplete="email" inputmode="email" placeholder="ton@email.fr" required>
+            <input id="password-input" name="password" type="password" autocomplete="${login ? 'current-password' : 'new-password'}"
+              placeholder="${login ? 'Mot de passe' : 'Choisis un mot de passe (6 caractères min.)'}" minlength="6" required>
+            <button class="btn btn-ghost" type="submit">${login ? 'Se connecter' : 'Créer mon compte'}</button>
+          </form>
+          <div class="account-links">
+            <button class="link-btn" data-action="cloud-mode" data-mode="${login ? 'signup' : 'login'}" type="button">${login ? 'Créer un compte' : 'J\'ai déjà un compte'}</button>
+            ${login ? '<button class="link-btn" data-action="cloud-reset" type="button">Mot de passe oublié ?</button>' : ''}
+          </div>
+          <span class="fineprint">${fmt(CONFIG.STARTING_BALANCE)} Goalz offerts à l'inscription · jeu gratuit, sans argent réel.</span>
+        </section>
+        <details class="guest-play">
+          <summary>Jouer sans compte</summary>
+          ${pseudoForm('Choisis ton pseudo', 'Sans compte, ta partie reste sur cet appareil et tu n\'apparais pas dans le classement.')}
+        </details>`;
+}
+
 export function renderOnboarding(s) {
   const profiles = listProfiles(s);
   const ladder = [...TIERS.map((t, i) => ({ ...rankOf(i * 3 * RR_PER_DIVISION), division: null, label: t.name })), { ...RADIANT, division: null, label: RADIANT.name }];
@@ -68,14 +109,7 @@ export function renderOnboarding(s) {
 
       <section class="onboarding-card">
         ${inviteBanner()}
-        <form class="register" data-form="register" autocomplete="off">
-          <label for="pseudo-input">Choisis ton pseudo</label>
-          <input id="pseudo-input" name="pseudo" maxlength="16" placeholder="ex. LeRoiDuProno" required>
-          <button class="btn btn-primary btn-lg" type="submit">
-            Jouer avec ${fmt(CONFIG.STARTING_BALANCE)} ${coin('coin coin-sm')} offerts
-          </button>
-          <span class="fineprint">Étape suivante : crée ton compte gratuit pour entrer dans le classement général et ne jamais perdre ta partie.</span>
-        </form>
+        ${!cloud.enabled ? pseudoForm('Choisis ton pseudo') : cloud.user ? pseudoForm('Dernière étape : choisis ton pseudo', `Compte créé${cloud.user.email ? ` (${escapeHtml(cloud.user.email)})` : ''}. Ton pseudo sera visible dans le classement.`) : signupFirst()}
 
         ${profiles.length ? `
           <div class="profiles">
@@ -88,7 +122,7 @@ export function renderOnboarding(s) {
               </button>`).join('')}
           </div>` : ''}
 
-        ${renderAccountCard({ compact: true })}
+        ${cloud.enabled ? '' : renderAccountCard({ compact: true })}
 
         <p class="fineprint">
           Jeu gratuit, sans argent réel. Les Goalz ne s'achètent pas et ne s'échangent pas contre

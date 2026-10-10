@@ -69,10 +69,10 @@ const actions = {
   'guest-pick': (el) => {
     const { match, outcome } = el.dataset;
     ui.pendingPick = match ? { match, outcome } : null;
-    const input = document.getElementById('pseudo-input');
-    input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    input?.focus({ preventScroll: true });
-    toast(match ? 'Choisis un pseudo : ta cote ira directement dans ton panier.' : 'Choisis un pseudo pour parier.', 'info');
+    const target = document.querySelector('.signup-first') || document.getElementById('pseudo-input');
+    target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (target?.id === 'pseudo-input') target.focus({ preventScroll: true });
+    toast(match ? 'Crée ton compte : ta cote ira directement dans ton panier.' : 'Crée ton compte pour parier.', 'info');
   },
   pick: (el) => {
     const { match, outcome } = el.dataset;

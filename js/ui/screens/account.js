@@ -44,7 +44,7 @@ export function renderAccountCard({ compact = false } = {}) {
     </form>`;
 }
 
-const PERKS = [
+export const PERKS = [
   ['trophy', 'Ta place dans le classement général, face à tous les joueurs'],
   ['cloud', 'Ta partie sauvegardée : rien ne se perd, sur tous tes appareils'],
   ['user', 'Les ligues privées avec tes potes'],

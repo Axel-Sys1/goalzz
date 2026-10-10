@@ -971,3 +971,13 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .perks svg { width: 18px; height: 18px; color: var(--accent); flex-shrink: 0; }
 .nudge-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .nudge-actions .btn { flex: 1 1 160px; }
+
+/* ---------- Inscription : compte d'abord ---------- */
+.signup-first { gap: 12px; }
+.signup-first h2 { font: italic 800 26px/1.05 var(--display); text-transform: uppercase; }
+.signup-first .account-form { gap: 8px; }
+.or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; font-weight: 600; }
+.or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.guest-play { text-align: left; }
+.guest-play summary { cursor: pointer; color: var(--muted); font-size: 14px; font-weight: 600; text-align: center; padding: 6px; }
+.guest-play[open] summary { margin-bottom: 10px; }
