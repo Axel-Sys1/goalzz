@@ -27,7 +27,8 @@ async function getJsonDirect(url, { timeoutMs = 15_000 } = {}) {
 // qui partage un cache entre tous les joueurs. Si le relais refuse une requête (ESPN bloque parfois
 // ses serveurs), on la refait en direct ; après 3 pannes réseau, on ne l'utilise plus de la visite.
 // TheSportsDB (boxe) est toujours interrogé en direct : sa limite par adresse IP pénaliserait le relais.
-const PROXY = typeof location !== 'undefined' && location.hostname === 'goalzz.pages.dev' ? '/api/fetch?u=' : null;
+const SITE_HOSTS = ['goalzz.fr', 'www.goalzz.fr', 'goalzz.pages.dev'];
+const PROXY = typeof location !== 'undefined' && SITE_HOSTS.includes(location.hostname) ? '/api/fetch?u=' : null;
 const viaProxy = (url) => PROXY && proxyFailures < 3 && /^https?:\/\/[^/]*espn\.com\//.test(url);
 let proxyFailures = 0;
 

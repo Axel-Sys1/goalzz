@@ -7,4 +7,4 @@ Disallow: /data/
 
 Allow: /legal
 
-Sitemap: https://goalzz.pages.dev/sitemap.xml
+Sitemap: https://goalzz.fr/sitemap.xml

@@ -4,7 +4,7 @@ import { cloud, joinOnlineLeague } from './cloud.js';
 import { getState } from '../store.js';
 
 const KEY = 'goalz:invite';
-const SITE = 'https://goalzz.pages.dev/';
+const SITE = 'https://goalzz.pages.dev/'; // redirigé vers goalzz.fr avec le code (js/move.js)
 let joining = false;
 
 export const inviteLink = (code) => `${SITE}?ligue=${encodeURIComponent(code)}`;

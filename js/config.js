@@ -31,7 +31,7 @@ export const CONFIG = {
     enabled: true,                       // false : aucun emplacement
     client: '',                          // identifiant éditeur AdSense, ex. 'ca-pub-1234567890123456'
     slots: { top: '', side: '', bottom: '' }, // id des blocs d'annonces
-    hosts: ['goalzz.pages.dev'],         // vraies annonces seulement ici (ailleurs : encarts)
+    hosts: ['goalzz.fr', 'www.goalzz.fr'], // vraies annonces seulement ici (ailleurs : encarts)
     personalized: false,                 // public dès 15 ans : annonces non personnalisées
     contact: '',                         // lien des encarts (ex. 'mailto:…') ; vide : pas de lien
   },

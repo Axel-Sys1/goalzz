@@ -22,6 +22,10 @@ Puis ouvrir <http://localhost:5173>. En local, les vrais matchs sont lus **en di
 
 ## Version en ligne
 
+<https://goalzz.fr> (domaine IONOS, DNS chez Cloudflare). L'ancienne adresse goalzz.pages.dev
+redirige vers goalzz.fr dès que celle-ci répond, en transférant la partie des joueurs sans compte
+(`js/move.js`).
+
 <https://goalzz.pages.dev> (Cloudflare Pages), copie sur <https://axel-sys1.github.io/goalzz/>.
 
 - Le site est servi depuis le dépôt GitHub **Axel-Sys1/goalzz** (branche `main`, sans étape
