@@ -2,6 +2,7 @@
 import { escapeHtml } from '../../util.js';
 import { cloud } from '../../services/cloud.js';
 import { pendingInvite } from '../../services/invite.js';
+import { icons } from '../icons.js';
 
 export function renderAccountCard({ compact = false } = {}) {
   if (!cloud.enabled || !cloud.ready) return '';
@@ -41,6 +42,30 @@ export function renderAccountCard({ compact = false } = {}) {
         ${signup ? '' : '<button class="link-btn" data-action="cloud-reset" type="button">Mot de passe oublié ?</button>'}
       </div>
     </form>`;
+}
+
+const PERKS = [
+  ['trophy', 'Ta place dans le classement général, face à tous les joueurs'],
+  ['cloud', 'Ta partie sauvegardée : rien ne se perd, sur tous tes appareils'],
+  ['user', 'Les ligues privées avec tes potes'],
+];
+
+// Encart « crée ton compte » pour les joueurs qui jouent sans compte (en haut des matchs).
+export function accountNudge() {
+  if (!cloud.enabled || !cloud.ready || cloud.user || pendingInvite()) return '';
+  return `
+    <section class="card account-nudge">
+      <div class="nudge-head">
+        <strong>Crée ton compte gratuit</strong>
+        <span class="muted">10 secondes, et tu gardes ton pseudo, ton solde et tes paris.</span>
+      </div>
+      <ul class="perks">${PERKS.map(([icon, text]) => `<li>${icons[icon]}<span>${text}</span></li>`).join('')}</ul>
+      <div class="nudge-actions">
+        <button class="btn btn-primary" data-action="cloud-google" type="button">Continuer avec Google</button>
+        <button class="btn btn-ghost" data-action="go-account" type="button">Avec un email</button>
+      </div>
+      <p class="fineprint">Sans compte, ta partie reste seulement sur cet appareil et tu n'apparais pas dans le classement.</p>
+    </section>`;
 }
 
 // Bandeau d'invitation (lien ?ligue=CODE) tant que la ligue n'est pas rejointe.

@@ -74,7 +74,7 @@ export function renderOnboarding(s) {
           <button class="btn btn-primary btn-lg" type="submit">
             Jouer avec ${fmt(CONFIG.STARTING_BALANCE)} ${coin('coin coin-sm')} offerts
           </button>
-          <span class="fineprint">Gratuit, sans inscription obligatoire. Crée un compte ensuite pour jouer sur tous tes appareils.</span>
+          <span class="fineprint">Étape suivante : crée ton compte gratuit pour entrer dans le classement général et ne jamais perdre ta partie.</span>
         </form>
 
         ${profiles.length ? `

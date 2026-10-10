@@ -10,7 +10,7 @@ import { LIVE_SPORTS, liveMarket } from '../../providers/liveOdds.js';
 import { spotlight } from '../../services/spotlight.js';
 import { coin, icons } from '../icons.js';
 import { ui } from '../uiState.js';
-import { inviteBanner } from './account.js';
+import { accountNudge, inviteBanner } from './account.js';
 import { cloud } from '../../services/cloud.js';
 
 const ORDER = { 1: 0, X: 1, 2: 2 };
@@ -360,7 +360,7 @@ export function renderMatches(s, p) {
       ${mode === 'fake' ? '<p class="muted">Des matchs fictifs de 2 minutes pour jouer tout de suite.</p>' : ''}
     </section>
 
-    ${cloud.user ? '' : inviteBanner({ inGame: true })}
+    ${cloud.user ? '' : inviteBanner({ inGame: true }) || accountNudge()}
 
     ${canClaimBonus(p) ? `
       <button class="bonus-card" data-action="claim-bonus" type="button">
