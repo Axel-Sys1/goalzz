@@ -9,6 +9,7 @@ import { checkBadges } from './badges.js';
 import { currentPlayer } from './players.js';
 import { matchStatus, outcomeLabel, matchTitle } from './matchInfo.js';
 import { liveMarket } from '../providers/liveOdds.js';
+import { RR_VERSION } from './ranks.js';
 
 export const potentialGain = (stake, odds) => Math.floor((Number(stake) || 0) * odds);
 
@@ -216,6 +217,7 @@ function settleCombos(s, m) {
     const label = `Combiné ${bet.legs.length} matchs`;
     if (leg.status === 'lost') {
       bet.status = 'lost';
+      bet.rrv = RR_VERSION;
       bet.settledAt = clockFor(m);
       recordLoss(p, label);
     } else if (bet.legs.every((l) => l.status !== 'pending')) {
@@ -228,6 +230,7 @@ function settleCombos(s, m) {
         p.inbox.push({ type: 'void', amount: bet.stake, label });
       } else {
         bet.status = 'won';
+        bet.rrv = RR_VERSION;
         bet.finalOdds = productOdds(won.map((l) => l.odds));
         bet.payout = potentialGain(bet.stake, bet.finalOdds);
         recordWin(p, bet, label);
@@ -291,10 +294,12 @@ export function settleMatch(s, m) {
       refund(p, bet, bet.settledAt, label);
     } else if (bet.outcome === m.outcome) {
       bet.status = 'won';
+      bet.rrv = RR_VERSION;
       bet.payout = bet.potential;
       recordWin(p, { ...bet, real: m.real }, label);
     } else {
       bet.status = 'lost';
+      bet.rrv = RR_VERSION;
       recordLoss(p, label);
     }
     checkBadges(p);

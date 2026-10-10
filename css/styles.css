@@ -876,9 +876,9 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .rename-card .btn .coin { width: 16px; height: 16px; }
 
 /* Texte d'accueil statique (moteurs de recherche, avant le chargement de l'appli) */
-.seo-intro { max-width: 640px; margin: 18vh auto 0; padding: 0 20px; text-align: center; color: var(--muted); }
-.seo-intro h1 { font: italic 800 40px/1 var(--display); text-transform: uppercase; color: var(--text); margin-bottom: 14px; }
-.seo-intro p + p { margin-top: 10px; }
+/* Texte pour les moteurs de recherche : lu par Google, jamais affiché (sinon la page saute quand
+   l'appli le remplace). */
+.seo-intro { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 /* ---------- Accueil (nouveaux visiteurs) ---------- */
 .landing { position: relative; width: 100%; max-width: 1040px; display: grid; gap: 24px; align-items: start; grid-template-areas: "hero" "card" "features"; }
@@ -947,3 +947,8 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 @media (min-width: 1000px) {
   .spot-track { grid-auto-columns: 300px; margin: 0; padding: 2px 0 6px; }
 }
+
+/* ---------- Matchs visibles sans pseudo (accueil) ---------- */
+.guest-matches { position: relative; width: 100%; max-width: 1100px; margin: 8px auto 0; padding: 0 16px 40px; display: grid; gap: 14px; }
+.guest-matches .section-title { margin-top: 18px !important; }
+.guest-cta { justify-self: center; margin-top: 10px; }

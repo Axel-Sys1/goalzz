@@ -12,7 +12,7 @@
 // compte ; les règles Firestore refusent une fiche de classement dont le pseudo est à quelqu'un d'autre.
 import { CONFIG } from '../config.js';
 import { emit, getState, onSave, replaceState, resetAll } from '../store.js';
-import { playerRR, winRR, LOSS_RR, RR_PER_DIVISION, TIERS, IMMORTAL_RR, RADIANT_SPOTS } from './ranks.js';
+import { playerRR, betRR, LOSS_RR, RR_PER_DIVISION, TIERS, IMMORTAL_RR, RADIANT_SPOTS } from './ranks.js';
 import { leagueCode } from '../util.js';
 import { isOffensivePseudo } from './moderation.js';
 
@@ -110,7 +110,7 @@ function rrAfter(p, settledBets) {
   let rr = p.rrBase || 0;
   for (const b of settledBets) {
     if ((b.settledAt || 0) <= since || (b.status !== 'won' && b.status !== 'lost')) continue;
-    rr = Math.max(0, rr + (b.status === 'won' ? winRR(b.finalOdds || b.odds) : -LOSS_RR));
+    rr = Math.max(0, rr + betRR(b));
   }
   return rr;
 }

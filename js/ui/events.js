@@ -64,6 +64,15 @@ const actions = {
     location.reload();
   },
 
+  // Visiteur sans pseudo : on l'envoie vers l'inscription ; sa cote ira dans le panier ensuite.
+  'guest-pick': (el) => {
+    const { match, outcome } = el.dataset;
+    ui.pendingPick = match ? { match, outcome } : null;
+    const input = document.getElementById('pseudo-input');
+    input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    input?.focus({ preventScroll: true });
+    toast(match ? 'Choisis un pseudo : ta cote ira directement dans ton panier.' : 'Choisis un pseudo pour parier.', 'info');
+  },
   pick: (el) => {
     const { match, outcome } = el.dataset;
     const from = el.getBoundingClientRect();
@@ -158,7 +167,12 @@ const actions = {
 };
 
 const forms = {
-  register: (data) => register(data.get('pseudo')),
+  register: async (data) => {
+    await register(data.get('pseudo'));
+    const pick = ui.pendingPick;
+    ui.pendingPick = null;
+    if (pick && currentPlayer()) { toggleSelection(pick.match, pick.outcome); location.hash = 'matchs'; }
+  },
   rename: async (data, form) => {
     const free = cloud.pseudoConflict === currentPlayer()?.pseudo;
     const pseudo = String(data.get('pseudo') || '').trim();

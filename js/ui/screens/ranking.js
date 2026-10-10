@@ -58,7 +58,7 @@ function ladder() {
         ${steps.map((t) => `<span class="ladder-step">${rankEmblem(t)}<small>${t.label}</small></span>`).join('')}
       </div>
       <p class="muted">
-        Chaque pari gagné rapporte de 12 à 40 RR selon la cote, chaque pari perdu en coûte ${LOSS_RR}.
+        Chaque pari perdu coûte ${LOSS_RR} RR ; un pari gagné rapporte selon la cote (1,25 → 5 RR, 2 → 17 RR, 3 → 33 RR). Parier sur les favoris ne suffit pas : il faut voir juste plus souvent que les cotes.
         Un pari remboursé ne change rien. ${RR_PER_DIVISION} RR = une division (1, 2, 3), puis rang suivant.
         Les ${RADIANT_SPOTS} meilleurs Immortels deviennent Radiant. Le rang dépend de tes résultats,
         pas de ton solde ni de tes mises.

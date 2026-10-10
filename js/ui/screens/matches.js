@@ -61,7 +61,7 @@ function moveOf(key, v) {
 }
 
 // market : marché en direct (providers/liveOdds.js) ; sans lui, cotes d'avant-match.
-function oddsButtons(m, status, slipPick, market = null) {
+function oddsButtons(m, status, slipPick, market = null, guest = false) {
   const outcomes = Object.keys(m.odds || {}).sort((a, b) => ORDER[a] - ORDER[b]);
   return `
     <div class="odds cols-${outcomes.length}">
@@ -74,7 +74,7 @@ function oddsButtons(m, status, slipPick, market = null) {
         const label = outcomeShort(m, o);
         return `
         <button class="odd ${selected ? 'selected' : ''} ${won ? 'won' : ''} ${move ? `odd-${move}` : ''}" type="button"
-          data-action="pick" data-match="${escapeHtml(m.id)}" data-outcome="${o}"
+          data-action="${guest ? 'guest-pick' : 'pick'}" data-match="${escapeHtml(m.id)}" data-outcome="${o}"
           ${open ? '' : 'disabled'}
           aria-pressed="${selected}" aria-label="${escapeHtml(label)} ${v ? `à ${fmtOdds(v)}` : ': non proposé'}">
           <span class="odd-label">${escapeHtml(label)}</span>
@@ -137,7 +137,8 @@ function howToCard() {
     </ol>`;
 }
 
-export function matchCard(m, { slipPick = null, grouped = false } = {}) {
+// guest : visiteur sans pseudo, une cote l'invite à s'inscrire (puis l'ajoute au panier).
+export function matchCard(m, { slipPick = null, grouped = false, guest = false } = {}) {
   const t = clockFor(m);
   const status = matchStatus(m, t);
   const sport = sportMeta(m.sport);
@@ -178,7 +179,7 @@ export function matchCard(m, { slipPick = null, grouped = false } = {}) {
       </div>
       ${extra}
     </div>
-    ${oddsButtons(m, status, slipPick, market)}
+    ${oddsButtons(m, status, slipPick, market, guest)}
     ${liveNote}
   </article>`;
 }

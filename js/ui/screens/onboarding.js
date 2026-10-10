@@ -5,6 +5,35 @@ import { TIERS, RADIANT, RR_PER_DIVISION, rankOf } from '../../services/ranks.js
 import { coin, icons, rankEmblem } from '../icons.js';
 import { inviteBanner, renderAccountCard } from './account.js';
 import { legalLinks } from './legal.js';
+import { matchCard } from './matches.js';
+import { matchStatus } from '../../services/matchInfo.js';
+import { spotlight } from '../../services/spotlight.js';
+import { realNow } from '../../store.js';
+
+// Les matchs du moment, visibles sans pseudo : en direct d'abord, puis les gros matchs à venir.
+function guestMatches(s) {
+  const t = realNow();
+  const real = Object.values(s.matches).filter((m) => m.real);
+  const live = real.filter((m) => matchStatus(m, t) === 'live').sort((a, b) => a.startsAt - b.startsAt).slice(0, 4);
+  const upcoming = real.filter((m) => matchStatus(m, t) === 'upcoming');
+  const top = spotlight(upcoming, t).map((x) => x.m);
+  const soon = [...top, ...upcoming.sort((a, b) => a.startsAt - b.startsAt)]
+    .filter((m, i, arr) => arr.indexOf(m) === i).slice(0, 8);
+  if (!live.length && !soon.length) return '';
+  const card = (m) => matchCard(m, { guest: true });
+  return `
+    <section class="guest-matches" aria-label="Matchs du moment">
+      ${live.length ? `
+        <h2 class="section-title"><span class="live-dot"></span>En direct <span class="muted section-note">paris en direct</span></h2>
+        <div class="match-grid">${live.map(card).join('')}</div>` : ''}
+      ${soon.length ? `
+        <h2 class="section-title">Les matchs à venir</h2>
+        <div class="match-grid">${soon.map(card).join('')}</div>` : ''}
+      <button class="btn btn-primary btn-lg guest-cta" data-action="guest-pick" type="button">
+        Voir les ${fmt(real.length)} matchs et parier
+      </button>
+    </section>`;
+}
 
 const FEATURES = [
   { icon: 'stadium', title: 'Les vrais matchs', text: 'Ligue 1, Premier League, Ligue des champions, NBA, tennis, UFC, rugby… résultats officiels en direct.' },
@@ -68,5 +97,6 @@ export function renderOnboarding(s) {
         ${legalLinks()}
       </section>
     </div>
+    ${guestMatches(s)}
   </div>`;
 }
