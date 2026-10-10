@@ -6,5 +6,5 @@ export const ui = {
   betsTab: 'pending',    // pending | won | lost | void
   installPrompt: null,   // proposition d'installation du navigateur (Android, ordinateur)
   profileTab: 'stats',   // stats | settings (Profil)
-  rankTab: 'division',   // division | leagues
+  rankTab: 'top',        // top (classement général) | division | leagues
 };

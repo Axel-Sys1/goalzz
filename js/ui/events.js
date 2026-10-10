@@ -13,7 +13,7 @@ import { refreshSlipNumbers } from './screens/slip.js';
 import { ui } from './uiState.js';
 import { shareBet } from './share.js';
 import { CONFIG } from '../config.js';
-import { cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
+import { cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, loadTop, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
 import { playerRR } from '../services/ranks.js';
 import { shareLeague } from '../services/invite.js';
 
@@ -135,6 +135,10 @@ const actions = {
   },
 
   'rank-tab': (el) => { ui.rankTab = el.dataset.tab; render(); },
+  'top-refresh': async () => {
+    const s = getState();
+    await loadTop(playerRR(s.currentPlayerId, s), { force: true });
+  },
   'division-refresh': async () => {
     const s = getState();
     await loadDivision(playerRR(s.currentPlayerId, s), { force: true });

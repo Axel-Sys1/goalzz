@@ -30,6 +30,7 @@ export const cloud = {
   user: null,         // { uid, email } une fois connecté
   mode: 'login',      // formulaire : 'login' (se connecter) ou 'signup' (créer un compte)
   division: null,     // { index, rows: [{ uid, pseudo, rr, balance }], radiant: Set<uid>, at, loading, error }
+  top: null,          // classement général : { rows, above (joueurs devant moi), at, loading, error }
   pseudoConflict: null, // pseudo du joueur actuel à changer : déjà réservé par un autre compte…
   pseudoBanned: false,  // … ou refusé par le filtre de pseudos
   leagues: null,      // { list: [{ code, name, ownerUid, members, rows }], at, loading, error }
@@ -43,6 +44,7 @@ const ownedPseudos = new Set(); // pseudos (clés) déjà vérifiés comme appar
 
 const DIVISION_TTL_MS = 5 * 60_000; // classements rechargés au plus toutes les 5 min (quota de lectures)
 const DIVISION_LIMIT = 50;
+const TOP_LIMIT = 100;
 const LAST_DIVISION = TIERS.length * 3 - 1;
 export const divisionIndex = (rr) => Math.min(LAST_DIVISION, Math.floor(rr / RR_PER_DIVISION));
 let lastBoard = '';
@@ -265,6 +267,46 @@ export async function loadDivision(rr, { force = false } = {}) {
     cloud.division = { ...cloud.division, loading: false, error: 'Classement indisponible pour le moment.' };
   }
   emit();
+}
+
+// Classement général : les TOP_LIMIT meilleurs joueurs du jeu, et le nombre de joueurs devant moi
+// (pour ma place quand je suis plus bas). Rechargé au plus toutes les 5 minutes, sauf `force`.
+export async function loadTop(rr, { force = false } = {}) {
+  if (!cloud.user || !fb) return;
+  const t = cloud.top;
+  if (t && !force && (t.loading || Date.now() - t.at < DIVISION_TTL_MS)) return;
+  cloud.top = { rows: t?.rows || [], above: t?.above ?? null, at: Date.now(), loading: true, error: null };
+  const { F, db } = fb;
+  const col = F.collection(db, 'leaderboard');
+  try {
+    const [snap, count] = await Promise.all([
+      F.getDocs(F.query(col, F.orderBy('rr', 'desc'), F.limit(TOP_LIMIT))),
+      F.getCountFromServer(F.query(col, F.where('rr', '>', rr))).catch(() => null),
+    ]);
+    const rows = snap.docs.map((doc) => ({ uid: doc.id, ...doc.data() }));
+    cloud.top = { rows, above: count ? count.data().count : null, at: Date.now(), loading: false, error: null };
+  } catch (err) {
+    console.warn('Goalz : classement général indisponible', err);
+    cloud.top = { ...cloud.top, loading: false, error: 'Classement indisponible pour le moment.' };
+  }
+  emit();
+}
+
+// Lignes du classement général, avec le joueur actuel à jour. Radiant : les 3 premiers Immortels.
+export function topRows() {
+  const t = cloud.top;
+  if (!t) return { rows: [], radiant: new Set(), myPos: null };
+  const me = myEntry();
+  const rows = t.rows.filter((r) => r.uid !== me?.uid && !isOffensivePseudo(r.pseudo));
+  const last = rows[rows.length - 1];
+  const inTop = me && (rows.length < TOP_LIMIT || me.rr >= (last?.rr ?? 0));
+  if (inTop) rows.push(me);
+  rows.sort((a, b) => b.rr - a.rr || b.balance - a.balance || String(a.pseudo).localeCompare(String(b.pseudo)));
+  const shown = rows.slice(0, TOP_LIMIT);
+  const radiant = new Set(shown.filter((r) => r.rr >= IMMORTAL_RR).slice(0, RADIANT_SPOTS).map((r) => r.uid));
+  const idx = shown.findIndex((r) => r.uid === me?.uid);
+  const myPos = idx >= 0 ? idx + 1 : t.above != null ? t.above + 1 : null;
+  return { rows: shown, radiant, myPos, me };
 }
 
 // Lignes de la division, avec le joueur actuel toujours à jour (même avant sa publication).

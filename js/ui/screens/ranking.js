@@ -2,7 +2,7 @@ import { escapeHtml, fmt } from '../../util.js';
 import { globalRanking, leagueRanking } from '../../services/leaderboard.js';
 import { myLeagues } from '../../services/leagues.js';
 import { TIERS, RADIANT, RR_PER_DIVISION, LOSS_RR, RADIANT_SPOTS, rankOf, playerRR } from '../../services/ranks.js';
-import { cloud, divisionRows, loadDivision, loadMyLeagues, LEAGUE_MAX_MEMBERS } from '../../services/cloud.js';
+import { cloud, divisionRows, loadDivision, loadMyLeagues, loadTop, topRows, LEAGUE_MAX_MEMBERS } from '../../services/cloud.js';
 import { renderAccountCard } from './account.js';
 import { renamePanel } from './profile.js';
 import { coin, icons, rankEmblem } from '../icons.js';
@@ -223,14 +223,48 @@ function localView(s, p) {
     ${rankList(rows, p.id)}`;
 }
 
+// Classement général : tous les joueurs connectés du jeu, du meilleur au moins bon.
+function topView(s, p) {
+  const myRR = playerRR(p.id, s);
+  if (!cloud.enabled) return localView(s, p);
+  if (!cloud.ready) return '<div class="skeletons"><div class="skeleton"></div></div>';
+  if (!cloud.user) {
+    return `
+      <div class="card division-locked">
+        <strong>Le classement de tous les joueurs</strong>
+        <span class="muted">Connecte-toi pour apparaître dans le classement général et voir qui est le meilleur pronostiqueur de Goalzz.</span>
+      </div>
+      ${renderAccountCard()}
+      ${localView(s, p)}`;
+  }
+  loadTop(myRR);
+  const t = cloud.top;
+  const { rows: raw, radiant, myPos, me } = topRows();
+  const rows = raw.map((r) => ({ id: r.uid, name: r.pseudo, rr: r.rr, balance: r.balance, isBot: false, rank: rankOf(r.rr, { radiant: radiant.has(r.uid) }) }));
+  const meId = cloud.user.uid;
+  const mine = rows.find((r) => r.id === meId);
+  return `
+    ${renamePanel(p)}
+    <div class="section-row">
+      <h2 class="section-title">Classement général</h2>
+      <button class="link-btn" data-action="top-refresh" type="button">Actualiser</button>
+    </div>
+    ${myPos ? `<p class="muted division-note">Tu es <strong>${myPos === 1 ? '1er' : `${myPos}e`}</strong> sur tous les joueurs${mine ? '' : ` avec ${fmt(myRR)} RR`}.</p>` : ''}
+    ${t?.error ? `<div class="empty feed-error"><p class="muted">${escapeHtml(t.error)}</p></div>` : ''}
+    ${!rows.length && t?.loading ? '<div class="skeletons"><div class="skeleton"></div></div>' : ''}
+    ${rows.length ? rankList(rows, meId) : ''}
+    ${me && !mine ? `<p class="muted division-note">Seuls les 100 premiers sont affichés.</p>` : ''}`;
+}
+
 export function renderRanking(s, p) {
-  if (ui.rankTab !== 'leagues') ui.rankTab = 'division';
+  if (ui.rankTab !== 'leagues' && ui.rankTab !== 'division') ui.rankTab = 'top';
   return `
     <h1 class="page-title">Rangs</h1>
     <div class="tabs" role="tablist">
+      <button class="tab ${ui.rankTab === 'top' ? 'active' : ''}" data-action="rank-tab" data-tab="top" role="tab" type="button">Classement</button>
       <button class="tab ${ui.rankTab === 'division' ? 'active' : ''}" data-action="rank-tab" data-tab="division" role="tab" type="button">Ma division</button>
       <button class="tab ${ui.rankTab === 'leagues' ? 'active' : ''}" data-action="rank-tab" data-tab="leagues" role="tab" type="button">Ligues privées</button>
     </div>
-    ${ui.rankTab === 'division' ? divisionView(s, p) : leaguesView(s, p)}
+    ${ui.rankTab === 'top' ? topView(s, p) : ui.rankTab === 'division' ? divisionView(s, p) : leaguesView(s, p)}
   `;
 }
