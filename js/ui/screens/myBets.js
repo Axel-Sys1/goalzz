@@ -52,7 +52,8 @@ function betNums(b) {
           ${coin('coin coin-xs')}
         </strong>
       </div>
-    </div>`;
+    </div>
+    ${b.refused ? '' : `<button class="link-btn share-bet" data-action="share-bet" data-id="${escapeHtml(b.id)}" type="button">${icons.share} Partager</button>`}`;
 }
 
 function betCard(b) {

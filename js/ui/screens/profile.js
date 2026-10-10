@@ -4,6 +4,7 @@ import { BADGES } from '../../services/badges.js';
 import { coin, icons } from '../icons.js';
 import { renderAccountCard } from './account.js';
 import { cloud } from '../../services/cloud.js';
+import { notifState } from '../notify.js';
 import { ui } from '../uiState.js';
 
 const pseudoTaken = (p) => !!cloud.pseudoConflict && cloud.pseudoConflict === p.pseudo;
@@ -78,6 +79,7 @@ function settingsView(p) {
     <h2 class="section-title">Appareil</h2>
     <section class="card settings-list">
       ${installRow()}
+      ${notifRow()}
       <div class="settings-row">
         <div class="grow"><strong>Changer de joueur</strong><span class="muted">Revenir à l'écran d'accueil pour jouer avec un autre profil.</span></div>
         <button class="btn btn-ghost" data-action="logout" type="button">Changer</button>
@@ -119,6 +121,21 @@ function pseudoCard(p) {
 // Encadré affiché ailleurs (Rangs) quand le pseudo est pris par un autre compte.
 export function renamePanel(p) {
   return pseudoTaken(p) ? pseudoCard(p) : '';
+}
+
+// Notifications : résultats des paris et coups d'envoi (voir ui/notify.js).
+function notifRow() {
+  const st = notifState();
+  if (st === 'unsupported') return '';
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) && !navigator.standalone;
+  const hint = st === 'blocked' ? 'Bloquées dans les réglages du navigateur : autorise-les pour ce site.'
+    : ios ? 'Sur iPhone, installe d\'abord l\'appli sur l\'écran d\'accueil.'
+    : 'Pari gagné ou perdu, et rappel 15 min avant un match sur lequel tu as parié (appli ouverte ou en arrière-plan).';
+  return `
+      <div class="settings-row">
+        <div class="grow"><strong>Notifications</strong><span class="muted">${hint}</span></div>
+        ${st === 'blocked' ? '' : `<button class="btn ${st === 'on' ? 'btn-ghost' : 'btn-primary'}" data-action="toggle-notif" type="button">${st === 'on' ? 'Désactiver' : 'Activer'}</button>`}
+      </div>`;
 }
 
 // Installer Goalz comme une appli : bouton du navigateur (Android, ordinateur) ou consigne iPhone.

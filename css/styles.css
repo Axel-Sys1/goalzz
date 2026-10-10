@@ -958,3 +958,6 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .site-footer a { color: var(--text); font-weight: 600; }
 .site-footer .legal-links { margin-top: 0; }
 .site-footer .muted { font-size: 12px; }
+
+.share-bet { margin-top: 8px; margin-left: auto; display: flex; align-items: center; gap: 5px; }
+.share-bet svg { width: 15px; height: 15px; }
