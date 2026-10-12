@@ -989,3 +989,83 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .referral-form { display: grid; gap: 6px; }
 .referral-form label { font-size: 13px; font-weight: 600; color: var(--muted); }
 .referral-hello { margin: 0; padding: 10px 12px; border-radius: 8px; background: rgba(var(--accent-rgb), 0.14); font-size: 14px; }
+
+/* ---------- Niveaux, cosmétiques et boutique ---------- */
+.level-chip {
+  display: grid; justify-items: center; gap: 3px; min-width: 40px; padding: 4px 7px; border-radius: 8px;
+  background: var(--surface-2); border: 1px solid var(--line); font: 800 15px/1 var(--display); color: var(--text);
+}
+.level-chip b { font-weight: 800; }
+.level-chip i { display: block; width: 26px; height: 3px; border-radius: 2px; background: var(--surface-3); overflow: hidden; }
+.level-chip i span { display: block; height: 100%; background: var(--accent); transition: width 0.6s var(--ease-out); }
+.level-chip.boosted { border-color: var(--gold); box-shadow: 0 0 10px rgba(255, 200, 61, 0.35); }
+.level-card { display: grid; gap: 8px; }
+.level-head { display: flex; align-items: center; gap: 10px; }
+.level-badge { font: italic 800 22px/1 var(--display); text-transform: uppercase; color: var(--accent); }
+.xp-bar { height: 10px; border-radius: 6px; background: var(--surface-3); overflow: hidden; }
+.xp-bar span { display: block; height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--accent-2), var(--accent), var(--gold)); transition: width 0.8s var(--ease-out); }
+.level-next { font-size: 12px; }
+.tag-boost { display: inline-flex; align-items: center; gap: 3px; background: rgba(255, 200, 61, 0.15); color: var(--gold); }
+.tag-boost svg { width: 11px; height: 11px; }
+
+/* Couleurs de pseudo */
+.pz-color-orange { color: var(--accent); }
+.pz-color-blue { color: #4da3ff; }
+.pz-color-green { color: #3ddc84; }
+.pz-color-pink { color: #ff5fa8; }
+.pz-color-purple { color: #b07cff; }
+.pz-color-gold, .pz-color-fire, .pz-color-neon { background-clip: text; -webkit-background-clip: text; color: transparent; }
+.pz-color-gold { background-image: linear-gradient(180deg, #fff1a8, #f2c94c 55%, #c99a1e); }
+.pz-color-fire { background-image: linear-gradient(90deg, #ffde59, #ff6b1a, #ff3d5a, #ff6b1a, #ffde59); background-size: 200% 100%; animation: pz-slide 2.5s linear infinite; }
+.pz-color-neon { background-image: linear-gradient(90deg, #ff5fa8, #ffde59, #3ddc84, #4da3ff, #b07cff, #ff5fa8); background-size: 300% 100%; animation: pz-slide 4s linear infinite; }
+@keyframes pz-slide { to { background-position: -200% 0; } }
+.pz-title { display: inline-block; font: italic 700 13px/1.2 var(--display); text-transform: uppercase; letter-spacing: 0.06em; color: var(--gold); }
+
+/* Cadres d'avatar */
+.avatar.fr { box-shadow: 0 0 0 3px var(--fr, var(--line-2)); }
+.fr-frame-bronze { --fr: #c0834f; }
+.fr-frame-silver { --fr: #d4dde3; }
+.fr-frame-gold { --fr: #f2c94c; box-shadow: 0 0 0 3px #f2c94c, 0 0 14px rgba(242, 201, 76, 0.55) !important; }
+.fr-frame-pitch { --fr: #2ecc71; box-shadow: 0 0 0 3px #2ecc71, 0 0 0 5px #fff, 0 0 0 7px #2ecc71 !important; }
+.fr-frame-diamond { --fr: #8be9fd; box-shadow: 0 0 0 3px #8be9fd, 0 0 18px rgba(139, 233, 253, 0.6) !important; }
+.fr-frame-fire, .fr-frame-legend { position: relative; isolation: isolate; box-shadow: none !important; }
+.fr-frame-fire::before, .fr-frame-legend::before {
+  content: ''; position: absolute; inset: -4px; z-index: -1; border-radius: calc(var(--fr-r, 8px) + 4px);
+  background: linear-gradient(135deg, #ff3d5a, #ff6b1a, #ffde59, #ff6b1a, #ff3d5a, #ff6b1a, #ffde59);
+  background-size: 300% 300%; animation: fr-flow 2.5s linear infinite;
+}
+.fr-frame-legend::before { background-image: linear-gradient(135deg, #b07cff, #4da3ff, #3ddc84, #ffde59, #ff5fa8, #b07cff, #4da3ff); }
+.avatar-lg.fr { --fr-r: 10px; }
+@keyframes fr-flow { to { background-position: 100% 100%; } }
+
+/* Boutique */
+.shop-intro { display: grid; gap: 4px; }
+.shop-grid { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.shop-item {
+  position: relative; display: grid; gap: 8px; justify-items: center; text-align: center; padding: 16px 10px 12px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+}
+.shop-item.is-equipped { border-color: var(--accent); }
+.shop-item.is-deal { border-color: var(--gold); }
+.shop-item strong { font-size: 13px; }
+.shop-preview { min-height: 52px; display: grid; place-items: center; font: italic 800 20px/1 var(--display); text-transform: uppercase; }
+.shop-preview .avatar { width: 44px; height: 44px; font-size: 22px; }
+.shop-boost svg { width: 34px; height: 34px; color: var(--gold); }
+.shop-action { display: grid; gap: 4px; justify-items: center; }
+.shop-action .btn { padding: 8px 12px; font-size: 14px; }
+.shop-or { font-size: 11px; }
+.shop-lock { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.shop-lock svg { width: 14px; height: 14px; }
+.shop-deal { position: absolute; top: -9px; background: var(--gold); color: #1a1200; }
+
+/* Passage de niveau */
+.level-up { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; background: rgba(4, 7, 10, 0.55); animation: fade 0.25s ease; }
+.level-up.out { opacity: 0; transition: opacity 0.5s; }
+.level-up-card {
+  display: grid; gap: 6px; justify-items: center; text-align: center; padding: 28px 36px; border-radius: 16px;
+  background: linear-gradient(160deg, var(--surface-2), var(--bg)); border: 2px solid var(--accent);
+  box-shadow: 0 0 60px rgba(var(--accent-rgb), 0.45); animation: pop 0.45s var(--ease-back);
+}
+.level-up-kicker { font: italic 800 18px/1 var(--display); text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); }
+.level-up-num { font: italic 800 96px/0.9 var(--display); background: linear-gradient(180deg, #fff, var(--gold)); background-clip: text; -webkit-background-clip: text; color: transparent; }
+.level-up-unlock { font-weight: 700; color: var(--gold); max-width: 280px; }

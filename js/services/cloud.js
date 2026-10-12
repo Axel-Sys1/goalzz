@@ -15,6 +15,7 @@ import { emit, getState, onSave, replaceState, resetAll, update } from '../store
 import { playerRR, betRR, LOSS_RR, RR_PER_DIVISION, TIERS, IMMORTAL_RR, RADIANT_SPOTS } from './ranks.js';
 import { leagueCode } from '../util.js';
 import { isOffensivePseudo } from './moderation.js';
+import { levelOf } from './progress.js';
 
 const SDK = 'https://www.gstatic.com/firebasejs/10.12.2';
 const EMAIL_KEY = 'goalz:emailForSignIn';
@@ -142,7 +143,14 @@ export function reconcile(local, remote) {
   const bets = { ...remote.bets };
   for (const lp of Object.values(local.players)) {
     if (!players[lp.id]) { players[lp.id] = lp; continue; }
-    const p = players[lp.id] = { ...players[lp.id], slip: lp.slip, inbox: lp.inbox };
+    const rp = players[lp.id];
+    const p = players[lp.id] = {
+      ...rp, slip: lp.slip, inbox: lp.inbox,
+      // Progression : l'XP ne fait que monter, les objets s'additionnent.
+      xp: Math.max(rp.xp || 0, lp.xp || 0),
+      owned: { ...lp.owned, ...rp.owned },
+      boostUntil: Math.max(rp.boostUntil || 0, lp.boostUntil || 0),
+    };
     for (const b of Object.values(local.bets)) {
       if (b.playerId !== lp.id) continue;
       const rb = remote.bets[b.id];
@@ -234,7 +242,8 @@ async function push() {
 function myEntry(s = getState()) {
   const p = s.players[s.currentPlayerId];
   if (!p || !cloud.user) return null;
-  return { uid: cloud.user.uid, pseudo: p.pseudo, rr: playerRR(p.id, s), balance: Math.round(p.balance) };
+  const st = p.style || {};
+  return { uid: cloud.user.uid, pseudo: p.pseudo, rr: playerRR(p.id, s), balance: Math.round(p.balance), level: levelOf(p.xp).level, color: st.color || '', frame: st.frame || '', title: st.title || '' };
 }
 
 // Le pseudo est-il libre (ou déjà à ce compte) ? Sans service en ligne, on ne peut pas vérifier.
@@ -287,9 +296,13 @@ async function publishRank() {
   const key = JSON.stringify(me);
   if (key === lastBoard) return;
   lastBoard = key;
+  const base = { pseudo: me.pseudo, rr: me.rr, balance: me.balance, updatedAt: fb.F.serverTimestamp() };
+  const ref = fb.F.doc(fb.db, 'leaderboard', me.uid);
   try {
-    await fb.F.setDoc(fb.F.doc(fb.db, 'leaderboard', me.uid),
-      { pseudo: me.pseudo, rr: me.rr, balance: me.balance, updatedAt: fb.F.serverTimestamp() });
+    // Niveau et cosmétiques visibles des autres ; si les règles Firestore ne les acceptent pas encore,
+    // on publie au moins la fiche de base.
+    await fb.F.setDoc(ref, { ...base, level: me.level, color: me.color, frame: me.frame, title: me.title })
+      .catch(() => fb.F.setDoc(ref, base));
   } catch (err) {
     lastBoard = '';
     console.warn('Goalz : publication du rang impossible', err);

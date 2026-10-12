@@ -13,6 +13,7 @@ import { refreshSlipNumbers } from './screens/slip.js';
 import { ui } from './uiState.js';
 import { shareBet } from './share.js';
 import { play, setSound, soundOn } from './sounds.js';
+import { buyItem, equipItem } from '../services/progress.js';
 import { applyReferral, referralLink, REWARD } from '../services/referral.js';
 import { CONFIG } from '../config.js';
 import { cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, loadTop, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
@@ -26,7 +27,7 @@ const actions = {
 
   'claim-bonus': () => claimBonus(),
 
-  'profile-tab': (el) => { ui.profileTab = el.dataset.tab === 'settings' ? 'settings' : 'stats'; render(); },
+  'profile-tab': (el) => { ui.profileTab = ['settings', 'shop'].includes(el.dataset.tab) ? el.dataset.tab : 'stats'; render(); },
   'go-account': () => { ui.profileTab = 'settings'; cloud.mode = 'signup'; go('profil'); },
   'install-app': async () => {
     const prompt = ui.installPrompt;
@@ -127,6 +128,12 @@ const actions = {
 
   'bets-tab': (el) => { ui.betsTab = el.dataset.tab; render(); },
   'toggle-sound': () => { setSound(!soundOn()); render(); },
+  'shop-buy': (el) => {
+    const item = buyItem(el.dataset.id);
+    play('bonus');
+    toast(item.kind === 'boost' ? 'Boost activé : XP ×2 pendant 24 h !' : `${item.name} : acheté et équipé !`, 'success');
+  },
+  'shop-equip': (el) => equipItem(el.dataset.id),
   'share-referral': async () => {
     const p = currentPlayer();
     const url = referralLink(p.pseudo);

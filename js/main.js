@@ -1,6 +1,7 @@
 import { CONFIG } from './config.js';
 import { getState, subscribe, update } from './store.js';
 import { ensureBots } from './services/bots.js';
+import { ensureProgress } from './services/progress.js';
 import { startSync, syncAll } from './services/matches.js';
 import { render, tick } from './ui/app.js';
 import { bindEvents } from './ui/events.js';
@@ -12,7 +13,7 @@ import { applyPendingReferral, claimReferralRewards, readReferralFromUrl } from 
 
 readInviteFromUrl();
 readReferralFromUrl();
-update((s) => ensureBots(s), { silent: true });
+update((s) => { ensureBots(s); Object.values(s.players).forEach(ensureProgress); }, { silent: true });
 
 bindEvents();
 subscribe(render);

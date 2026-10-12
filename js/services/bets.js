@@ -10,6 +10,7 @@ import { currentPlayer } from './players.js';
 import { matchStatus, outcomeLabel, matchTitle } from './matchInfo.js';
 import { liveMarket } from '../providers/liveOdds.js';
 import { RR_VERSION } from './ranks.js';
+import { addXp, XP } from './progress.js';
 
 export const potentialGain = (stake, odds) => Math.floor((Number(stake) || 0) * odds);
 
@@ -161,6 +162,7 @@ export function placeSlip() {
       p.stats.betsPlaced += 1;
       p.stats.maxStake = Math.max(p.stats.maxStake, stake);
       p.stats.sports[x.match.sport] = true;
+      addXp(p, XP.place());
     }
     p.slip = [];
     checkBadges(p);
@@ -183,6 +185,7 @@ function placeCombo(items, odds, stake) {
     p.stats.betsPlaced += 1;
     p.stats.maxStake = Math.max(p.stats.maxStake, stake);
     for (const x of items) p.stats.sports[x.match.sport] = true;
+    addXp(p, XP.place(items.length));
     p.slip = [];
     checkBadges(p);
     return 1;
@@ -220,6 +223,7 @@ function settleCombos(s, m) {
       bet.rrv = RR_VERSION;
       bet.settledAt = clockFor(m);
       recordLoss(p, label);
+      addXp(p, XP.lost());
     } else if (bet.legs.every((l) => l.status !== 'pending')) {
       bet.settledAt = clockFor(m);
       const won = bet.legs.filter((l) => l.status === 'won');
@@ -234,6 +238,7 @@ function settleCombos(s, m) {
         bet.finalOdds = productOdds(won.map((l) => l.odds));
         bet.payout = potentialGain(bet.stake, bet.finalOdds);
         recordWin(p, bet, label);
+        addXp(p, XP.won(bet.finalOdds) + 5 * bet.legs.length);
       }
     }
     checkBadges(p);
@@ -297,10 +302,12 @@ export function settleMatch(s, m) {
       bet.rrv = RR_VERSION;
       bet.payout = bet.potential;
       recordWin(p, { ...bet, real: m.real }, label);
+      addXp(p, XP.won(bet.odds));
     } else {
       bet.status = 'lost';
       bet.rrv = RR_VERSION;
       recordLoss(p, label);
+      addXp(p, XP.lost());
     }
     checkBadges(p);
   }

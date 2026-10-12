@@ -6,6 +6,7 @@ import { cloud, divisionRows, loadDivision, loadMyLeagues, loadTop, topRows, LEA
 import { renderAccountCard } from './account.js';
 import { renamePanel } from './profile.js';
 import { coin, icons, rankEmblem } from '../icons.js';
+import { nameHtml, titleHtml } from '../cosmetics.js';
 import { ui } from '../uiState.js';
 
 function rankList(rows, meId) {
@@ -17,11 +18,11 @@ function rankList(rows, meId) {
         ${rankEmblem(r.rank)}
         <span class="grow rank-who">
           <span class="rank-name">
-            ${escapeHtml(r.name)}
+            ${nameHtml(r.name, r.style)}
             ${r.id === meId ? '<span class="tag">Toi</span>' : ''}
             ${r.isBot ? '<span class="tag tag-muted">simulé</span>' : ''}
           </span>
-          <span class="rank-tier">${r.rank.label}</span>
+          <span class="rank-tier">${r.rank.label}${r.level ? ` · Niv. ${r.level}` : ''}${r.style?.title ? ` · ${titleHtml(r.style)}` : ''}</span>
         </span>
         <span class="rank-score">
           <strong>${fmt(r.rr)} <small>RR</small></strong>
@@ -85,7 +86,7 @@ const leagueForms = () => `
     </div>`;
 
 const leagueRow = (r, radiant) => ({
-  id: r.uid, name: r.pseudo, rr: r.rr, balance: r.balance, isBot: false, rank: rankOf(r.rr, { radiant }),
+  id: r.uid, name: r.pseudo, rr: r.rr, balance: r.balance, isBot: false, style: { color: r.color, frame: r.frame, title: r.title }, level: r.level, rank: rankOf(r.rr, { radiant }),
 });
 
 // Ligues en ligne : partagées entre les appareils de tous les membres.
@@ -191,7 +192,7 @@ function divisionView(s, p) {
   loadDivision(myRR);
   const d = cloud.division;
   const rows = divisionRows().map((r) => ({
-    id: r.uid, name: r.pseudo, rr: r.rr, balance: r.balance, isBot: false,
+    id: r.uid, name: r.pseudo, rr: r.rr, balance: r.balance, isBot: false, style: { color: r.color, frame: r.frame, title: r.title }, level: r.level,
     rank: rankOf(r.rr, { radiant: d?.radiant?.has(r.uid) }),
   }));
   const meId = cloud.user.uid;
@@ -240,7 +241,7 @@ function topView(s, p) {
   loadTop(myRR);
   const t = cloud.top;
   const { rows: raw, radiant, myPos, me } = topRows();
-  const rows = raw.map((r) => ({ id: r.uid, name: r.pseudo, rr: r.rr, balance: r.balance, isBot: false, rank: rankOf(r.rr, { radiant: radiant.has(r.uid) }) }));
+  const rows = raw.map((r) => ({ id: r.uid, name: r.pseudo, rr: r.rr, balance: r.balance, isBot: false, style: { color: r.color, frame: r.frame, title: r.title }, level: r.level, rank: rankOf(r.rr, { radiant: radiant.has(r.uid) }) }));
   const meId = cloud.user.uid;
   const mine = rows.find((r) => r.id === meId);
   return `

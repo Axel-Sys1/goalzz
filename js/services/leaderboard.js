@@ -1,10 +1,11 @@
 import { getState } from '../store.js';
+import { levelOf } from './progress.js';
 import { playerRR, rankOf, isImmortal, RADIANT_SPOTS } from './ranks.js';
 
 // Classement par RR, puis par solde à égalité.
 const byRR = (a, b) => b.rr - a.rr || b.balance - a.balance || a.name.localeCompare(b.name);
 
-const humanRow = (p, s) => ({ id: p.id, name: p.pseudo, balance: p.balance, rr: playerRR(p.id, s), isBot: false });
+const humanRow = (p, s) => ({ id: p.id, name: p.pseudo, balance: p.balance, rr: playerRR(p.id, s), isBot: false, style: p.style || {}, level: levelOf(p.xp).level });
 
 // Les RADIANT_SPOTS meilleurs Immortels du classement général sont Radiant.
 function withRanks(rows, radiantIds) {

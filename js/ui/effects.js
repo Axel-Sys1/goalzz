@@ -197,6 +197,26 @@ function queueBadge(id) {
 
 // ---------- Boîte de réception du joueur ----------
 // Les services déposent des événements dans player.inbox ; l'UI les affiche ici.
+// Passage de niveau : grande annonce au centre de l'écran, son et confettis.
+function levelUp({ level }, unlocks) {
+  play('level');
+  confetti({ count: 120, originY: 0.35 });
+  const el = document.createElement('div');
+  el.className = 'level-up';
+  el.setAttribute('role', 'status');
+  el.innerHTML = `
+    <div class="level-up-card">
+      <span class="level-up-kicker">Niveau supérieur</span>
+      <strong class="level-up-num">${level}</strong>
+      ${unlocks.length ? `<span class="level-up-unlock">Débloqué : ${unlocks.map(escapeHtml).join(', ')}</span>` : ''}
+      <span class="muted">Va voir la boutique pour t'équiper.</span>
+    </div>`;
+  el.addEventListener('click', () => el.remove());
+  document.body.appendChild(el);
+  setTimeout(() => el.classList.add('out'), 3200);
+  setTimeout(() => el.remove(), 3700);
+}
+
 export function processInbox(player) {
   if (!player.inbox?.length) return;
   const items = player.inbox.slice();
@@ -231,6 +251,8 @@ export function processInbox(player) {
     toast(`Pari remboursé (+${fmt(i.amount)}) : ${i.label}`, 'info');
   }
   for (const i of items.filter((x) => x.type === 'info')) toast(i.text, 'info');
+  const levels = items.filter((x) => x.type === 'level');
+  if (levels.length) levelUp(levels[levels.length - 1], levels.flatMap((l) => l.unlocks || []));
   const rewards = items.filter((x) => x.type === 'reward');
   for (const i of rewards) toast(i.text, 'win');
   if (rewards.length) { confetti({ count: 80, originY: 0.2 }); play('bonus'); }

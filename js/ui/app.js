@@ -15,6 +15,7 @@ import { renderMyBets } from './screens/myBets.js';
 import { renderRanking } from './screens/ranking.js';
 import { renderProfile } from './screens/profile.js';
 import { adSlot, mountAds } from './ads.js';
+import { boostActive, levelOf } from '../services/progress.js';
 import { legalLinks } from './screens/legal.js';
 
 const ROUTES = [
@@ -45,6 +46,7 @@ const shellHtml = () => `
       <a class="logo" href="#matchs" aria-label="Goalzz, accueil">${icons.ball}<span>GOAL<b>ZZ</b></span></a>
       <nav class="nav-top" id="nav-top" aria-label="Navigation principale"></nav>
       <div class="top-right">
+        <a class="level-chip" id="level-chip" href="#profil" aria-label="Niveau"><b>1</b><i><span></span></i></a>
         <button class="bonus-btn" id="bonus-btn" data-action="claim-bonus" type="button">${icons.gift}<span class="bonus-dot"></span></button>
         <div class="balance" id="balance" aria-live="polite">
           ${coin()}<span id="balance-value">0</span>
@@ -85,6 +87,12 @@ function renderHeader(p) {
   bonus.title = available ? `Récupérer ton bonus du jour (+${CONFIG.DAILY_BONUS})` : 'Bonus déjà récupéré. Reviens demain !';
   bonus.setAttribute('aria-label', bonus.title);
   animateBalance(p);
+  const lv = levelOf(p.xp);
+  const chip = root.querySelector('#level-chip');
+  chip.querySelector('b').textContent = lv.level;
+  chip.querySelector('i span').style.width = `${Math.round(lv.progress * 100)}%`;
+  chip.title = `Niveau ${lv.level}${lv.need ? ` · ${lv.into} / ${lv.need} XP` : ''}`;
+  chip.classList.toggle('boosted', boostActive(p));
 }
 
 let lastPotential = null;

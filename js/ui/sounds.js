@@ -75,6 +75,10 @@ const SOUNDS = {
     tone(a, { f: 262, at: 0.36, d: 0.35, type: 'triangle', v: 0.12, to: 247 });
   },
   bonus: (a) => [880, 1175, 1480].forEach((f, i) => tone(a, { f, at: i * 0.07, d: 0.18, type: 'sine', v: 0.13 })),
+  level: (a) => {
+    [392, 523, 659, 784].forEach((f, i) => tone(a, { f, at: i * 0.11, d: 0.3, type: 'sawtooth', v: 0.06 }));
+    [1047, 1319, 1568].forEach((f) => tone(a, { f, at: 0.48, d: 0.7, type: 'triangle', v: 0.1 }));
+  },
 };
 
 export function play(name) {

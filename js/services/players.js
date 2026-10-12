@@ -3,6 +3,7 @@ import { getState, update } from '../store.js';
 import { uid, todayKey } from '../util.js';
 import { checkBadges } from './badges.js';
 import { claimPseudo, cloud, isPseudoAvailable } from './cloud.js';
+import { addXp, XP } from './progress.js';
 import { isOffensivePseudo } from './moderation.js';
 
 const newStats = () => ({
@@ -98,6 +99,7 @@ export function claimBonus() {
     me.lastBonusDate = todayKey();
     me.stats.bonusClaims += 1;
     me.inbox.push({ type: 'bonus', amount: CONFIG.DAILY_BONUS });
+    addXp(me, XP.bonus, { boostable: false });
     checkBadges(me);
   });
 }

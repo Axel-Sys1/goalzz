@@ -5,6 +5,7 @@
 import { cloud, referralDb } from './cloud.js';
 import { getState, update } from '../store.js';
 import { currentPlayer } from './players.js';
+import { addXp, XP } from './progress.js';
 
 export const REWARD = 200;
 const KEY = 'goalz:parrain';
@@ -38,6 +39,7 @@ function credit(amount, text, patch = () => {}) {
     const p = currentPlayer(s);
     if (!p) return;
     p.balance += amount;
+    addXp(p, XP.referral, { boostable: false });
     patch(p);
     p.inbox.push({ type: 'reward', amount, text });
   });
