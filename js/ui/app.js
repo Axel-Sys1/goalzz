@@ -15,6 +15,7 @@ import { renderMyBets } from './screens/myBets.js';
 import { renderRanking } from './screens/ranking.js';
 import { renderProfile } from './screens/profile.js';
 import { renderShop } from './screens/shop.js';
+import { coachHtml, highlight, tutorialStep } from './tutorial.js';
 import { adSlot, mountAds } from './ads.js';
 import { boostActive, levelOf } from '../services/progress.js';
 import { bonusFor, nextStreakDay } from '../services/daily.js';
@@ -73,6 +74,7 @@ const shellHtml = () => `
     </footer>
   </div>
   <div id="slipbar"></div>
+  <div id="coach"></div>
   <nav class="nav-bottom" id="nav-bottom" aria-label="Navigation"></nav>`;
 
 function navHtml(route, p) {
@@ -188,6 +190,10 @@ export function render() {
   root.classList.toggle('ads-off', route.id === 'panier');
   root.querySelector('#aside').innerHTML = showAside ? renderSlip(s, p, { context: 'aside' }) : '';
   renderSlipBar(route, p);
+  const step = tutorialStep(p);
+  root.querySelector('#coach').innerHTML = coachHtml(step);
+  root.classList.toggle('coaching', !!step);
+  highlight(step, route.id);
 
   if (route.id !== lastRouteId) {
     if (lastRouteId !== null) window.scrollTo({ top: 0 });

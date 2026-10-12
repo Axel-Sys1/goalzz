@@ -1201,3 +1201,42 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .shop-card.is-featured { box-shadow: 0 0 28px -6px var(--rar); }
 .daily-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (min-width: 700px) { .daily-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* ---------- Ta journée (bonus + défis) ---------- */
+.day-strip { display: grid; gap: 10px; padding: 10px; }
+.day-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.day-bonus, .day-challenges {
+  display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 10px; border-radius: 9px; text-align: left;
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--text);
+}
+.day-bonus { border-color: rgba(var(--accent-rgb), 0.6); background: linear-gradient(100deg, rgba(var(--accent-rgb), 0.22), var(--surface-2)); animation: bonus-glow 2s ease-in-out infinite; }
+.day-bonus.is-done { animation: none; border-color: var(--line); background: var(--surface-2); }
+@keyframes bonus-glow { 50% { box-shadow: 0 0 14px rgba(var(--accent-rgb), 0.45); } }
+.day-bonus strong, .day-challenges strong { display: block; font: 800 16px/1.1 var(--display); text-transform: uppercase; }
+.day-bonus small { display: block; font-size: 11px; color: var(--muted); font-weight: 600; }
+.day-ico { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex-shrink: 0; background: var(--accent); color: var(--accent-ink); }
+.day-bonus.is-done .day-ico { background: var(--surface-3); color: var(--green); }
+.day-challenges .day-ico { background: var(--surface-3); color: var(--accent); }
+.day-ico svg { width: 17px; height: 17px; }
+.day-challenges .challenge-bar { margin-top: 4px; }
+.day-chevron { color: var(--muted); font-size: 12px; }
+.challenge-list { list-style: none; margin: 0; padding: 4px 2px 2px; display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 10px; }
+
+/* ---------- Parcours guidé ---------- */
+.coach {
+  position: fixed; left: 12px; right: 12px; bottom: calc(var(--nav-h) + var(--safe-b) + 74px); z-index: 45;
+  display: grid; gap: 6px; padding: 14px 16px; border-radius: 14px; max-width: 520px; margin: 0 auto;
+  background: linear-gradient(160deg, var(--surface-2), var(--bg)); border: 2px solid var(--accent);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 30px rgba(var(--accent-rgb), 0.25); animation: pop 0.35s var(--ease-back);
+}
+.coach strong { font: italic 800 20px/1.1 var(--display); text-transform: uppercase; }
+.coach span { font-size: 14px; color: var(--muted); }
+.coach-steps { display: flex; gap: 4px; }
+.coach-steps i { width: 22px; height: 4px; border-radius: 2px; background: var(--surface-3); }
+.coach-steps i.on { background: var(--accent); }
+.coach-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 2px; }
+.coach-actions .btn { padding: 8px 14px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+.coach-actions svg { width: 16px; height: 16px; }
+@media (min-width: 1000px) { .coach { bottom: 24px; left: 24px; right: auto; width: 420px; } }
+.coach-target { border-radius: 10px; animation: coach-pulse 1.4s ease-in-out infinite; }
+@keyframes coach-pulse { 0%, 100% { box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.9), 0 0 0 0 rgba(var(--accent-rgb), 0.5); } 50% { box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.9), 0 0 0 12px rgba(var(--accent-rgb), 0); } }

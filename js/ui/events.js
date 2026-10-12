@@ -135,6 +135,9 @@ const actions = {
   },
   'shop-equip': (el) => equipItem(el.dataset.id),
   'shop-tab': (el) => { ui.shopTab = el.dataset.tab; render(); },
+  'coach-done': () => update((s) => { const p = s.players[s.currentPlayerId]; if (p) p.tutorialDone = true; }),
+  'coach-shop': () => { update((s) => { const p = s.players[s.currentPlayerId]; if (p) p.tutorialDone = true; }); go('boutique'); },
+  'toggle-challenges': () => { ui.challengesOpen = !ui.challengesOpen; render(); },
   'share-referral': async () => {
     const p = currentPlayer();
     const url = referralLink(p.pseudo);

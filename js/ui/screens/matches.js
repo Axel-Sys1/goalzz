@@ -129,14 +129,6 @@ function spotlightSection(list, picks) {
     </section>`;
 }
 
-function howToCard() {
-  return `
-    <ol class="howto">
-      <li><span>1</span>Touche une cote</li>
-      <li><span>2</span>Choisis ta mise</li>
-      <li><span>3</span>Valide ton pari</li>
-    </ol>`;
-}
 
 // guest : visiteur sans pseudo, une cote l'invite à s'inscrire (puis l'ajoute au panier).
 export function matchCard(m, { slipPick = null, grouped = false, guest = false } = {}) {
@@ -351,33 +343,39 @@ function renderFake(s, p, picks) {
   `;
 }
 
-// Bonus du jour et série de connexion : 7 cases, la 7e rapporte gros.
-function bonusCard(p) {
-  const day = nextStreakDay(p);
-  const amount = bonusFor(day);
-  return `
-      <button class="bonus-card" data-action="claim-bonus" type="button">
-        <span class="bonus-gift">${icons.gift}</span>
-        <span class="grow">
-          <strong>${day > 1 ? `Jour ${day} de ta série !` : 'Ton bonus du jour est prêt'}</strong>
-          <span class="streak" aria-label="Série de ${day} jours sur ${STREAK_DAYS}">${Array.from({ length: STREAK_DAYS }, (_, i) => `<i class="${i < day ? 'on' : ''} ${i === STREAK_DAYS - 1 ? 'big' : ''}"></i>`).join('')}</span>
-          <span class="muted">Reviens chaque jour : le bonus grandit, jusqu'à ${fmt(bonusFor(STREAK_DAYS))} le 7e jour.</span>
-        </span>
-        <span class="bonus-amount">+${fmt(amount)} ${coin('coin coin-sm')}</span>
-      </button>`;
-}
 
-// Les 3 défis du jour, avec leur progression et leur récompense.
-function challengesCard(p) {
+// « Ta journée » : bonus et série d'un côté, défis de l'autre (liste repliable), en un seul bandeau.
+function dayStrip(p) {
   const list = challengeStatus(p);
   const done = list.filter((c) => c.done).length;
+  const day = nextStreakDay(p);
+  const claimable = canClaimBonus(p);
   return `
-    <section class="card challenges">
-      <div class="challenges-head">
-        <strong>Défis du jour</strong>
-        <span class="muted">${done === list.length ? 'Tous réussis, bravo ! Nouveaux défis à minuit.' : `${done} / ${list.length} réussis`}</span>
+    <section class="card day-strip">
+      <div class="day-row">
+        ${claimable ? `
+          <button class="day-bonus" data-action="claim-bonus" type="button">
+            <span class="day-ico">${icons.gift}</span>
+            <span><strong>Bonus +${fmt(bonusFor(day))}</strong><small>${day > 1 ? `Série jour ${day}/${STREAK_DAYS}` : 'Récupère-le !'}</small></span>
+          </button>` : `
+          <div class="day-bonus is-done">
+            <span class="day-ico">${icons.check}</span>
+            <span><strong>Bonus récupéré</strong><small>Série ${p.bonusStreak || 1}/${STREAK_DAYS} · reviens demain</small></span>
+          </div>`}
+        <button class="day-challenges" data-action="toggle-challenges" type="button" aria-expanded="${!!ui.challengesOpen}">
+          <span class="day-ico">${icons.target}</span>
+          <span class="grow"><strong>Défis ${done}/${list.length}</strong>
+            <span class="challenge-bar"><span style="width:${Math.round((done / list.length) * 100)}%"></span></span></span>
+          <span class="day-chevron">${ui.challengesOpen ? '▴' : '▾'}</span>
+        </button>
       </div>
-      <ul>
+      ${ui.challengesOpen ? challengesList(list) : ''}
+    </section>`;
+}
+
+function challengesList(list) {
+  return `
+      <ul class="challenge-list">
         ${list.map((c) => `
           <li class="challenge ${c.done ? 'is-done' : ''}">
             <span class="challenge-check">${c.done ? icons.check : ''}</span>
@@ -387,9 +385,9 @@ function challengesCard(p) {
             </span>
             <span class="challenge-reward">${c.done ? 'Réussi' : `${c.count}/${c.target}`}<small>+${c.goalz} ${coin('coin coin-xs')} · +${c.xp} XP</small></span>
           </li>`).join('')}
-      </ul>
-    </section>`;
+      </ul>`;
 }
+
 
 export function renderMatches(s, p) {
   const mode = s.prefs?.mode === 'fake' ? 'fake' : 'real';
@@ -401,13 +399,9 @@ export function renderMatches(s, p) {
       ${mode === 'fake' ? '<p class="muted">Des matchs fictifs de 2 minutes pour jouer tout de suite.</p>' : ''}
     </section>
 
-    ${cloud.user ? '' : inviteBanner({ inGame: true }) || accountNudge()}
+    ${cloud.user ? '' : inviteBanner({ inGame: true }) || (p.stats.betsPlaced > 0 ? accountNudge() : '')}
 
-    ${canClaimBonus(p) ? bonusCard(p) : ''}
-
-    ${challengesCard(p)}
-
-    ${p.stats.betsPlaced === 0 ? howToCard() : ''}
+    ${dayStrip(p)}
 
     ${modeSwitch(mode)}
 

@@ -53,6 +53,7 @@ export async function register(rawPseudo) {
       stats: newStats(),
       badges: {},
       inbox: [{ type: 'welcome', amount: CONFIG.STARTING_BALANCE }],
+      tutorial: true,
       slip: [],
     };
     st.currentPlayerId = id;
