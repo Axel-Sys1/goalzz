@@ -5,6 +5,8 @@ import { coin, icons } from '../icons.js';
 import { renderAccountCard } from './account.js';
 import { cloud } from '../../services/cloud.js';
 import { ui } from '../uiState.js';
+import { REWARD, referralLink } from '../../services/referral.js';
+import { soundOn } from '../sounds.js';
 
 const pseudoTaken = (p) => !!cloud.pseudoConflict && cloud.pseudoConflict === p.pseudo;
 
@@ -71,6 +73,7 @@ function statsView(p) {
 function settingsView(p) {
   return `
     ${pseudoCard(p)}
+    ${referralCard(p)}
 
     <h2 class="section-title">Compte</h2>
     ${renderAccountCard()}
@@ -78,6 +81,10 @@ function settingsView(p) {
     <h2 class="section-title">Appareil</h2>
     <section class="card settings-list">
       ${installRow()}
+      <div class="settings-row">
+        <div class="grow"><strong>Sons</strong><span class="muted">Cote choisie, pari validé, pari gagné ou perdu.</span></div>
+        <button class="btn ${soundOn() ? 'btn-ghost' : 'btn-primary'}" data-action="toggle-sound" type="button">${soundOn() ? 'Couper' : 'Activer'}</button>
+      </div>
       <div class="settings-row">
         <div class="grow"><strong>Changer de joueur</strong><span class="muted">Revenir à l'écran d'accueil pour jouer avec un autre profil.</span></div>
         <button class="btn btn-ghost" data-action="logout" type="button">Changer</button>
@@ -114,6 +121,36 @@ function pseudoCard(p) {
       </div>
       ${short ? `<span class="warn">Il te manque ${fmt(cost - p.balance)} Goalz.</span>` : ''}
     </form>`;
+}
+
+// Parrainage : mon lien à partager, et le pseudo de mon parrain si je n'en ai pas encore.
+function referralCard(p) {
+  if (!cloud.enabled) return '';
+  if (!cloud.user) {
+    return `
+    <section class="card referral-card">
+      <strong>Parrainage : +${REWARD} Goalz</strong>
+      <span class="muted">Crée ton compte pour inviter tes potes : ${REWARD} Goalz pour toi et ${REWARD} pour chaque ami qui s'inscrit.</span>
+    </section>`;
+  }
+  const count = p.stats.referrals || 0;
+  return `
+    <section class="card referral-card">
+      <strong>Parrainage : +${REWARD} Goalz par ami</strong>
+      <span class="muted">Envoie ton lien : quand un ami crée son compte avec, vous gagnez ${REWARD} Goalz chacun.${count ? ` Déjà ${count} ami${count > 1 ? 's' : ''} parrainé${count > 1 ? 's' : ''} !` : ''}</span>
+      <div class="input-row">
+        <input value="${escapeHtml(referralLink(p.pseudo))}" readonly aria-label="Ton lien de parrainage">
+        <button class="btn btn-primary" data-action="share-referral" type="button">${icons.share} Partager</button>
+      </div>
+      ${p.referredBy ? `<span class="muted">Ton parrain : <b>${escapeHtml(p.referredBy === '?' ? 'déjà enregistré' : p.referredBy)}</b></span>` : `
+      <form class="referral-form" data-form="referral" autocomplete="off">
+        <label for="referral-input">Quelqu'un t'a invité ? Entre son pseudo</label>
+        <div class="input-row">
+          <input id="referral-input" name="pseudo" maxlength="16" placeholder="Pseudo de ton parrain" required>
+          <button class="btn btn-ghost" type="submit">+${REWARD} ${coin('coin coin-sm')}</button>
+        </div>
+      </form>`}
+    </section>`;
 }
 
 // Encadré affiché ailleurs (Rangs) quand le pseudo est pris par un autre compte.

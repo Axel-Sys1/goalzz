@@ -12,6 +12,8 @@ import { confirmDialog } from './dialog.js';
 import { refreshSlipNumbers } from './screens/slip.js';
 import { ui } from './uiState.js';
 import { shareBet } from './share.js';
+import { play, setSound, soundOn } from './sounds.js';
+import { applyReferral, referralLink, REWARD } from '../services/referral.js';
 import { CONFIG } from '../config.js';
 import { cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, loadTop, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
 import { playerRR } from '../services/ranks.js';
@@ -83,6 +85,7 @@ const actions = {
     const picked = getState().players[getState().currentPlayerId]?.slip.some((x) => x.matchId === match && x.outcome === outcome);
     const sel = `[data-action="pick"][data-match="${CSS.escape(match)}"][data-outcome="${CSS.escape(outcome)}"]`;
     document.querySelectorAll(sel).forEach((b) => replay(b, picked ? 'just-picked' : 'just-unpicked'));
+    play(picked ? 'pick' : 'unpick');
     if (picked) {
       flyToSlip(from, label);
       document.querySelectorAll(`[data-slip-item="${CSS.escape(match)}"]`).forEach((it) => replay(it, 'is-new'));
@@ -118,10 +121,22 @@ const actions = {
     let n;
     try { n = placeSlip(); } finally { lists.forEach((l) => l.classList.remove('sending')); }
     betStamp({ count: n, combo });
+    play('place');
     toast(combo ? 'Combiné validé. Bonne chance !' : n > 1 ? `${n} paris validés. Bonne chance !` : 'Pari validé. Bonne chance !', 'success');
   },
 
   'bets-tab': (el) => { ui.betsTab = el.dataset.tab; render(); },
+  'toggle-sound': () => { setSound(!soundOn()); render(); },
+  'share-referral': async () => {
+    const p = currentPlayer();
+    const url = referralLink(p.pseudo);
+    const text = `Rejoins-moi sur Goalzz, le jeu de pronos gratuit : on gagne ${REWARD} Goalz chacun avec mon lien !`;
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Goalzz', text, url }); return; } catch (err) { if (err?.name === 'AbortError') return; }
+    }
+    await navigator.clipboard.writeText(`${text} ${url}`);
+    toast('Lien copié : colle-le à tes potes !', 'success');
+  },
   'share-bet': async (el) => {
     el.disabled = true;
     try {
@@ -179,6 +194,10 @@ const actions = {
 };
 
 const forms = {
+  referral: async (data) => {
+    const name = await applyReferral(data.get('pseudo'));
+    toast(`Parrain enregistré : ${name}. +${REWARD} Goalz !`, 'success');
+  },
   register: async (data) => {
     await register(data.get('pseudo'));
     const pick = ui.pendingPick;

@@ -981,3 +981,11 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .guest-play { text-align: left; }
 .guest-play summary { cursor: pointer; color: var(--muted); font-size: 14px; font-weight: 600; text-align: center; padding: 6px; }
 .guest-play[open] summary { margin-bottom: 10px; }
+
+/* ---------- Parrainage ---------- */
+.referral-card { display: grid; gap: 10px; border-color: rgba(var(--accent-rgb), 0.45); }
+.referral-card .input-row input[readonly] { color: var(--muted); font-size: 13px; }
+.referral-card .btn svg { width: 16px; height: 16px; }
+.referral-form { display: grid; gap: 6px; }
+.referral-form label { font-size: 13px; font-weight: 600; color: var(--muted); }
+.referral-hello { margin: 0; padding: 10px 12px; border-radius: 8px; background: rgba(var(--accent-rgb), 0.14); font-size: 14px; }

@@ -1,15 +1,17 @@
 import { CONFIG } from './config.js';
-import { subscribe, update } from './store.js';
+import { getState, subscribe, update } from './store.js';
 import { ensureBots } from './services/bots.js';
 import { startSync, syncAll } from './services/matches.js';
 import { render, tick } from './ui/app.js';
 import { bindEvents } from './ui/events.js';
 import { toast } from './ui/effects.js';
-import { initCloud } from './services/cloud.js';
+import { cloud, initCloud } from './services/cloud.js';
 import { joinPendingInvite, readInviteFromUrl } from './services/invite.js';
 import { ui } from './ui/uiState.js';
+import { applyPendingReferral, claimReferralRewards, readReferralFromUrl } from './services/referral.js';
 
 readInviteFromUrl();
+readReferralFromUrl();
 update((s) => ensureBots(s), { silent: true });
 
 bindEvents();
@@ -31,6 +33,17 @@ subscribe(async () => {
   } else if (res.error && !/déjà/.test(res.error)) {
     toast(`Invitation ${res.code} : ${res.error}`, 'error');
   }
+});
+
+// Parrainage : parrain venu par un lien (appliqué dès le compte et le pseudo prêts), et récompenses
+// des filleuls réclamées une fois par session de compte.
+let claimedFor = null;
+subscribe(async () => {
+  const res = await applyPendingReferral();
+  if (res?.error && !/déjà/.test(res.error)) toast(`Parrainage : ${res.error}`, 'error');
+  const s = getState();
+  const key = cloud.user && s.currentPlayerId ? `${cloud.user.uid}|${s.currentPlayerId}` : null;
+  if (key && key !== claimedFor) { claimedFor = key; claimReferralRewards(); }
 });
 
 // Choix des sources (direct ou instantané), puis chaque provider décide lui-même

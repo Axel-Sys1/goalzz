@@ -3,6 +3,7 @@ import { update } from '../store.js';
 import { BADGES } from '../services/badges.js';
 import { fmt, rand, pick, escapeHtml } from '../util.js';
 import { icons } from './icons.js';
+import { play } from './sounds.js';
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -210,6 +211,7 @@ export function processInbox(player) {
   for (const i of items.filter((x) => x.type === 'bonus')) {
     toast(`Bonus du jour : +${fmt(i.amount)} Goalz`, 'win');
     confetti({ colors: ['#ffc83d', '#e79a00', '#fff3c4'], count: 70, originY: 0.12 });
+    play('bonus');
   }
   if (wins.length) {
     const total = wins.reduce((s, w) => s + w.amount, 0);
@@ -217,16 +219,21 @@ export function processInbox(player) {
       ? `Pari gagné : ${wins[0].label} · +${fmt(total)} Goalz`
       : `${wins.length} paris gagnés · +${fmt(total)} Goalz`, 'win');
     confetti();
+    play('win');
   }
   if (losses.length) {
     toast(losses.length === 1
       ? `Pari perdu : ${losses[0].label}. La prochaine sera la bonne !`
       : `${losses.length} paris perdus… la prochaine sera la bonne !`, 'loss');
+    if (!wins.length) play('loss');
   }
   for (const i of items.filter((x) => x.type === 'void')) {
     toast(`Pari remboursé (+${fmt(i.amount)}) : ${i.label}`, 'info');
   }
   for (const i of items.filter((x) => x.type === 'info')) toast(i.text, 'info');
+  const rewards = items.filter((x) => x.type === 'reward');
+  for (const i of rewards) toast(i.text, 'win');
+  if (rewards.length) { confetti({ count: 80, originY: 0.2 }); play('bonus'); }
   for (const i of items.filter((x) => x.type === 'badge')) queueBadge(i.id);
 }
 

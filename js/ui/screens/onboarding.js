@@ -5,6 +5,7 @@ import { TIERS, RADIANT, RR_PER_DIVISION, rankOf } from '../../services/ranks.js
 import { coin, icons, rankEmblem } from '../icons.js';
 import { inviteBanner, renderAccountCard, PERKS } from './account.js';
 import { cloud } from '../../services/cloud.js';
+import { pendingReferral, REWARD } from '../../services/referral.js';
 import { legalLinks } from './legal.js';
 import { matchCard } from './matches.js';
 import { matchStatus } from '../../services/matchInfo.js';
@@ -60,6 +61,7 @@ function signupFirst() {
   const login = cloud.mode === 'login';
   return `
         <section class="register signup-first">
+          ${pendingReferral() && !login ? `<p class="referral-hello">🎁 <b>${escapeHtml(pendingReferral())}</b> t'invite : crée ton compte et vous gagnez <b>${REWARD} Goalz</b> chacun !</p>` : ''}
           <h2>${login ? 'Content de te revoir' : 'Crée ton compte gratuit'}</h2>
           ${login ? '<span class="muted">Connecte-toi pour retrouver ta partie.</span>' : `
           <ul class="perks">${PERKS.map(([icon, text]) => `<li>${icons[icon]}<span>${text}</span></li>`).join('')}</ul>`}

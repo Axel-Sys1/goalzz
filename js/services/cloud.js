@@ -378,6 +378,45 @@ export async function resetPassword(rawEmail) {
   return email;
 }
 
+// ---------- Parrainage ----------
+// referrals/<uid du filleul> = { parrain: <uid>, pseudo: <pseudo du filleul>, at, claimed: false }.
+export const referralDb = {
+  // 'ok' | 'unknown' (pas de joueur avec ce pseudo et un compte) | 'self' | 'already' (déjà parrainé)
+  async create(parrainPseudo) {
+    const { F, db } = await sdk();
+    const me = cloud.user.uid;
+    const owner = await F.getDoc(F.doc(db, 'pseudos', pseudoKey(parrainPseudo)));
+    if (!owner.exists()) return 'unknown';
+    const parrain = owner.data().uid;
+    if (parrain === me) return 'self';
+    const ref = F.doc(db, 'referrals', me);
+    if ((await F.getDoc(ref)).exists()) return 'already';
+    const p = getState().players[getState().currentPlayerId];
+    try {
+      await F.setDoc(ref, { parrain, pseudo: p?.pseudo || '', at: F.serverTimestamp(), claimed: false });
+    } catch (err) {
+      // Règles : parrain sans fiche de classement (compte jamais utilisé), ou création concurrente.
+      if ((await F.getDoc(ref)).exists()) return 'already';
+      return 'unknown';
+    }
+    return 'ok';
+  },
+  // Marque comme réclamés les filleuls non encore récompensés ; renvoie leurs pseudos.
+  async claimAll() {
+    const { F, db } = await sdk();
+    const snap = await F.getDocs(F.query(F.collection(db, 'referrals'),
+      F.where('parrain', '==', cloud.user.uid), F.where('claimed', '==', false), F.limit(50)));
+    const names = [];
+    for (const doc of snap.docs) {
+      try {
+        await F.updateDoc(doc.ref, { claimed: true });
+        names.push(doc.data().pseudo || 'Un ami');
+      } catch { /* déjà réclamé depuis un autre appareil */ }
+    }
+    return names;
+  },
+};
+
 // ---------- Ligues privées en ligne ----------
 function leagueRef(code) { return fb.F.doc(fb.db, 'leagues', code); }
 
