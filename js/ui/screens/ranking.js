@@ -1,12 +1,12 @@
 import { escapeHtml, fmt } from '../../util.js';
 import { globalRanking, leagueRanking } from '../../services/leaderboard.js';
 import { myLeagues } from '../../services/leagues.js';
-import { TIERS, RADIANT, RR_PER_DIVISION, LOSS_RR, RADIANT_SPOTS, rankOf, playerRR } from '../../services/ranks.js';
-import { cloud, divisionRows, loadDivision, loadMyLeagues, loadTop, topRows, LEAGUE_MAX_MEMBERS } from '../../services/cloud.js';
+import { TIERS, RADIANT, RR_PER_DIVISION, LOSS_RR, RADIANT_SPOTS, rankOf, playerRR, seasonKey, seasonLabel, seasonEnd, seasonRR } from '../../services/ranks.js';
+import { cloud, divisionRows, loadDivision, loadMyLeagues, loadTop, topRows, loadSeason, seasonRows, loadHallOfFame, LEAGUE_MAX_MEMBERS } from '../../services/cloud.js';
 import { renderAccountCard } from './account.js';
 import { renamePanel } from './profile.js';
 import { coin, icons, rankEmblem } from '../icons.js';
-import { nameHtml, titleHtml } from '../cosmetics.js';
+import { avatarHtml, nameHtml, titleHtml } from '../cosmetics.js';
 import { ui } from '../uiState.js';
 
 function rankList(rows, meId) {
@@ -224,6 +224,50 @@ function localView(s, p) {
     ${rankList(rows, p.id)}`;
 }
 
+// Hall of Fame : le podium de la saison terminée (mois précédent).
+function hallOfFame() {
+  const h = cloud.hof;
+  if (!h?.rows?.length) return '';
+  const medal = ['🥇', '🥈', '🥉'];
+  return `
+    <section class="card hof">
+      <div class="hof-head"><strong>Hall of Fame</strong><span class="muted">Champions de ${escapeHtml(seasonLabel(h.key))}</span></div>
+      <ol class="hof-podium">
+        ${h.rows.map((r, i) => `
+          <li class="hof-${i + 1}">
+            <span class="hof-medal">${medal[i]}</span>
+            ${avatarHtml(r.pseudo, { frame: r.frame || 'frame-champion' })}
+            ${nameHtml(r.pseudo, { color: r.color })}
+            <small>${fmt(r.score)} RR</small>
+          </li>`).join('')}
+      </ol>
+    </section>`;
+}
+
+// Classement de la saison : RR gagnés depuis le 1er du mois ; le top 3 entre au Hall of Fame.
+function seasonView(s, p) {
+  loadSeason();
+  const c = cloud.season;
+  const meId = cloud.user.uid;
+  const rows = seasonRows().map((r) => ({
+    id: r.uid, name: r.pseudo, rr: r.seasonRR, balance: r.balance, isBot: false,
+    style: { color: r.color, frame: r.frame, title: r.title }, level: r.level, rank: rankOf(r.rr),
+  }));
+  const mine = seasonRR(p.id, s);
+  const pos = rows.findIndex((r) => r.id === meId) + 1;
+  const days = Math.max(0, Math.ceil((seasonEnd() - Date.now()) / 86_400_000));
+  return `
+    <div class="section-row">
+      <h2 class="section-title">Saison ${escapeHtml(seasonLabel(seasonKey()))}</h2>
+      <button class="link-btn" data-action="season-refresh" type="button">Actualiser</button>
+    </div>
+    <p class="muted division-note">Fin dans ${days} jour${days > 1 ? 's' : ''}. Tout le monde repart de 0 le 1er du mois : le top 3 entre au Hall of Fame et gagne un cadre et un titre Champion exclusifs.
+      ${pos ? ` Tu es <strong>${pos === 1 ? '1er' : `${pos}e`}</strong> avec ${fmt(mine)} RR.` : ' Gagne des paris pour entrer dans le classement.'}</p>
+    ${c?.error ? `<div class="empty feed-error"><p class="muted">${escapeHtml(c.error)}</p></div>` : ''}
+    ${!rows.length && c?.loading ? '<div class="skeletons"><div class="skeleton"></div></div>' : ''}
+    ${rows.length ? rankList(rows, meId) : (c?.loading ? '' : '<div class="empty"><p class="muted">Personne n\'a encore marqué de RR ce mois-ci. À toi de lancer la saison !</p></div>')}`;
+}
+
 // Classement général : tous les joueurs connectés du jeu, du meilleur au moins bon.
 function topView(s, p) {
   const myRR = playerRR(p.id, s);
@@ -238,6 +282,16 @@ function topView(s, p) {
       ${renderAccountCard()}
       ${localView(s, p)}`;
   }
+  loadHallOfFame();
+  const scope = ui.topScope === 'all' ? 'all' : 'season';
+  const head = `
+    ${renamePanel(p)}
+    ${hallOfFame()}
+    <div class="tabs scope-tabs" role="tablist">
+      <button class="tab ${scope === 'season' ? 'active' : ''}" data-action="top-scope" data-scope="season" role="tab" type="button">Saison ${escapeHtml(seasonLabel(seasonKey()).split(' ')[0])}</button>
+      <button class="tab ${scope === 'all' ? 'active' : ''}" data-action="top-scope" data-scope="all" role="tab" type="button">Tous les temps</button>
+    </div>`;
+  if (scope === 'season') return head + seasonView(s, p);
   loadTop(myRR);
   const t = cloud.top;
   const { rows: raw, radiant, myPos, me } = topRows();
@@ -245,7 +299,7 @@ function topView(s, p) {
   const meId = cloud.user.uid;
   const mine = rows.find((r) => r.id === meId);
   return `
-    ${renamePanel(p)}
+    ${head}
     <div class="section-row">
       <h2 class="section-title">Classement général</h2>
       <button class="link-btn" data-action="top-refresh" type="button">Actualiser</button>

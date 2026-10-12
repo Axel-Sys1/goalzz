@@ -12,7 +12,7 @@
 // compte ; les règles Firestore refusent une fiche de classement dont le pseudo est à quelqu'un d'autre.
 import { CONFIG } from '../config.js';
 import { emit, getState, onSave, replaceState, resetAll, update } from '../store.js';
-import { playerRR, betRR, LOSS_RR, RR_PER_DIVISION, TIERS, IMMORTAL_RR, RADIANT_SPOTS } from './ranks.js';
+import { playerRR, betRR, LOSS_RR, RR_PER_DIVISION, TIERS, IMMORTAL_RR, RADIANT_SPOTS, seasonKey, prevSeasonKey, seasonRR } from './ranks.js';
 import { leagueCode } from '../util.js';
 import { isOffensivePseudo } from './moderation.js';
 import { levelOf } from './progress.js';
@@ -32,6 +32,8 @@ export const cloud = {
   mode: 'signup',     // formulaire : 'signup' (créer un compte) ou 'login' (se connecter)
   division: null,     // { index, rows: [{ uid, pseudo, rr, balance }], radiant: Set<uid>, at, loading, error }
   top: null,          // classement général : { rows, above (joueurs devant moi), at, loading, error }
+  season: null,       // classement de la saison (mois) en cours : { key, rows, at, loading, error }
+  hof: null,          // Hall of Fame : { key (saison terminée), rows: top 3, at }
   pseudoConflict: null, // pseudo du joueur actuel à changer : déjà réservé par un autre compte…
   pseudoBanned: false,  // … ou refusé par le filtre de pseudos
   leagues: null,      // { list: [{ code, name, ownerUid, members, rows }], at, loading, error }
@@ -243,7 +245,13 @@ function myEntry(s = getState()) {
   const p = s.players[s.currentPlayerId];
   if (!p || !cloud.user) return null;
   const st = p.style || {};
-  return { uid: cloud.user.uid, pseudo: p.pseudo, rr: playerRR(p.id, s), balance: Math.round(p.balance), level: levelOf(p.xp).level, color: st.color || '', frame: st.frame || '', title: st.title || '' };
+  const season = seasonKey();
+  const prev = prevSeasonKey(season);
+  return {
+    uid: cloud.user.uid, pseudo: p.pseudo, rr: playerRR(p.id, s), balance: Math.round(p.balance),
+    level: levelOf(p.xp).level, color: st.color || '', frame: st.frame || '', title: st.title || '',
+    season, seasonRR: seasonRR(p.id, s, season), prevSeason: prev, prevSeasonRR: seasonRR(p.id, s, prev),
+  };
 }
 
 // Le pseudo est-il libre (ou déjà à ce compte) ? Sans service en ligne, on ne peut pas vérifier.
@@ -301,7 +309,10 @@ async function publishRank() {
   try {
     // Niveau et cosmétiques visibles des autres ; si les règles Firestore ne les acceptent pas encore,
     // on publie au moins la fiche de base.
-    await fb.F.setDoc(ref, { ...base, level: me.level, color: me.color, frame: me.frame, title: me.title })
+    const style = { level: me.level, color: me.color, frame: me.frame, title: me.title };
+    const season = { season: me.season, seasonRR: me.seasonRR, prevSeason: me.prevSeason, prevSeasonRR: me.prevSeasonRR };
+    await fb.F.setDoc(ref, { ...base, ...style, ...season })
+      .catch(() => fb.F.setDoc(ref, { ...base, ...style }))
       .catch(() => fb.F.setDoc(ref, base));
   } catch (err) {
     lastBoard = '';
@@ -375,6 +386,59 @@ export function topRows() {
   const idx = shown.findIndex((r) => r.uid === me?.uid);
   const myPos = idx >= 0 ? idx + 1 : t.above != null ? t.above + 1 : null;
   return { rows: shown, radiant, myPos, me };
+}
+
+// Classement de la saison en cours : fiches triées par RR de saison, celles d'un autre mois écartées.
+export async function loadSeason({ force = false } = {}) {
+  if (!cloud.user || !fb) return;
+  const key = seasonKey();
+  const c = cloud.season;
+  if (c && c.key === key && !force && (c.loading || Date.now() - c.at < DIVISION_TTL_MS)) return;
+  cloud.season = { key, rows: c?.key === key ? c.rows : [], at: Date.now(), loading: true, error: null };
+  const { F, db } = fb;
+  try {
+    const snap = await F.getDocs(F.query(F.collection(db, 'leaderboard'), F.orderBy('seasonRR', 'desc'), F.limit(TOP_LIMIT)));
+    const rows = snap.docs.map((doc) => ({ uid: doc.id, ...doc.data() })).filter((r) => r.season === key);
+    cloud.season = { key, rows, at: Date.now(), loading: false, error: null };
+  } catch (err) {
+    console.warn('Goalz : classement de la saison indisponible', err);
+    cloud.season = { ...cloud.season, loading: false, error: 'Classement de la saison indisponible pour le moment.' };
+  }
+  emit();
+}
+
+export function seasonRows() {
+  const c = cloud.season;
+  if (!c) return [];
+  const me = myEntry();
+  const rows = c.rows.filter((r) => r.uid !== me?.uid && !isOffensivePseudo(r.pseudo));
+  if (me && me.seasonRR > 0) rows.push(me);
+  return rows.sort((a, b) => b.seasonRR - a.seasonRR || b.rr - a.rr).slice(0, TOP_LIMIT);
+}
+
+// Hall of Fame : le top 3 de la saison terminée (mois précédent). Les joueurs revenus ce mois-ci
+// ont reporté leur score dans prevSeason / prevSeasonRR, les autres l'ont encore dans season / seasonRR.
+export async function loadHallOfFame() {
+  if (!cloud.user || !fb) return;
+  const key = prevSeasonKey();
+  if (cloud.hof?.key === key && Date.now() - cloud.hof.at < 30 * 60_000) return;
+  cloud.hof = { key, rows: cloud.hof?.key === key ? cloud.hof.rows : [], at: Date.now() };
+  const { F, db } = fb;
+  const col = F.collection(db, 'leaderboard');
+  try {
+    const [a, b] = await Promise.all([
+      F.getDocs(F.query(col, F.orderBy('prevSeasonRR', 'desc'), F.limit(30))),
+      F.getDocs(F.query(col, F.orderBy('seasonRR', 'desc'), F.limit(30))),
+    ]);
+    const score = new Map();
+    for (const doc of a.docs) { const d = doc.data(); if (d.prevSeason === key && d.prevSeasonRR > 0) score.set(doc.id, { uid: doc.id, ...d, score: d.prevSeasonRR }); }
+    for (const doc of b.docs) { const d = doc.data(); if (d.season === key && d.seasonRR > 0 && !score.has(doc.id)) score.set(doc.id, { uid: doc.id, ...d, score: d.seasonRR }); }
+    const rows = [...score.values()].filter((r) => !isOffensivePseudo(r.pseudo)).sort((x, y) => y.score - x.score).slice(0, 3);
+    cloud.hof = { key, rows, at: Date.now() };
+  } catch (err) {
+    console.warn('Goalz : Hall of Fame indisponible', err);
+  }
+  emit();
 }
 
 // Lignes de la division, avec le joueur actuel toujours à jour (même avant sa publication).

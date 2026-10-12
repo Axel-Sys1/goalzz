@@ -6,7 +6,7 @@ import { startSync, syncAll } from './services/matches.js';
 import { render, tick } from './ui/app.js';
 import { bindEvents } from './ui/events.js';
 import { toast } from './ui/effects.js';
-import { cloud, initCloud } from './services/cloud.js';
+import { cloud, initCloud, loadHallOfFame } from './services/cloud.js';
 import { joinPendingInvite, readInviteFromUrl } from './services/invite.js';
 import { ui } from './ui/uiState.js';
 import { applyPendingReferral, claimReferralRewards, readReferralFromUrl } from './services/referral.js';
@@ -39,12 +39,31 @@ subscribe(async () => {
 // Parrainage : parrain venu par un lien (appliqué dès le compte et le pseudo prêts), et récompenses
 // des filleuls réclamées une fois par session de compte.
 let claimedFor = null;
+let hofChecked = null;
 subscribe(async () => {
   const res = await applyPendingReferral();
   if (res?.error && !/déjà/.test(res.error)) toast(`Parrainage : ${res.error}`, 'error');
   const s = getState();
   const key = cloud.user && s.currentPlayerId ? `${cloud.user.uid}|${s.currentPlayerId}` : null;
-  if (key && key !== claimedFor) { claimedFor = key; claimReferralRewards(); }
+  if (key && key !== claimedFor) { claimedFor = key; claimReferralRewards(); loadHallOfFame(); }
+  // Top 3 de la saison terminée : cadre et titre exclusifs, une fois par saison.
+  const hof = cloud.hof;
+  const me = s.players[s.currentPlayerId];
+  if (hof && me && cloud.user && hofChecked !== `${hof.key}|${me.id}`) {
+    hofChecked = `${hof.key}|${me.id}`;
+    const place = hof.rows.findIndex((r) => r.uid === cloud.user.uid) + 1;
+    if (place && !me.hof?.[hof.key]) {
+      update((st) => {
+        const p = st.players[st.currentPlayerId];
+        ensureProgress(p);
+        p.hof = { ...p.hof, [hof.key]: place };
+        p.owned['frame-champion'] = Date.now();
+        p.owned['title-champion'] = Date.now();
+        p.balance += 1000;
+        p.inbox.push({ type: 'reward', amount: 1000, text: `Hall of Fame : ${place === 1 ? '1er' : `${place}e`} de la saison ! Cadre et titre Champion débloqués, +1 000 Goalz.` });
+      });
+    }
+  }
 });
 
 // Choix des sources (direct ou instantané), puis chaque provider décide lui-même

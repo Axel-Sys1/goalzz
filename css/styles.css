@@ -1028,12 +1028,13 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .fr-frame-gold { --fr: #f2c94c; box-shadow: 0 0 0 3px #f2c94c, 0 0 14px rgba(242, 201, 76, 0.55) !important; }
 .fr-frame-pitch { --fr: #2ecc71; box-shadow: 0 0 0 3px #2ecc71, 0 0 0 5px #fff, 0 0 0 7px #2ecc71 !important; }
 .fr-frame-diamond { --fr: #8be9fd; box-shadow: 0 0 0 3px #8be9fd, 0 0 18px rgba(139, 233, 253, 0.6) !important; }
-.fr-frame-fire, .fr-frame-legend { position: relative; isolation: isolate; box-shadow: none !important; }
-.fr-frame-fire::before, .fr-frame-legend::before {
+.fr-frame-fire, .fr-frame-legend, .fr-frame-champion { position: relative; isolation: isolate; box-shadow: none !important; }
+.fr-frame-fire::before, .fr-frame-legend::before, .fr-frame-champion::before {
   content: ''; position: absolute; inset: -4px; z-index: -1; border-radius: calc(var(--fr-r, 8px) + 4px);
   background: linear-gradient(135deg, #ff3d5a, #ff6b1a, #ffde59, #ff6b1a, #ff3d5a, #ff6b1a, #ffde59);
   background-size: 300% 300%; animation: fr-flow 2.5s linear infinite;
 }
+.fr-frame-champion::before { background-image: linear-gradient(135deg, #fff1a8, #f2c94c, #fff, #f2c94c, #c99a1e, #fff1a8, #f2c94c); }
 .fr-frame-legend::before { background-image: linear-gradient(135deg, #b07cff, #4da3ff, #3ddc84, #ffde59, #ff5fa8, #b07cff, #4da3ff); }
 .avatar-lg.fr { --fr-r: 10px; }
 @keyframes fr-flow { to { background-position: 100% 100%; } }
@@ -1091,3 +1092,17 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .challenge.is-done .challenge-bar span { background: var(--green); }
 .challenge-reward { display: grid; justify-items: end; gap: 2px; font: 800 15px/1 var(--display); white-space: nowrap; }
 .challenge-reward small { display: inline-flex; align-items: center; gap: 3px; font: 600 11px/1 var(--body); color: var(--muted); }
+
+/* ---------- Saisons et Hall of Fame ---------- */
+.scope-tabs { margin-top: 4px; }
+.hof { display: grid; gap: 12px; border-color: rgba(242, 201, 76, 0.55); background: linear-gradient(160deg, rgba(242, 201, 76, 0.14), var(--surface) 55%); }
+.hof-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.hof-head strong { font: italic 800 22px/1 var(--display); text-transform: uppercase; color: var(--gold); }
+.hof-podium { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1.15fr 1fr; align-items: end; gap: 8px; text-align: center; }
+.hof-podium li { display: grid; justify-items: center; gap: 4px; padding: 10px 6px; border-radius: 10px; background: var(--surface-2); min-width: 0; }
+.hof-podium li .pz { font: italic 800 16px/1.1 var(--display); text-transform: uppercase; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hof-podium small { color: var(--muted); font-weight: 700; }
+.hof-medal { font-size: 26px; line-height: 1; }
+.hof-1 { order: 2; padding-top: 18px !important; border: 1px solid rgba(242, 201, 76, 0.6); }
+.hof-2 { order: 1; }
+.hof-3 { order: 3; }

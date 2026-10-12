@@ -73,7 +73,7 @@ function shopView(p) {
       action = `<button class="btn btn-primary" data-action="shop-buy" data-id="${item.id}" type="button" ${p.balance < price ? 'disabled' : ''}>${fmt(price)} ${coin('coin coin-sm')}</button>
         ${item.level ? `<span class="muted shop-or">ou gratuit au niv. ${item.level}</span>` : ''}`;
     } else {
-      action = `<span class="shop-lock">${icons.lock} Niveau ${item.level}</span>`;
+      action = `<span class="shop-lock">${icons.lock} ${item.exclusive ? escapeHtml(item.exclusive) : `Niveau ${item.level}`}</span>`;
     }
     return `
       <div class="shop-item ${equipped ? 'is-equipped' : ''} ${deal.id === item.id ? 'is-deal' : ''}">

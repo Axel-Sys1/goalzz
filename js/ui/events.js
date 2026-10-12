@@ -16,7 +16,7 @@ import { play, setSound, soundOn } from './sounds.js';
 import { buyItem, equipItem } from '../services/progress.js';
 import { applyReferral, referralLink, REWARD } from '../services/referral.js';
 import { CONFIG } from '../config.js';
-import { cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, loadTop, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
+import { cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, loadTop, loadSeason, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
 import { playerRR } from '../services/ranks.js';
 import { shareLeague } from '../services/invite.js';
 
@@ -157,6 +157,8 @@ const actions = {
   },
 
   'rank-tab': (el) => { ui.rankTab = el.dataset.tab; render(); },
+  'top-scope': (el) => { ui.topScope = el.dataset.scope === 'all' ? 'all' : 'season'; render(); },
+  'season-refresh': () => loadSeason({ force: true }),
   'top-refresh': async () => {
     const s = getState();
     await loadTop(playerRR(s.currentPlayerId, s), { force: true });

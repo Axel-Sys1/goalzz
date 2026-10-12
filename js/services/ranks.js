@@ -68,3 +68,31 @@ export function rankOf(rr, { radiant = false } = {}) {
 }
 
 export const isImmortal = (rr) => rr >= IMMORTAL_RR;
+
+// ─── Saisons ─────────────────────────────────────────────────────────────────
+// Une saison = un mois civil. Le classement de la saison ne compte que les RR gagnés ou perdus
+// sur les paris réglés ce mois-ci (tout le monde repart de 0 le 1er) ; le rang, lui, reste.
+const pad = (n) => String(n).padStart(2, '0');
+export const seasonKey = (t = Date.now()) => { const d = new Date(t); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; };
+export function prevSeasonKey(key = seasonKey()) {
+  const [y, m] = key.split('-').map(Number);
+  return m === 1 ? `${y - 1}-12` : `${y}-${pad(m - 1)}`;
+}
+export function seasonLabel(key) {
+  const [y, m] = key.split('-').map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+}
+// Fin de la saison en cours (minuit, le 1er du mois suivant).
+export function seasonEnd(key = seasonKey()) {
+  const [y, m] = key.split('-').map(Number);
+  return new Date(y, m, 1).getTime();
+}
+
+export function seasonRR(playerId, s, key = seasonKey()) {
+  let rr = 0;
+  for (const b of Object.values(s.bets)) {
+    if (b.playerId !== playerId || (b.status !== 'won' && b.status !== 'lost')) continue;
+    if (seasonKey(b.settledAt || 0) === key) rr += betRR(b);
+  }
+  return Math.max(0, rr);
+}
