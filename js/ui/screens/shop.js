@@ -5,11 +5,16 @@ import { coin, icons } from '../icons.js';
 import { avatarHtml, nameHtml } from '../cosmetics.js';
 import { ui } from '../uiState.js';
 import {
-  ITEMS, RARITY, boostActive, dealEndsAt, levelOf, owns, priceOf, style, weeklyDeal,
+  ITEMS, RARITY, boostActive, dailyDeals, dealEndsAt, levelOf, nextMidnight, owns, priceOf, style, weeklyDeal,
 } from '../../services/progress.js';
 
 const KIND_LABEL = { color: 'Effet de pseudo', frame: 'Cadre', title: 'Titre', boost: 'Boost' };
-const CATS = [['all', 'Tout'], ['color', 'Pseudos'], ['frame', 'Cadres'], ['title', 'Titres'], ['boost', 'Boosts']];
+const CATS = [
+  ['color', 'Pseudos', 'La couleur et l\'effet de ton pseudo dans le classement, les ligues et ton profil.'],
+  ['frame', 'Cadres', 'Le contour de ton avatar, visible à côté de ton pseudo partout dans le jeu.'],
+  ['title', 'Titres', 'Le petit titre affiché sous ton pseudo, pour montrer qui tu es.'],
+  ['boost', 'Boosts', 'Pour monter de niveau plus vite. N\'aide pas à gagner tes paris.'],
+];
 const ORDER = ['exclusif', 'commun', 'rare', 'epique', 'legendaire', 'mythique']; // tri : mythique d'abord, exclusifs (non vendus) à la fin
 
 // Le joueur tel qu'il apparaîtrait avec l'objet (le reste de son style est conservé).
@@ -46,13 +51,13 @@ function action(p, item, price) {
   return `<span class="shop-lock">${icons.lock} ${item.exclusive ? escapeHtml(item.exclusive) : `Niveau ${item.level}`}</span>`;
 }
 
-function itemCard(p, item, deal) {
-  const isDeal = deal.id === item.id;
+function itemCard(p, item) {
   const price = item.price ? priceOf(item) : null;
+  const isDeal = price !== null && price < item.price;
   return `
     <article class="shop-card rar-${item.rarity} ${style(p)[item.kind] === item.id ? 'is-equipped' : ''} ${owns(p, item) ? 'is-owned' : ''}">
       <span class="rar-label">${RARITY[item.rarity]}</span>
-      ${isDeal ? '<span class="deal-flag">−30 %</span>' : ''}
+      ${isDeal ? `<span class="deal-flag">−${Math.round((1 - price / item.price) * 100)} %</span>` : ''}
       <div class="shop-art">${preview(p, item)}</div>
       <strong class="shop-name">${escapeHtml(item.name)}</strong>
       <span class="shop-kind">${KIND_LABEL[item.kind]}</span>
@@ -67,12 +72,26 @@ function countdown(ms) {
   return d ? `${d} j ${h} h` : `${h} h ${Math.floor((ms % 3_600_000) / 60_000)} min`;
 }
 
+// Carte promo : objet, prix barré, compte à rebours, bouton.
+function promoCard(p, deal, { kicker, endsAt, big = false }) {
+  const item = ITEMS.find((x) => x.id === deal.id);
+  return `
+    <section class="shop-deal ${big ? 'deal-big' : ''} rar-${item.rarity}">
+      <div class="deal-text">
+        <span class="deal-kicker">${kicker} · −${Math.round((1 - deal.price / item.price) * 100)} %</span>
+        <strong>${escapeHtml(item.name)}</strong>
+        <span class="muted">${KIND_LABEL[item.kind]} · ${RARITY[item.rarity]} · encore ${countdown(endsAt - Date.now())}</span>
+        <div class="deal-price"><s>${fmt(item.price)}</s> <b>${fmt(deal.price)}</b> ${coin('coin coin-sm')}</div>
+        <div class="shop-action">${action(p, item, deal.price)}</div>
+      </div>
+      <div class="deal-art">${preview(p, item)}</div>
+    </section>`;
+}
+
 export function renderShop(s, p) {
-  const deal = weeklyDeal();
-  const dealItem = ITEMS.find((i) => i.id === deal.id);
-  const cat = CATS.some(([k]) => k === ui.shopCat) ? ui.shopCat : 'all';
+  const cat = CATS.find(([k]) => k === ui.shopCat) || CATS[0];
   const list = ITEMS
-    .filter((i) => cat === 'all' || i.kind === cat)
+    .filter((i) => i.kind === cat[0])
     .sort((a, b) => ORDER.indexOf(b.rarity) - ORDER.indexOf(a.rarity) || (b.price || 0) - (a.price || 0));
   const lv = levelOf(p.xp);
   return `
@@ -88,22 +107,19 @@ export function renderShop(s, p) {
       </div>
     </section>
 
-    <section class="shop-deal rar-${dealItem.rarity}">
-      <div class="deal-text">
-        <span class="deal-kicker">Offre de la semaine</span>
-        <strong>${escapeHtml(dealItem.name)}</strong>
-        <span class="muted">${RARITY[dealItem.rarity]} · se termine dans ${countdown(dealEndsAt() - Date.now())}</span>
-        <div class="deal-price"><s>${fmt(dealItem.price)}</s> <b>${fmt(deal.price)}</b> ${coin('coin coin-sm')}</div>
-        <div class="shop-action">${action(p, dealItem, deal.price)}</div>
-      </div>
-      <div class="deal-art">${preview(p, dealItem)}</div>
-    </section>
-
-    <div class="chips shop-cats" role="toolbar" aria-label="Catégories">
-      ${CATS.map(([k, label]) => `<button class="chip ${cat === k ? 'active' : ''}" data-action="shop-cat" data-cat="${k}" type="button">${label}</button>`).join('')}
+    <h2 class="section-title">Promos</h2>
+    ${promoCard(p, weeklyDeal(), { kicker: 'Offre de la semaine', endsAt: dealEndsAt(), big: true })}
+    <div class="deals-today">
+      ${dailyDeals().map((d) => promoCard(p, d, { kicker: 'Promo du jour', endsAt: nextMidnight() })).join('')}
     </div>
 
-    <div class="shop-cards">${list.map((i) => itemCard(p, i, deal)).join('')}</div>
+    <h2 class="section-title">Choisis ta catégorie</h2>
+    <div class="tabs shop-tabs" role="tablist">
+      ${CATS.map(([k, label]) => `<button class="tab ${cat[0] === k ? 'active' : ''}" data-action="shop-cat" data-cat="${k}" role="tab" aria-selected="${cat[0] === k}" type="button">${label}</button>`).join('')}
+    </div>
+    <p class="muted shop-cat-help">${cat[2]}</p>
+
+    <div class="shop-cards">${list.map((i) => itemCard(p, i)).join('')}</div>
 
     <p class="muted shop-note">Que du style : rien n'aide à gagner. Les objets marqués d'un niveau se débloquent gratuitement en jouant (tu es niveau ${lv.level}), et ceux de Champion se méritent au Hall of Fame.</p>`;
 }

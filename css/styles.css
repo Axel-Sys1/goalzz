@@ -1184,3 +1184,10 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .boost-art svg { width: 38px; height: 38px; }
 .shop-note { font-size: 12px; text-align: center; }
 .shop-kind { margin-top: -6px; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+
+.deals-today { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.deals-today .shop-deal { padding: 14px; }
+.deals-today .deal-text strong { font-size: 22px; }
+.deals-today .deal-art { transform: none; }
+.shop-tabs .tab { font-size: 13px; }
+.shop-cat-help { font-size: 13px; margin-top: 8px !important; }

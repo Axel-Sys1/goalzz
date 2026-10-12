@@ -92,7 +92,25 @@ export function dealEndsAt(t = Date.now()) {
   const week = Math.floor((t / 86_400_000 + 3) / 7);
   return (week + 1) * 7 * 86_400_000 - 3 * 86_400_000;
 }
-export const priceOf = (item, t = Date.now()) => (weeklyDeal(t).id === item.id ? weeklyDeal(t).price : item.price);
+// Promos du jour : 2 objets à −20 %, pas dans la même catégorie que l'offre de la semaine, renouvelés à minuit.
+export function dailyDeals(t = Date.now()) {
+  const weekKind = itemById(weeklyDeal(t).id).kind;
+  const pool = ITEMS.filter((i) => i.price && i.kind !== weekKind);
+  const day = Math.floor((t - new Date(t).getTimezoneOffset() * 60_000) / 86_400_000);
+  const a = pool[(day * 7) % pool.length];
+  const rest = pool.filter((i) => i.kind !== a.kind);
+  const b = rest[(day * 11) % rest.length];
+  return [a, b].map((i) => ({ id: i.id, price: Math.round(i.price * 0.8 / 10) * 10 }));
+}
+export function nextMidnight(t = Date.now()) {
+  const d = new Date(t);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
+}
+// Prix actuel d'un objet : le meilleur entre son prix normal et une promo en cours.
+export function priceOf(item, t = Date.now()) {
+  const deals = [weeklyDeal(t), ...dailyDeals(t)].filter((d) => d.id === item.id).map((d) => d.price);
+  return Math.min(item.price, ...deals);
+}
 
 export const style = (p) => p?.style || {};
 export const owns = (p, item) => item.kind !== 'boost' && (levelOf(p?.xp).level >= (item.level ?? Infinity) || !!p?.owned?.[item.id]);
