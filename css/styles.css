@@ -1191,3 +1191,13 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .deals-today .deal-art { transform: none; }
 .shop-tabs .tab { font-size: 13px; }
 .shop-cat-help { font-size: 13px; margin-top: 8px !important; }
+
+.daily-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-top: 12px !important; font-size: 13px; }
+.daily-timer { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); font-weight: 700; }
+.daily-timer svg { width: 14px; height: 14px; color: var(--accent); }
+.daily-featured .shop-card { padding: 34px 16px 18px; }
+.daily-featured .shop-art { transform: scale(1.35); min-height: 90px; }
+.daily-featured .shop-name { font-size: 26px; }
+.shop-card.is-featured { box-shadow: 0 0 28px -6px var(--rar); }
+.daily-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 700px) { .daily-cards { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

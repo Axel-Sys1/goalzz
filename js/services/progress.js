@@ -72,7 +72,8 @@ export const ITEMS = [
   { id: 'title-goat', kind: 'title', rarity: 'mythique', name: 'GOAT', level: 100 },
   { id: 'title-champion', kind: 'title', rarity: 'exclusif', name: 'Champion de saison', exclusive: 'Top 3 d\'une saison' },
   // Boost
-  { id: 'boost-xp', kind: 'boost', rarity: 'rare', name: 'Boost XP ×2 · 24 h', price: 1000 },
+  { id: 'boost-xp', kind: 'boost', rarity: 'rare', name: 'Boost XP ×2 · 24 h', price: 1000, hours: 24 },
+  { id: 'boost-xp-3d', kind: 'boost', rarity: 'epique', name: 'Boost XP ×2 · 3 jours', price: 2500, hours: 72 },
 ];
 export const RARITY = {
   commun: 'Commun', rare: 'Rare', epique: 'Épique', legendaire: 'Légendaire', mythique: 'Mythique', exclusif: 'Exclusif',
@@ -80,36 +81,59 @@ export const RARITY = {
 export const itemById = (id) => ITEMS.find((i) => i.id === id);
 export const KINDS = { color: 'Effets de pseudo', frame: 'Cadres', title: 'Titres', boost: 'Boosts' };
 
-// Offre de la semaine : un objet en vente à −30 %, qui change chaque lundi.
-export function weeklyDeal(t = Date.now()) {
-  const forSale = ITEMS.filter((i) => i.price && i.kind !== 'boost' && i.rarity !== 'commun');
-  const week = Math.floor((t / 86_400_000 + 3) / 7); // semaines commençant le lundi
-  const item = forSale[week % forSale.length];
-  return { id: item.id, price: Math.round(item.price * 0.7 / 10) * 10 };
-}
-// Prochain changement de l'offre (lundi, minuit UTC).
-export function dealEndsAt(t = Date.now()) {
-  const week = Math.floor((t / 86_400_000 + 3) / 7);
-  return (week + 1) * 7 * 86_400_000 - 3 * 86_400_000;
-}
-// Promos du jour : 2 objets à −20 %, pas dans la même catégorie que l'offre de la semaine, renouvelés à minuit.
-export function dailyDeals(t = Date.now()) {
-  const weekKind = itemById(weeklyDeal(t).id).kind;
-  const pool = ITEMS.filter((i) => i.price && i.kind !== weekKind);
-  const day = Math.floor((t - new Date(t).getTimezoneOffset() * 60_000) / 86_400_000);
-  const a = pool[(day * 7) % pool.length];
-  const rest = pool.filter((i) => i.kind !== a.kind);
-  const b = rest[(day * 11) % rest.length];
-  return [a, b].map((i) => ({ id: i.id, price: Math.round(i.price * 0.8 / 10) * 10 }));
-}
+// ─── Boutique du jour (façon Valorant) ──────────────────────────────────────
+// Chaque joueur a sa propre sélection, renouvelée à minuit : 1 objet vedette à −25 % et 4 autres.
+// Les cosmétiques ne s'achètent que là ; les boosts restent toujours en vente.
+export const SHOP_SIZE = 4;
+const WEIGHT = { commun: 30, rare: 30, epique: 22, legendaire: 13, mythique: 5 };
+
 export function nextMidnight(t = Date.now()) {
   const d = new Date(t);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
 }
-// Prix actuel d'un objet : le meilleur entre son prix normal et une promo en cours.
-export function priceOf(item, t = Date.now()) {
-  const deals = [weeklyDeal(t), ...dailyDeals(t)].filter((d) => d.id === item.id).map((d) => d.price);
-  return Math.min(item.price, ...deals);
+const dayKey = (t) => { const d = new Date(t); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+
+function seeded(key) {
+  let h = 2166136261;
+  for (const c of key) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+  return () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; };
+}
+
+// { featured: { id, price }, items: [{ id, price }] } pour ce joueur ce jour-là. Tirage pondéré par
+// rareté parmi les cosmétiques en vente qu'il n'a pas encore (s'il a tout, on reprend parmi tout).
+export function dailyShop(p, t = Date.now()) {
+  const rand = seeded(`${p?.id || 'invité'}|${dayKey(t)}`);
+  const forSale = ITEMS.filter((i) => i.price && i.kind !== 'boost');
+  // Sélection figée pour la journée : seuls les objets possédés avant aujourd'hui sont écartés
+  // (acheter dans la boutique ne la remélange pas).
+  const dayStart = nextMidnight(t) - 86_400_000;
+  let pool = forSale.filter((i) => !(p?.owned?.[i.id] < dayStart));
+  if (pool.length < SHOP_SIZE + 1) pool = [...forSale];
+  const draw = (filter = () => true) => {
+    const list = pool.filter(filter);
+    const total = list.reduce((n, i) => n + WEIGHT[i.rarity], 0);
+    let r = rand() * total;
+    const item = list.find((i) => (r -= WEIGHT[i.rarity]) <= 0) || list[0];
+    pool = pool.filter((i) => i !== item);
+    return item;
+  };
+  // Vedette : au moins Épique, pour qu'elle donne envie.
+  const top = draw((i) => ['epique', 'legendaire', 'mythique'].includes(i.rarity)) || draw();
+  const items = [];
+  while (items.length < SHOP_SIZE && pool.length) items.push(draw());
+  return {
+    featured: { id: top.id, price: Math.round(top.price * 0.75 / 10) * 10 },
+    items: items.map((i) => ({ id: i.id, price: i.price })),
+  };
+}
+
+// Prix d'un objet pour ce joueur aujourd'hui ; null s'il n'est pas en vente pour lui.
+export function priceOf(item, p = currentPlayer(getState()), t = Date.now()) {
+  if (!item?.price) return null;
+  if (item.kind === 'boost') return item.price;
+  const shop = dailyShop(p, t);
+  const hit = [shop.featured, ...shop.items].find((x) => x.id === item.id);
+  return hit ? hit.price : null;
 }
 
 export const style = (p) => p?.style || {};
@@ -143,13 +167,14 @@ export function buyItem(id) {
   const p = currentPlayer(getState());
   if (!item || !item.price || !p) throw new Error('Objet introuvable.');
   if (owns(p, item)) throw new Error('Tu l\'as déjà.');
-  const price = priceOf(item);
+  const price = priceOf(item, p);
+  if (price == null) throw new Error('Cet objet n\'est plus dans ta boutique du jour.');
   if (p.balance < price) throw new Error(`Il te manque ${(price - p.balance).toLocaleString('fr-FR')} Goalz.`);
   update((s) => {
     const me = currentPlayer(s);
     ensureProgress(me);
     me.balance -= price;
-    if (item.kind === 'boost') me.boostUntil = Math.max(Date.now(), me.boostUntil || 0) + BOOST_MS;
+    if (item.kind === 'boost') me.boostUntil = Math.max(Date.now(), me.boostUntil || 0) + (item.hours || 24) * 3600_000;
     else { me.owned[item.id] = Date.now(); me.style[item.kind] = item.id; }
   });
   return item;

@@ -134,7 +134,7 @@ const actions = {
     toast(item.kind === 'boost' ? 'Boost activé : XP ×2 pendant 24 h !' : `${item.name} : acheté et équipé !`, 'success');
   },
   'shop-equip': (el) => equipItem(el.dataset.id),
-  'shop-cat': (el) => { ui.shopCat = el.dataset.cat; render(); },
+  'shop-tab': (el) => { ui.shopTab = el.dataset.tab; render(); },
   'share-referral': async () => {
     const p = currentPlayer();
     const url = referralLink(p.pseudo);
