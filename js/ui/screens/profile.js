@@ -7,14 +7,14 @@ import { cloud } from '../../services/cloud.js';
 import { ui } from '../uiState.js';
 import { REWARD, referralLink } from '../../services/referral.js';
 import { soundOn } from '../sounds.js';
-import { ITEMS, KINDS, levelOf, owns, priceOf, weeklyDeal, boostActive, style } from '../../services/progress.js';
+import { ITEMS, levelOf, boostActive, style } from '../../services/progress.js';
 import { avatarHtml, nameHtml, titleHtml } from '../cosmetics.js';
 
 const pseudoTaken = (p) => !!cloud.pseudoConflict && cloud.pseudoConflict === p.pseudo;
 
 export function renderProfile(s, p) {
   if (pseudoTaken(p)) ui.profileTab = 'settings';
-  const tab = ['settings', 'shop'].includes(ui.profileTab) ? ui.profileTab : 'stats';
+  const tab = ui.profileTab === 'settings' ? 'settings' : 'stats';
   const lv = levelOf(p.xp);
   const next = ITEMS.filter((i) => i.level > lv.level).sort((a, b) => a.level - b.level)[0];
   const since = new Date(p.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -41,56 +41,11 @@ export function renderProfile(s, p) {
 
     <div class="tabs" role="tablist">
       <button class="tab ${tab === 'stats' ? 'active' : ''}" data-action="profile-tab" data-tab="stats" role="tab" aria-selected="${tab === 'stats'}" type="button">Profil</button>
-      <button class="tab ${tab === 'shop' ? 'active' : ''}" data-action="profile-tab" data-tab="shop" role="tab" aria-selected="${tab === 'shop'}" type="button">Boutique</button>
       <button class="tab ${tab === 'settings' ? 'active' : ''}" data-action="profile-tab" data-tab="settings" role="tab" aria-selected="${tab === 'settings'}" type="button">Réglages</button>
     </div>
 
-    ${tab === 'settings' ? settingsView(p) : tab === 'shop' ? shopView(p) : statsView(p)}
+    ${tab === 'settings' ? settingsView(p) : statsView(p)}
   `;
-}
-
-// Aperçu d'un objet : le pseudo dans la couleur, l'avatar dans le cadre, le titre, ou le boost.
-function preview(p, item) {
-  if (item.kind === 'color') return nameHtml(p.pseudo, { color: item.id });
-  if (item.kind === 'frame') return avatarHtml(p.pseudo, { frame: item.id });
-  if (item.kind === 'title') return `<span class="pz-title">${escapeHtml(item.name)}</span>`;
-  return `<span class="shop-boost">${icons.bolt}</span>`;
-}
-
-function shopView(p) {
-  const lv = levelOf(p.xp).level;
-  const deal = weeklyDeal();
-  const card = (item) => {
-    const mine = owns(p, item);
-    const equipped = style(p)[item.kind] === item.id;
-    const price = item.price ? priceOf(item) : null;
-    let action;
-    if (item.kind === 'boost') {
-      action = `<button class="btn btn-primary" data-action="shop-buy" data-id="${item.id}" type="button" ${p.balance < price ? 'disabled' : ''}>${fmt(price)} ${coin('coin coin-sm')}</button>`;
-    } else if (mine) {
-      action = `<button class="btn ${equipped ? 'btn-ghost' : 'btn-primary'}" data-action="shop-equip" data-id="${item.id}" type="button">${equipped ? 'Équipé ✓' : 'Équiper'}</button>`;
-    } else if (price) {
-      action = `<button class="btn btn-primary" data-action="shop-buy" data-id="${item.id}" type="button" ${p.balance < price ? 'disabled' : ''}>${fmt(price)} ${coin('coin coin-sm')}</button>
-        ${item.level ? `<span class="muted shop-or">ou gratuit au niv. ${item.level}</span>` : ''}`;
-    } else {
-      action = `<span class="shop-lock">${icons.lock} ${item.exclusive ? escapeHtml(item.exclusive) : `Niveau ${item.level}`}</span>`;
-    }
-    return `
-      <div class="shop-item ${equipped ? 'is-equipped' : ''} ${deal.id === item.id ? 'is-deal' : ''}">
-        ${deal.id === item.id ? '<span class="tag shop-deal">−30 % cette semaine</span>' : ''}
-        <div class="shop-preview">${preview(p, item)}</div>
-        <strong>${escapeHtml(item.name)}</strong>
-        <div class="shop-action">${action}</div>
-      </div>`;
-  };
-  return `
-    <section class="card shop-intro">
-      <strong>La boutique Goalzz</strong>
-      <span class="muted">Dépense tes Goalz pour te démarquer dans le classement. Que du style : rien n'aide à gagner, et certains objets ne s'obtiennent qu'en montant de niveau (tu es niveau ${lv}).</span>
-    </section>
-    ${Object.entries(KINDS).map(([kind, label]) => `
-      <h2 class="section-title">${label}</h2>
-      <div class="shop-grid">${ITEMS.filter((i) => i.kind === kind).map(card).join('')}</div>`).join('')}`;
 }
 
 function statsView(p) {

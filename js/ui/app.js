@@ -14,6 +14,7 @@ import { slipCheck } from '../services/bets.js';
 import { renderMyBets } from './screens/myBets.js';
 import { renderRanking } from './screens/ranking.js';
 import { renderProfile } from './screens/profile.js';
+import { renderShop } from './screens/shop.js';
 import { adSlot, mountAds } from './ads.js';
 import { boostActive, levelOf } from '../services/progress.js';
 import { bonusFor, nextStreakDay } from '../services/daily.js';
@@ -23,6 +24,7 @@ const ROUTES = [
   { id: 'matchs', label: 'Matchs', icon: 'ball', render: renderMatches },
   { id: 'panier', label: 'Panier', icon: 'ticket', render: renderSlip },
   { id: 'paris', label: 'Mes paris', icon: 'list', render: renderMyBets },
+  { id: 'boutique', label: 'Boutique', icon: 'bag', render: renderShop },
   { id: 'classement', label: 'Rangs', icon: 'trophy', render: renderRanking },
   { id: 'profil', label: 'Profil', icon: 'user', render: renderProfile },
 ];
