@@ -8,6 +8,7 @@ import { isAwaitingKickoff, matchStatus, outcomeShort } from '../../services/mat
 import { realFeedState } from '../../services/matches.js';
 import { LIVE_SPORTS, liveMarket } from '../../providers/liveOdds.js';
 import { spotlight } from '../../services/spotlight.js';
+import { bonusFor, challengeStatus, nextStreakDay, STREAK_DAYS } from '../../services/daily.js';
 import { coin, icons } from '../icons.js';
 import { ui } from '../uiState.js';
 import { accountNudge, inviteBanner } from './account.js';
@@ -350,6 +351,46 @@ function renderFake(s, p, picks) {
   `;
 }
 
+// Bonus du jour et série de connexion : 7 cases, la 7e rapporte gros.
+function bonusCard(p) {
+  const day = nextStreakDay(p);
+  const amount = bonusFor(day);
+  return `
+      <button class="bonus-card" data-action="claim-bonus" type="button">
+        <span class="bonus-gift">${icons.gift}</span>
+        <span class="grow">
+          <strong>${day > 1 ? `Jour ${day} de ta série !` : 'Ton bonus du jour est prêt'}</strong>
+          <span class="streak" aria-label="Série de ${day} jours sur ${STREAK_DAYS}">${Array.from({ length: STREAK_DAYS }, (_, i) => `<i class="${i < day ? 'on' : ''} ${i === STREAK_DAYS - 1 ? 'big' : ''}"></i>`).join('')}</span>
+          <span class="muted">Reviens chaque jour : le bonus grandit, jusqu'à ${fmt(bonusFor(STREAK_DAYS))} le 7e jour.</span>
+        </span>
+        <span class="bonus-amount">+${fmt(amount)} ${coin('coin coin-sm')}</span>
+      </button>`;
+}
+
+// Les 3 défis du jour, avec leur progression et leur récompense.
+function challengesCard(p) {
+  const list = challengeStatus(p);
+  const done = list.filter((c) => c.done).length;
+  return `
+    <section class="card challenges">
+      <div class="challenges-head">
+        <strong>Défis du jour</strong>
+        <span class="muted">${done === list.length ? 'Tous réussis, bravo ! Nouveaux défis à minuit.' : `${done} / ${list.length} réussis`}</span>
+      </div>
+      <ul>
+        ${list.map((c) => `
+          <li class="challenge ${c.done ? 'is-done' : ''}">
+            <span class="challenge-check">${c.done ? icons.check : ''}</span>
+            <span class="grow">
+              <span class="challenge-text">${escapeHtml(c.text)}</span>
+              <span class="challenge-bar"><span style="width:${Math.round((c.count / c.target) * 100)}%"></span></span>
+            </span>
+            <span class="challenge-reward">${c.done ? 'Réussi' : `${c.count}/${c.target}`}<small>+${c.goalz} ${coin('coin coin-xs')} · +${c.xp} XP</small></span>
+          </li>`).join('')}
+      </ul>
+    </section>`;
+}
+
 export function renderMatches(s, p) {
   const mode = s.prefs?.mode === 'fake' ? 'fake' : 'real';
   const picks = new Map(p.slip.map((x) => [x.matchId, x.outcome]));
@@ -362,15 +403,9 @@ export function renderMatches(s, p) {
 
     ${cloud.user ? '' : inviteBanner({ inGame: true }) || accountNudge()}
 
-    ${canClaimBonus(p) ? `
-      <button class="bonus-card" data-action="claim-bonus" type="button">
-        <span class="bonus-gift">${icons.gift}</span>
-        <span class="grow">
-          <strong>Ton bonus du jour est prêt</strong>
-          <span class="muted">Récupère +${fmt(CONFIG.DAILY_BONUS)} Goalz gratuits</span>
-        </span>
-        <span class="bonus-amount">+${fmt(CONFIG.DAILY_BONUS)} ${coin('coin coin-sm')}</span>
-      </button>` : ''}
+    ${canClaimBonus(p) ? bonusCard(p) : ''}
+
+    ${challengesCard(p)}
 
     ${p.stats.betsPlaced === 0 ? howToCard() : ''}
 

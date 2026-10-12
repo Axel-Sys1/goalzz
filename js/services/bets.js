@@ -11,6 +11,7 @@ import { matchStatus, outcomeLabel, matchTitle } from './matchInfo.js';
 import { liveMarket } from '../providers/liveOdds.js';
 import { RR_VERSION } from './ranks.js';
 import { addXp, XP } from './progress.js';
+import { placeEvents, track } from './daily.js';
 
 export const potentialGain = (stake, odds) => Math.floor((Number(stake) || 0) * odds);
 
@@ -163,6 +164,7 @@ export function placeSlip() {
       p.stats.maxStake = Math.max(p.stats.maxStake, stake);
       p.stats.sports[x.match.sport] = true;
       addXp(p, XP.place());
+      track(p, placeEvents([x.match], { live: !!x.live }));
     }
     p.slip = [];
     checkBadges(p);
@@ -186,6 +188,7 @@ function placeCombo(items, odds, stake) {
     p.stats.maxStake = Math.max(p.stats.maxStake, stake);
     for (const x of items) p.stats.sports[x.match.sport] = true;
     addXp(p, XP.place(items.length));
+    track(p, placeEvents(items.map((x) => x.match), { combo: true }));
     p.slip = [];
     checkBadges(p);
     return 1;
@@ -239,6 +242,7 @@ function settleCombos(s, m) {
         bet.payout = potentialGain(bet.stake, bet.finalOdds);
         recordWin(p, bet, label);
         addXp(p, XP.won(bet.finalOdds) + 5 * bet.legs.length);
+        track(p, ['win', ...(bet.finalOdds >= 2 ? ['winOdds2'] : [])]);
       }
     }
     checkBadges(p);
@@ -303,6 +307,7 @@ export function settleMatch(s, m) {
       bet.payout = bet.potential;
       recordWin(p, { ...bet, real: m.real }, label);
       addXp(p, XP.won(bet.odds));
+      track(p, ['win', ...(bet.odds >= 2 ? ['winOdds2'] : [])]);
     } else {
       bet.status = 'lost';
       bet.rrv = RR_VERSION;

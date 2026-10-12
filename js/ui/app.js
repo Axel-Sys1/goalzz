@@ -16,6 +16,7 @@ import { renderRanking } from './screens/ranking.js';
 import { renderProfile } from './screens/profile.js';
 import { adSlot, mountAds } from './ads.js';
 import { boostActive, levelOf } from '../services/progress.js';
+import { bonusFor, nextStreakDay } from '../services/daily.js';
 import { legalLinks } from './screens/legal.js';
 
 const ROUTES = [
@@ -84,7 +85,7 @@ function renderHeader(p) {
   const bonus = root.querySelector('#bonus-btn');
   const available = canClaimBonus(p);
   bonus.classList.toggle('available', available);
-  bonus.title = available ? `Récupérer ton bonus du jour (+${CONFIG.DAILY_BONUS})` : 'Bonus déjà récupéré. Reviens demain !';
+  bonus.title = available ? `Récupérer ton bonus du jour (+${bonusFor(nextStreakDay(p))})` : 'Bonus déjà récupéré. Reviens demain !';
   bonus.setAttribute('aria-label', bonus.title);
   animateBalance(p);
   const lv = levelOf(p.xp);

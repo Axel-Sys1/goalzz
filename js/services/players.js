@@ -4,6 +4,7 @@ import { uid, todayKey } from '../util.js';
 import { checkBadges } from './badges.js';
 import { claimPseudo, cloud, isPseudoAvailable } from './cloud.js';
 import { addXp, XP } from './progress.js';
+import { bonusFor, nextStreakDay } from './daily.js';
 import { isOffensivePseudo } from './moderation.js';
 
 const newStats = () => ({
@@ -95,10 +96,13 @@ export function claimBonus() {
   if (!canClaimBonus(p)) throw new Error('Bonus déjà récupéré aujourd\'hui. Reviens demain !');
   update((st) => {
     const me = st.players[p.id];
-    me.balance += CONFIG.DAILY_BONUS;
+    const day = nextStreakDay(me);
+    const amount = bonusFor(day);
+    me.balance += amount;
+    me.bonusStreak = day;
     me.lastBonusDate = todayKey();
     me.stats.bonusClaims += 1;
-    me.inbox.push({ type: 'bonus', amount: CONFIG.DAILY_BONUS });
+    me.inbox.push({ type: 'bonus', amount, day });
     addXp(me, XP.bonus, { boostable: false });
     checkBadges(me);
   });

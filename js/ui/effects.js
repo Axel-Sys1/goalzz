@@ -229,7 +229,7 @@ export function processInbox(player) {
     toast(`Bienvenue ! ${fmt(i.amount)} Goalz offerts pour commencer.`, 'win');
   }
   for (const i of items.filter((x) => x.type === 'bonus')) {
-    toast(`Bonus du jour : +${fmt(i.amount)} Goalz`, 'win');
+    toast(`Bonus du jour : +${fmt(i.amount)} Goalz${i.day ? ` · série jour ${i.day}/7` : ''}`, 'win');
     confetti({ colors: ['#ffc83d', '#e79a00', '#fff3c4'], count: 70, originY: 0.12 });
     play('bonus');
   }

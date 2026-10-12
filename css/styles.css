@@ -1069,3 +1069,25 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .level-up-kicker { font: italic 800 18px/1 var(--display); text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); }
 .level-up-num { font: italic 800 96px/0.9 var(--display); background: linear-gradient(180deg, #fff, var(--gold)); background-clip: text; -webkit-background-clip: text; color: transparent; }
 .level-up-unlock { font-weight: 700; color: var(--gold); max-width: 280px; }
+
+/* ---------- Série de connexion et défis du jour ---------- */
+.streak { display: flex; gap: 4px; margin: 4px 0 2px; }
+.streak i { width: 18px; height: 6px; border-radius: 3px; background: var(--surface-3); }
+.streak i.big { width: 26px; }
+.streak i.on { background: var(--accent); }
+.streak i.on.big { background: var(--gold); }
+.challenges { display: grid; gap: 10px; }
+.challenges-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.challenges-head strong { font: italic 800 20px/1 var(--display); text-transform: uppercase; }
+.challenges ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.challenge { display: flex; align-items: center; gap: 10px; }
+.challenge-check { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--line-2); display: grid; place-items: center; flex-shrink: 0; }
+.challenge-check svg { width: 14px; height: 14px; }
+.challenge.is-done .challenge-check { background: var(--green); border-color: var(--green); color: #052e14; }
+.challenge-text { display: block; font-size: 14px; font-weight: 600; }
+.challenge.is-done .challenge-text { color: var(--muted); text-decoration: line-through; }
+.challenge-bar { display: block; height: 5px; margin-top: 5px; border-radius: 3px; background: var(--surface-3); overflow: hidden; }
+.challenge-bar span { display: block; height: 100%; background: var(--accent); }
+.challenge.is-done .challenge-bar span { background: var(--green); }
+.challenge-reward { display: grid; justify-items: end; gap: 2px; font: 800 15px/1 var(--display); white-space: nowrap; }
+.challenge-reward small { display: inline-flex; align-items: center; gap: 3px; font: 600 11px/1 var(--body); color: var(--muted); }
