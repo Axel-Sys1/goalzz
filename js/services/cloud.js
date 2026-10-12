@@ -11,7 +11,7 @@
 // Pseudos uniques : pseudos/<pseudo en minuscules> = { uid, pseudo } réserve un pseudo pour un
 // compte ; les règles Firestore refusent une fiche de classement dont le pseudo est à quelqu'un d'autre.
 import { CONFIG } from '../config.js';
-import { emit, getState, onSave, replaceState, resetAll } from '../store.js';
+import { emit, getState, onSave, replaceState, resetAll, update } from '../store.js';
 import { playerRR, betRR, LOSS_RR, RR_PER_DIVISION, TIERS, IMMORTAL_RR, RADIANT_SPOTS } from './ranks.js';
 import { leagueCode } from '../util.js';
 import { isOffensivePseudo } from './moderation.js';
@@ -102,7 +102,7 @@ function snapshot(s) {
     const m = s.matches[id];
     if (m) matches[id] = { ...m, liveScore: null, clock: null };
   }
-  const { bots, botsSimAt, ...rest } = s;
+  const { bots, botsSimAt, syncRev, ...rest } = s;
   return { ...rest, players, bets, matches };
 }
 
@@ -133,17 +133,64 @@ function merge(local, remote) {
   };
 }
 
-async function pull(user) {
+// Plusieurs appareils sur le même compte : la sauvegarde en ligne porte un numéro de version (rev),
+// et chaque appareil retient la dernière version qu'il a lue ou écrite (state.syncRev). Si un autre
+// appareil a sauvegardé depuis, on repart de sa partie et on y rejoue ce qui a été fait ici :
+// paris placés ou réglés seulement sur cet appareil (mises et gains reportés sur le solde).
+export function reconcile(local, remote) {
+  const players = { ...remote.players };
+  const bets = { ...remote.bets };
+  for (const lp of Object.values(local.players)) {
+    if (!players[lp.id]) { players[lp.id] = lp; continue; }
+    const p = players[lp.id] = { ...players[lp.id], slip: lp.slip, inbox: lp.inbox };
+    for (const b of Object.values(local.bets)) {
+      if (b.playerId !== lp.id) continue;
+      const rb = remote.bets[b.id];
+      if (!rb) {
+        // Placé ici après la dernière synchro : mise retirée, et gain s'il est déjà réglé.
+        bets[b.id] = b;
+        p.balance += (b.status === 'won' || b.status === 'void' ? b.payout : 0) - b.stake;
+      } else if (rb.status === 'pending' && b.status !== 'pending') {
+        // Réglé ici, encore en cours là-bas : on garde le règlement et son gain.
+        bets[b.id] = b;
+        p.balance += b.status === 'won' || b.status === 'void' ? b.payout : 0;
+      }
+    }
+  }
+  return {
+    ...local,
+    ...remote,
+    players,
+    bets,
+    leagues: { ...local.leagues, ...remote.leagues },
+    matches: { ...remote.matches, ...local.matches },
+    bots: local.bots || remote.bots,
+    botsSimAt: local.botsSimAt,
+    currentPlayerId: players[local.currentPlayerId] ? local.currentPlayerId : remote.currentPlayerId,
+  };
+}
+
+async function readRemote() {
+  const snap = await fb.F.getDoc(userDoc());
+  if (!snap.exists()) return { remote: null, rev: 0 };
+  return { remote: JSON.parse(snap.data().data), rev: snap.data().rev || 0 };
+}
+
+// Récupère la partie en ligne (connexion, retour sur l'appli) et la fusionne avec celle de l'appareil.
+async function pull(user = cloud.user) {
+  if (!user || pulling) return;
   pulling = true;
   try {
-    const snap = await fb.F.getDoc(userDoc());
-    const remote = snap.exists() ? JSON.parse(snap.data().data) : null;
+    const { remote, rev } = await readRemote();
     const local = getState();
     let next;
-    if (local.cloudUid === user.uid) next = local;                       // déjà relié : l'appareil est à jour
-    else if (local.cloudUid) next = remote || { players: {}, bets: {}, leagues: {}, currentPlayerId: null }; // autre compte
+    if (local.cloudUid === user.uid) {
+      // Déjà relié : on ne reprend la partie en ligne que si un autre appareil l'a modifiée depuis.
+      next = remote && rev > (local.syncRev || 0) ? reconcile(local, remote) : local;
+    } else if (local.cloudUid) next = remote || { players: {}, bets: {}, leagues: {}, currentPlayerId: null }; // autre compte
     else next = remote ? merge(local, remote) : local;
-    replaceState({ ...next, matches: { ...next.matches, ...local.matches }, cloudUid: user.uid });
+    if (next !== local) lastPushed = '';
+    replaceState({ ...next, matches: { ...next.matches, ...local.matches }, cloudUid: user.uid, syncRev: Math.max(rev, local.cloudUid === user.uid ? local.syncRev || 0 : 0) });
   } finally {
     pulling = false;
   }
@@ -160,14 +207,22 @@ function schedulePush() {
 async function push() {
   clearTimeout(pushTimer);
   pushTimer = null;
-  if (!cloud.user || !fb) return;
+  if (!cloud.user || !fb || pulling) return;
   lastPushAt = Date.now();
   const data = JSON.stringify(snapshot(getState()));
   if (data === lastPushed) return;
   if (data.length > MAX_DOC_CHARS) { console.warn('Goalz : partie trop volumineuse pour la sauvegarde en ligne.'); return; }
   lastPushed = data;
   try {
-    await fb.F.setDoc(userDoc(), { data, savedAt: fb.F.serverTimestamp() });
+    // Un autre appareil a sauvegardé entre-temps : on fusionne d'abord, puis on sauvegarde.
+    const { remote, rev } = await readRemote();
+    if (remote && rev > (getState().syncRev || 0)) {
+      lastPushed = '';
+      return pull();
+    }
+    const nextRev = rev + 1;
+    await fb.F.setDoc(userDoc(), { data, savedAt: fb.F.serverTimestamp(), rev: nextRev });
+    update((st) => { st.syncRev = nextRev; }, { silent: true });
   } catch (err) {
     lastPushed = '';
     console.warn('Goalz : sauvegarde en ligne impossible', err);
@@ -576,7 +631,10 @@ export async function initCloud({ notify } = {}) {
 
   onSave(schedulePush);
   window.addEventListener('pagehide', push);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') push(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') push();
+    else pull(); // retour sur l'appli : récupère ce qui a été joué sur un autre appareil
+  });
 
   // Anciens liens de connexion envoyés par email (avant le passage au mot de passe).
   if (A.isSignInWithEmailLink(auth, location.href)) {
