@@ -390,6 +390,8 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 @keyframes odd-flash-up { 0%, 40% { color: var(--green); } }
 @keyframes odd-flash-down { 0%, 40% { color: var(--red); } }
 .match-live .odd:disabled { opacity: 0.45; }
+.match-analysis { display: inline-block; margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+.match-analysis:hover { color: var(--accent); }
 .live-note { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--muted); }
 .live-note svg { width: 14px; height: 14px; flex-shrink: 0; }
 .live-note.is-open { color: var(--live); }
