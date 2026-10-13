@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { escapeHtml, fmt } from '../../util.js';
 import { listProfiles } from '../../services/players.js';
 import { TIERS, RADIANT, RR_PER_DIVISION, rankOf } from '../../services/ranks.js';
-import { coin, googleLogo, icons, rankEmblem } from '../icons.js';
+import { coin, googleLogo, icons, pumpkinLogo, rankEmblem } from '../icons.js';
 import { inviteBanner, renderAccountCard, PERKS } from './account.js';
 import { cloud } from '../../services/cloud.js';
 import { pendingReferral, REWARD } from '../../services/referral.js';
@@ -101,7 +101,7 @@ export function renderOnboarding(s) {
     ${halloween ? '<div class="spooky" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><s></s><u>👻</u><em></em></div>' : ''}
     <div class="landing">
       <section class="landing-hero">
-        <div class="brand-big">${icons.ball}<span>GOAL<b>ZZ</b></span></div>
+        <div class="brand-big">${halloween ? pumpkinLogo : icons.ball}<span>GOAL<b>ZZ</b></span></div>
         <h1 class="landing-title">Pronostique.<br>Collectionne.<br><b>Domine tes potes.</b></h1>
         <p class="tagline">Le jeu de pronos sportifs gratuit avec une monnaie 100 % virtuelle${halloween ? ' · 🎃 spécial Halloween' : ''}.</p>
         ${showcase.length ? `

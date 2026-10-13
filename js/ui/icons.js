@@ -42,6 +42,15 @@ export const icons = {
 // Logo « G » de Google, en couleurs (boutons « Continuer avec Google »).
 export const googleLogo = `<svg class="google-g" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>`;
 
+// Citrouille orange pleine (logo pendant Halloween, à la place du ballon).
+export const pumpkinLogo = `<svg class="pumpkin-logo" viewBox="0 0 64 64" width="24" height="24" aria-hidden="true">
+  <path fill="#4a7a1e" d="M30 14c0-5 2-9 6-11l3 3c-3 2-4 5-4 8z"/>
+  <ellipse cx="32" cy="38" rx="27" ry="22" fill="#ff7a1a"/>
+  <ellipse cx="32" cy="38" rx="13" ry="22" fill="#ff8f2e"/>
+  <path fill="none" stroke="#c94f05" stroke-width="2.2" d="M19 18c-6 8-6 32 0 40M45 18c6 8 6 32 0 40M32 16v44"/>
+  <path fill="#2a1200" d="M18 33l6-5 5 5zM35 33l5-5 6 5zM19 44c4 5 9 7 13 7s9-2 13-7l-4 1-2 3-3-2-4 3-4-3-3 2-2-3z"/>
+</svg>`;
+
 export const coin = (cls = 'coin') => `
 <svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">
   <circle cx="12" cy="12" r="11" fill="#e79a00"/>
