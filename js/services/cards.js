@@ -21,12 +21,14 @@ export const RARITY_ORDER = ['mythique', 'legendaire', 'epique', 'rare', 'commun
 
 export const CARD_PRICE = { commun: 250, rare: 600, epique: 1500, legendaire: 3500, mythique: 8000 };
 export const PACK = { price: 800, size: 3, perDay: 3 }; // au-delà de 3 par jour : boost « Recharge pochettes »
-export const SET_REWARD_PER_CARD = 100; // collection complète : 100 Goalz par carte (Foot ≈ 12 700, Boxe ≈ 1 400)
-export const setReward = (setId) => CARDS.filter((c) => c.sport === setId).length * SET_REWARD_PER_CARD;
+export const SET_REWARD_SHARE = 0.25; // collection complète : 25 % de sa valeur en boutique rendus (Foot ≈ 44 700, Boxe ≈ 6 700)
 export const DUPLICATE_REFUND = 0.25; // un doublon tiré dans une pochette est repris à 25 % de son prix
 export const DAILY_CARDS = 3;
 const SHOP_WEIGHT = { commun: 30, rare: 30, epique: 22, legendaire: 13, mythique: 5 };
 const PACK_WEIGHT = { commun: 55, rare: 28, epique: 12, legendaire: 4, mythique: 1 };
+
+export const setReward = (setId) => Math.round(CARDS.filter((c) => c.sport === setId)
+  .reduce((n, c) => n + CARD_PRICE[c.rarity], 0) * SET_REWARD_SHARE / 100) * 100;
 
 export const myCards = (p) => p?.cards || {};
 export const hasCard = (p, id) => (myCards(p)[id] || 0) > 0;
