@@ -140,6 +140,12 @@ function merge(local, remote) {
 // et chaque appareil retient la dernière version qu'il a lue ou écrite (state.syncRev). Si un autre
 // appareil a sauvegardé depuis, on repart de sa partie et on y rejoue ce qui a été fait ici :
 // paris placés ou réglés seulement sur cet appareil (mises et gains reportés sur le solde).
+const mergeWith = (a = {}, b = {}, pick) => {
+  const out = { ...a };
+  for (const [k, v] of Object.entries(b)) out[k] = k in out ? pick(out[k], v) : v;
+  return out;
+};
+
 export function reconcile(local, remote) {
   const players = { ...remote.players };
   const bets = { ...remote.bets };
@@ -151,6 +157,10 @@ export function reconcile(local, remote) {
       // Progression : l'XP ne fait que monter, les objets s'additionnent.
       xp: Math.max(rp.xp || 0, lp.xp || 0),
       owned: { ...lp.owned, ...rp.owned },
+      // Cartes : on garde le plus grand nombre d'exemplaires, et la date d'obtention la plus ancienne.
+      cards: mergeWith(lp.cards, rp.cards, Math.max),
+      cardsAt: mergeWith(lp.cardsAt, rp.cardsAt, Math.min),
+      setRewards: { ...lp.setRewards, ...rp.setRewards },
       boostUntil: Math.max(rp.boostUntil || 0, lp.boostUntil || 0),
     };
     for (const b of Object.values(local.bets)) {

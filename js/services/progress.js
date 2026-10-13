@@ -1,5 +1,5 @@
 // Progression : niveau du joueur (XP), cosmétiques à débloquer par niveau ou à acheter en Goalz
-// (couleur de pseudo, cadre d'avatar, titre) et boost d'XP. Rien qui aide à gagner : la boutique
+// (couleur de pseudo, cadre d'avatar, titre) et boost d'XP. Les cartes sont dans services/cards.js. Rien qui aide à gagner : la boutique
 // ne vend que du style, et les objets de prestige (rang, saison) ne s'achètent pas.
 import { getState, update } from '../store.js';
 import { currentPlayer } from './players.js';
@@ -81,60 +81,23 @@ export const RARITY = {
 export const itemById = (id) => ITEMS.find((i) => i.id === id);
 export const KINDS = { color: 'Effets de pseudo', frame: 'Cadres', title: 'Titres', boost: 'Boosts' };
 
-// ─── Boutique du jour (façon Valorant) ──────────────────────────────────────
-// Chaque joueur a sa propre sélection, renouvelée à minuit : 1 objet vedette à −25 % et 4 autres.
-// Les cosmétiques ne s'achètent que là ; les boosts restent toujours en vente.
-export const SHOP_SIZE = 4;
-const WEIGHT = { commun: 30, rare: 30, epique: 22, legendaire: 13, mythique: 5 };
-
+// ─── Outils de la boutique du jour (voir services/cards.js) ─────────────────
 export function nextMidnight(t = Date.now()) {
   const d = new Date(t);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1).getTime();
 }
-const dayKey = (t) => { const d = new Date(t); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
+export const dayKey = (t) => { const d = new Date(t); return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; };
 
-function seeded(key) {
+// Générateur pseudo-aléatoire reproductible : même clé, même tirage (boutique perso du jour).
+export function seeded(key) {
   let h = 2166136261;
   for (const c of key) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
   return () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; };
 }
 
-// { featured: { id, price }, items: [{ id, price }] } pour ce joueur ce jour-là. Tirage pondéré par
-// rareté parmi les cosmétiques en vente qu'il n'a pas encore (s'il a tout, on reprend parmi tout).
-export function dailyShop(p, t = Date.now()) {
-  const rand = seeded(`${p?.id || 'invité'}|${dayKey(t)}`);
-  const forSale = ITEMS.filter((i) => i.price && i.kind !== 'boost');
-  // Sélection figée pour la journée : seuls les objets possédés avant aujourd'hui sont écartés
-  // (acheter dans la boutique ne la remélange pas).
-  const dayStart = nextMidnight(t) - 86_400_000;
-  let pool = forSale.filter((i) => !(p?.owned?.[i.id] < dayStart));
-  if (pool.length < SHOP_SIZE + 1) pool = [...forSale];
-  const draw = (filter = () => true) => {
-    const list = pool.filter(filter);
-    const total = list.reduce((n, i) => n + WEIGHT[i.rarity], 0);
-    let r = rand() * total;
-    const item = list.find((i) => (r -= WEIGHT[i.rarity]) <= 0) || list[0];
-    pool = pool.filter((i) => i !== item);
-    return item;
-  };
-  // Vedette : au moins Épique, pour qu'elle donne envie.
-  const top = draw((i) => ['epique', 'legendaire', 'mythique'].includes(i.rarity)) || draw();
-  const items = [];
-  while (items.length < SHOP_SIZE && pool.length) items.push(draw());
-  return {
-    featured: { id: top.id, price: Math.round(top.price * 0.75 / 10) * 10 },
-    items: items.map((i) => ({ id: i.id, price: i.price })),
-  };
-}
-
-// Prix d'un objet pour ce joueur aujourd'hui ; null s'il n'est pas en vente pour lui.
-export function priceOf(item, p = currentPlayer(getState()), t = Date.now()) {
-  if (!item?.price) return null;
-  if (item.kind === 'boost') return item.price;
-  const shop = dailyShop(p, t);
-  const hit = [shop.featured, ...shop.items].find((x) => x.id === item.id);
-  return hit ? hit.price : null;
-}
+// Prix d'un objet ; null s'il ne s'achète pas (débloqué par niveau, ou exclusif). Les cosmétiques
+// sont en vente libre dans l'onglet Style : la boutique du jour est réservée aux cartes.
+export const priceOf = (item) => item?.price ?? null;
 
 export const style = (p) => p?.style || {};
 export const owns = (p, item) => item.kind !== 'boost' && (levelOf(p?.xp).level >= (item.level ?? Infinity) || !!p?.owned?.[item.id]);
@@ -167,8 +130,7 @@ export function buyItem(id) {
   const p = currentPlayer(getState());
   if (!item || !item.price || !p) throw new Error('Objet introuvable.');
   if (owns(p, item)) throw new Error('Tu l\'as déjà.');
-  const price = priceOf(item, p);
-  if (price == null) throw new Error('Cet objet n\'est plus dans ta boutique du jour.');
+  const price = priceOf(item);
   if (p.balance < price) throw new Error(`Il te manque ${(price - p.balance).toLocaleString('fr-FR')} Goalz.`);
   update((s) => {
     const me = currentPlayer(s);

@@ -14,6 +14,8 @@ import { ui } from './uiState.js';
 import { shareBet } from './share.js';
 import { play, setSound, soundOn } from './sounds.js';
 import { buyItem, equipItem } from '../services/progress.js';
+import { buyCard, favoriteCard, openPack } from '../services/cards.js';
+import { showPack } from './cards.js';
 import { applyReferral, referralLink, REWARD } from '../services/referral.js';
 import { CONFIG } from '../config.js';
 import { cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, loadTop, loadSeason, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
@@ -131,9 +133,22 @@ const actions = {
   'shop-buy': (el) => {
     const item = buyItem(el.dataset.id);
     play('bonus');
-    toast(item.kind === 'boost' ? 'Boost activé : XP ×2 pendant 24 h !' : `${item.name} : acheté et équipé !`, 'success');
+    toast(item.kind === 'boost' ? `Boost activé : XP ×2 pendant ${item.hours >= 48 ? `${item.hours / 24} jours` : `${item.hours} h`} !` : `${item.name} : acheté et équipé !`, 'success');
   },
   'shop-equip': (el) => equipItem(el.dataset.id),
+  'card-buy': (el) => {
+    const card = buyCard(el.dataset.id);
+    play('bonus');
+    toast(`${card.name} rejoint ton album !`, 'success');
+  },
+  'pack-open': () => {
+    const results = openPack();
+    play('win');
+    showPack(results);
+  },
+  'card-fav': (el) => favoriteCard(el.dataset.id),
+  'album-set': (el) => { ui.albumSet = el.dataset.set; render(); },
+  'open-album': () => { ui.shopTab = 'album'; go('boutique'); },
   'shop-tab': (el) => { ui.shopTab = el.dataset.tab; render(); },
   'coach-done': () => update((s) => { const p = s.players[s.currentPlayerId]; if (p) p.tutorialDone = true; }),
   'coach-shop': () => { update((s) => { const p = s.players[s.currentPlayerId]; if (p) p.tutorialDone = true; }); go('boutique'); },

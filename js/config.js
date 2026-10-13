@@ -7,6 +7,7 @@ export const CONFIG = {
   MIN_STAKE: 1,
   DEFAULT_STAKE: 10,
   QUICK_STAKES: [5, 10, 25], // boutons de mise rapide du panier (+ Max)
+  CARD_PHOTOS: true,       // photos des joueurs sur les cartes (TheSportsDB) ; false : silhouettes, sans redéploiement des cartes
   RENAME_COST: 1000,       // prix d'un changement de pseudo (gratuit si le pseudo est déjà pris)
   UPCOMING_TARGET: 18,   // matchs fictifs "à venir" maintenus dans la liste
   TICK_MS: 3000,         // fréquence à laquelle on vérifie si un provider doit être rappelé

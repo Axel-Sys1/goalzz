@@ -9,6 +9,8 @@ import { REWARD, referralLink } from '../../services/referral.js';
 import { soundOn } from '../sounds.js';
 import { ITEMS, levelOf, boostActive, style } from '../../services/progress.js';
 import { avatarHtml, nameHtml, titleHtml } from '../cosmetics.js';
+import { cardHtml } from '../cards.js';
+import { CARDS, cardById, ownedCount } from '../../services/cards.js';
 
 const pseudoTaken = (p) => !!cloud.pseudoConflict && cloud.pseudoConflict === p.pseudo;
 
@@ -38,6 +40,8 @@ export function renderProfile(s, p) {
       <div class="xp-bar"><span style="width:${Math.round(lv.progress * 100)}%"></span></div>
       ${next ? `<span class="muted level-next">Niveau ${next.level} : ${escapeHtml(next.name)}</span>` : ''}
     </section>
+
+    ${collectionCard(p)}
 
     <div class="tabs" role="tablist">
       <button class="tab ${tab === 'stats' ? 'active' : ''}" data-action="profile-tab" data-tab="stats" role="tab" aria-selected="${tab === 'stats'}" type="button">Profil</button>
@@ -138,6 +142,20 @@ function pseudoCard(p) {
 }
 
 // Parrainage : mon lien à partager, et le pseudo de mon parrain si je n'en ai pas encore.
+// Carte favorite et avancée de l'album (lien vers la boutique).
+function collectionCard(p) {
+  const fav = cardById(style(p).card);
+  return `
+    <section class="card collection-card">
+      ${fav ? `<div class="collection-fav">${cardHtml(fav)}</div>` : ''}
+      <div class="collection-text">
+        <strong>Ma collection</strong>
+        <span class="muted">${ownedCount(p)} carte${ownedCount(p) > 1 ? 's' : ''} sur ${CARDS.length}${fav ? '' : ' · choisis ta carte favorite dans l\'album'}</span>
+        <button class="btn btn-ghost" data-action="open-album" type="button">${icons.star} Voir l'album</button>
+      </div>
+    </section>`;
+}
+
 function referralCard(p) {
   if (!cloud.enabled) return '';
   if (!cloud.user) {

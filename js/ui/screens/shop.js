@@ -1,13 +1,17 @@
-// Boutique, façon Valorant : une boutique du jour personnelle (1 vedette à −25 % + 4 objets, renouvelée
-// à minuit), les boosts toujours en vente, et la collection pour équiper ce qu'on a. Chaque objet est
-// montré sur une mini carte du joueur (avatar, pseudo, titre).
+// Boutique, façon Valorant : chaque jour, une sélection perso de cartes joueurs (1 vedette à −25 % +
+// 3 cartes, renouvelée à minuit) et une pochette de 3 cartes au hasard ; les boosts toujours en vente ;
+// l'album des collections ; le style (effets de pseudo, cadres, titres) en vente libre.
 import { escapeHtml, fmt } from '../../util.js';
 import { coin, icons } from '../icons.js';
 import { avatarHtml, nameHtml } from '../cosmetics.js';
+import { cardHtml } from '../cards.js';
 import { ui } from '../uiState.js';
 import {
-  ITEMS, RARITY, boostActive, dailyShop, levelOf, nextMidnight, owns, priceOf, style,
+  ITEMS, RARITY, boostActive, levelOf, nextMidnight, owns, priceOf, style,
 } from '../../services/progress.js';
+import {
+  CARDS, CARD_SETS, CARD_PRICE, PACK, SET_REWARD, cardById, dailyCards, hasCard, myCards, ownedCount, setProgress,
+} from '../../services/cards.js';
 
 const KIND_LABEL = { color: 'Effet de pseudo', frame: 'Cadre', title: 'Titre', boost: 'Boost' };
 const ORDER = ['exclusif', 'commun', 'rare', 'epique', 'legendaire', 'mythique']; // tri : mythique d'abord, exclusifs (non vendus) à la fin
@@ -25,59 +29,113 @@ function playerCard(p, look, { big = false } = {}) {
     </div>`;
 }
 
-function preview(p, item) {
-  if (item.kind === 'boost') return `<div class="boost-art">${icons.bolt}<b>×2</b></div>`;
-  return playerCard(p, { ...style(p), [item.kind]: item.id });
-}
-
-function buyButton(p, item, price) {
-  return `<button class="btn btn-buy" data-action="shop-buy" data-id="${item.id}" type="button" ${p.balance < price ? 'disabled' : ''}>${fmt(price)} ${coin('coin coin-sm')}</button>`;
-}
-
-function action(p, item, price) {
-  const equipped = style(p)[item.kind] === item.id;
-  if (item.kind !== 'boost' && owns(p, item)) {
-    return `<button class="btn ${equipped ? 'btn-equipped' : 'btn-ghost'}" data-action="shop-equip" data-id="${item.id}" type="button">${equipped ? `${icons.check} Équipé` : 'Équiper'}</button>`;
-  }
-  if (price != null) return buyButton(p, item, price);
-  if (item.exclusive) return `<span class="shop-lock">${icons.lock} ${escapeHtml(item.exclusive)}</span>`;
-  if (item.level) return `<span class="shop-lock">${icons.lock} Niveau ${item.level}${item.price ? ' ou boutique du jour' : ''}</span>`;
-  return `<span class="shop-lock">${icons.lock} Pas dans ta boutique aujourd'hui</span>`;
-}
-
-function itemCard(p, item, price = priceOf(item, p), { featured = false } = {}) {
-  const promo = price != null && price < item.price;
-  return `
-    <article class="shop-card rar-${item.rarity} ${featured ? 'is-featured' : ''} ${style(p)[item.kind] === item.id ? 'is-equipped' : ''} ${owns(p, item) ? 'is-owned' : ''}">
-      <span class="rar-label">${featured ? 'Vedette · ' : ''}${RARITY[item.rarity]}</span>
-      ${promo ? `<span class="deal-flag">−${Math.round((1 - price / item.price) * 100)} %</span>` : ''}
-      <div class="shop-art">${preview(p, item)}</div>
-      <strong class="shop-name">${escapeHtml(item.name)}</strong>
-      <span class="shop-kind">${KIND_LABEL[item.kind]}</span>
-      ${promo ? `<s class="shop-old">${fmt(item.price)}</s>` : ''}
-      <div class="shop-action">${action(p, item, price)}</div>
-    </article>`;
-}
-
 function countdown(ms) {
   const h = Math.floor(ms / 3_600_000);
   const m = Math.floor((ms % 3_600_000) / 60_000);
   return h ? `${h} h ${String(m).padStart(2, '0')}` : `${m} min`;
 }
 
-const TABS = [['daily', 'Boutique du jour'], ['boost', 'Boosts'], ['collection', 'Collection']];
+const buyBtn = (action, id, price, p) => `
+  <button class="btn btn-buy" data-action="${action}" ${id ? `data-id="${id}"` : ''} type="button" ${p.balance < price ? 'disabled' : ''}>${fmt(price)} ${coin('coin coin-sm')}</button>`;
+
+// ─── Cartes du jour ──────────────────────────────────────────────────────────
+function offer(p, id, price, { featured = false } = {}) {
+  const card = cardById(id);
+  const promo = price < CARD_PRICE[card.rarity];
+  const mine = hasCard(p, id);
+  return `
+    <article class="card-offer rar-${card.rarity} ${featured ? 'is-featured' : ''} ${mine ? 'is-owned' : ''}">
+      ${featured ? '<span class="offer-flag">Vedette du jour</span>' : ''}
+      ${promo ? `<span class="deal-flag">−${Math.round((1 - price / CARD_PRICE[card.rarity]) * 100)} %</span>` : ''}
+      ${cardHtml(card, { size: featured ? 'lg' : '' })}
+      <span class="offer-set">${escapeHtml(CARD_SETS.find((s) => s.id === card.set)?.name || '')}</span>
+      ${promo ? `<s class="shop-old">${fmt(CARD_PRICE[card.rarity])}</s>` : ''}
+      <div class="shop-action">${mine ? `<span class="btn btn-equipped">${icons.check} Dans ton album</span>` : buyBtn('card-buy', id, price, p)}</div>
+    </article>`;
+}
+
+function packOffer(p) {
+  return `
+    <article class="card-offer pack-offer">
+      <div class="pack-art">
+        <span class="pack-pouch"><span>GOAL<b>ZZ</b></span><small>${PACK.size} cartes</small></span>
+      </div>
+      <strong class="shop-name">Pochette surprise</strong>
+      <span class="shop-kind">${PACK.size} cartes au hasard, toutes collections. Doublon repris en Goalz.</span>
+      <div class="shop-action">${buyBtn('pack-open', '', PACK.price, p)}</div>
+    </article>`;
+}
 
 function dailyView(p) {
-  const shop = dailyShop(p);
-  const featured = ITEMS.find((i) => i.id === shop.featured.id);
+  const shop = dailyCards(p);
   return `
     <div class="daily-head">
       <span class="muted">Ta sélection perso, différente pour chaque joueur.</span>
-      <span class="daily-timer">${icons.clock} Nouvelle boutique dans ${countdown(nextMidnight() - Date.now())}</span>
+      <span class="daily-timer">${icons.clock} Nouvelles cartes dans ${countdown(nextMidnight() - Date.now())}</span>
     </div>
-    <div class="daily-featured">${itemCard(p, featured, shop.featured.price, { featured: true })}</div>
-    <div class="shop-cards daily-cards">${shop.items.map((x) => itemCard(p, ITEMS.find((i) => i.id === x.id), x.price)).join('')}</div>
-    <p class="muted shop-note">Les cosmétiques ne s'achètent que dans ta boutique du jour : s'il te plaît, prends-le avant minuit !</p>`;
+    <div class="daily-featured">${offer(p, shop.featured.id, shop.featured.price, { featured: true })}</div>
+    <div class="offer-grid">
+      ${shop.items.map((x) => offer(p, x.id, x.price)).join('')}
+      ${packOffer(p)}
+    </div>
+    <p class="muted shop-note">Les cartes à l'unité ne sont en vente que dans ta boutique du jour. Complète une collection : +${fmt(SET_REWARD)} Goalz !</p>`;
+}
+
+// ─── Album ───────────────────────────────────────────────────────────────────
+function albumView(p) {
+  const setId = CARD_SETS.some((s) => s.id === ui.albumSet) ? ui.albumSet : CARD_SETS[0].id;
+  const mine = myCards(p);
+  const fav = style(p).card;
+  const prog = setProgress(p, setId);
+  const order = Object.fromEntries(ORDER.map((r, i) => [r, i]));
+  const list = CARDS.filter((c) => c.set === setId)
+    .sort((a, b) => Number(hasCard(p, b.id)) - Number(hasCard(p, a.id)) || order[b.rarity] - order[a.rarity]);
+  return `
+    <p class="muted shop-cat-help">${ownedCount(p)} carte${ownedCount(p) > 1 ? 's' : ''} sur ${CARDS.length}. Touche une de tes cartes pour en faire ta carte favorite (visible sur ton profil).</p>
+    <div class="album-sets">
+      ${CARD_SETS.map((s) => {
+        const sp = setProgress(p, s.id);
+        return `<button class="album-set ${s.id === setId ? 'active' : ''} ${sp.done ? 'is-done' : ''}" data-action="album-set" data-set="${s.id}" type="button">
+          <span>${escapeHtml(s.name)}</span><small>${sp.owned}/${sp.total}</small></button>`;
+      }).join('')}
+    </div>
+    <div class="album-progress">
+      <div class="album-bar"><i style="width:${Math.round((prog.owned / prog.total) * 100)}%"></i></div>
+      <span>${prog.done ? `${icons.check} Collection complète` : `${prog.owned}/${prog.total} · complète-la pour +${fmt(SET_REWARD)} ${coin('coin coin-sm')}`}</span>
+    </div>
+    <div class="album-grid">
+      ${list.map((c) => (hasCard(p, c.id)
+        ? `<button class="album-card ${fav === c.id ? 'is-fav' : ''}" data-action="card-fav" data-id="${c.id}" type="button" aria-label="${escapeHtml(c.name)} : carte favorite">${cardHtml(c, { count: mine[c.id], favorite: fav === c.id })}</button>`
+        : `<div class="album-card">${cardHtml(c, { owned: false })}</div>`)).join('')}
+    </div>`;
+}
+
+// ─── Boosts et style ─────────────────────────────────────────────────────────
+function preview(p, item) {
+  if (item.kind === 'boost') return `<div class="boost-art">${icons.bolt}<b>×2</b></div>`;
+  return playerCard(p, { ...style(p), [item.kind]: item.id });
+}
+
+function action(p, item) {
+  const equipped = style(p)[item.kind] === item.id;
+  if (item.kind !== 'boost' && owns(p, item)) {
+    return `<button class="btn ${equipped ? 'btn-equipped' : 'btn-ghost'}" data-action="shop-equip" data-id="${item.id}" type="button">${equipped ? `${icons.check} Équipé` : 'Équiper'}</button>`;
+  }
+  const price = priceOf(item);
+  if (price != null) return buyBtn('shop-buy', item.id, price, p);
+  if (item.exclusive) return `<span class="shop-lock">${icons.lock} ${escapeHtml(item.exclusive)}</span>`;
+  return `<span class="shop-lock">${icons.lock} Niveau ${item.level}</span>`;
+}
+
+function itemCard(p, item) {
+  return `
+    <article class="shop-card rar-${item.rarity} ${style(p)[item.kind] === item.id ? 'is-equipped' : ''} ${owns(p, item) ? 'is-owned' : ''}">
+      <span class="rar-label">${RARITY[item.rarity]}</span>
+      <div class="shop-art">${preview(p, item)}</div>
+      <strong class="shop-name">${escapeHtml(item.name)}</strong>
+      <span class="shop-kind">${KIND_LABEL[item.kind]}</span>
+      <div class="shop-action">${action(p, item)}</div>
+    </article>`;
 }
 
 function boostView(p) {
@@ -86,12 +144,10 @@ function boostView(p) {
     <div class="shop-cards">${ITEMS.filter((i) => i.kind === 'boost').map((i) => itemCard(p, i)).join('')}</div>`;
 }
 
-function collectionView(p) {
-  const lv = levelOf(p.xp).level;
+function styleView(p) {
   const kinds = [['color', 'Effets de pseudo'], ['frame', 'Cadres'], ['title', 'Titres']];
-  const mineCount = ITEMS.filter((i) => i.kind !== 'boost' && owns(p, i)).length;
   return `
-    <p class="muted shop-cat-help">${mineCount} objet${mineCount > 1 ? 's' : ''} à toi. Touche « Équiper » pour changer de style. Les autres se débloquent en montant de niveau (tu es niveau ${lv}), dans ta boutique du jour, ou au Hall of Fame.</p>
+    <p class="muted shop-cat-help">Change ton look dans le classement. Certains se débloquent en montant de niveau (tu es niveau ${levelOf(p.xp).level}) ou au Hall of Fame.</p>
     ${kinds.map(([k, label]) => `
       <h2 class="section-title">${label}</h2>
       <div class="shop-cards">${ITEMS.filter((i) => i.kind === k)
@@ -99,8 +155,11 @@ function collectionView(p) {
         .map((i) => itemCard(p, i)).join('')}</div>`).join('')}`;
 }
 
+const TABS = [['daily', 'Cartes du jour'], ['album', 'Album'], ['boost', 'Boosts'], ['style', 'Style']];
+
 export function renderShop(s, p) {
   const tab = TABS.some(([k]) => k === ui.shopTab) ? ui.shopTab : 'daily';
+  const fav = cardById(style(p).card);
   return `
     <section class="shop-hero">
       <div class="shop-hero-top">
@@ -108,13 +167,13 @@ export function renderShop(s, p) {
         <span class="shop-wallet">${fmt(p.balance)} ${coin()}</span>
       </div>
       <div class="shop-me">
-        <span class="muted">Ton style</span>
         ${playerCard(p, style(p), { big: true })}
+        <span class="shop-me-cards">${icons.star} ${ownedCount(p)}/${CARDS.length} cartes${fav ? ` · favorite : ${escapeHtml(fav.name)}` : ''}</span>
         ${boostActive(p) ? `<span class="tag tag-boost">${icons.bolt} XP ×2 actif</span>` : ''}
       </div>
     </section>
     <div class="tabs shop-tabs" role="tablist">
       ${TABS.map(([k, label]) => `<button class="tab ${tab === k ? 'active' : ''}" data-action="shop-tab" data-tab="${k}" role="tab" aria-selected="${tab === k}" type="button">${label}</button>`).join('')}
     </div>
-    ${tab === 'boost' ? boostView(p) : tab === 'collection' ? collectionView(p) : dailyView(p)}`;
+    ${tab === 'album' ? albumView(p) : tab === 'boost' ? boostView(p) : tab === 'style' ? styleView(p) : dailyView(p)}`;
 }

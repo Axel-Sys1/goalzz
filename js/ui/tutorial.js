@@ -12,7 +12,7 @@ export function tutorialStep(p) {
 const TEXT = {
   1: ['Ton premier prono', 'Touche une cote sur un match qui te tente : elle part dans ton panier.'],
   2: ['Valide ton pari', 'Choisis ta mise, puis touche « Valider le pari ». Tu as 100 Goalz pour commencer !'],
-  3: ['Bravo, c\'est parti ! 🎉', 'Chaque pari te fait monter de niveau. Les défis du jour rapportent des Goalz, et la Boutique te permet de changer de style.'],
+  3: ['Bravo, c\'est parti ! 🎉', 'Chaque pari te fait monter de niveau. Les défis du jour rapportent des Goalz, à dépenser en cartes de joueurs dans la Boutique.'],
 };
 
 export function coachHtml(step) {

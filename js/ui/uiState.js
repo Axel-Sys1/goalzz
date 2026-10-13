@@ -7,7 +7,8 @@ export const ui = {
   installPrompt: null,   // proposition d'installation du navigateur (Android, ordinateur)
   profileTab: 'stats',   // stats | settings (Profil)
   challengesOpen: false,  // défis du jour dépliés sur l'écran Matchs
-  shopTab: 'daily',      // boutique : daily (boutique du jour) | boost | collection
+  shopTab: 'daily',      // boutique : daily (cartes du jour) | album | boost | style
+  albumSet: null,        // collection affichée dans l'album (null : la première)
   topScope: 'season',     // classement : season (mois en cours) | all (tous les temps)
   rankTab: 'top',        // top (classement général) | division | leagues
 };
