@@ -69,7 +69,7 @@ function layout({ title, description, path, body, jsonLd = null, noindex = false
 </head>
 <body>
   <header class="seo-top">
-    <a class="logo" href="/" aria-label="Goalzz, jouer">GOAL<b>ZZ</b></a>
+    <a class="logo" href="/" aria-label="Goalzz, jouer"><span>GOAL<b>ZZ</b></span></a>
     <a class="btn btn-primary" href="/">Jouer gratuitement</a>
   </header>
   <main class="seo-page">
