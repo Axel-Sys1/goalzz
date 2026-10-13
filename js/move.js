@@ -1,4 +1,4 @@
-// Déménagement de goalzz.pages.dev vers goalzz.fr. Script classique, chargé avant l'appli :
+// Déménagement de goalzz.pages.dev (et de www.goalzz.fr) vers goalzz.fr. Script classique, chargé avant l'appli :
 // la partie des joueurs sans compte est stockée par adresse de site, l'ancienne adresse l'envoie
 // donc à la nouvelle dans le lien (#transfert=…), et la nouvelle l'enregistre si elle n'a rien.
 // L'ancienne adresse ne redirige que si goalzz.fr sert bien le site (image de test chargée) :
@@ -6,7 +6,7 @@
 (function () {
   var KEY = 'goalz:v1';
   var NEW = 'https://goalzz.fr/';
-  var OLD = { 'goalzz.pages.dev': 1, 'axel-sys1.github.io': 1 };
+  var OLD = { 'goalzz.pages.dev': 1, 'axel-sys1.github.io': 1, 'www.goalzz.fr': 1 };
   try {
     if (OLD[location.hostname]) {
       var probe = new Image();
