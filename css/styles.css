@@ -1508,3 +1508,31 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 
 .album-rar { display: flex; align-items: baseline; gap: 8px; margin: 16px 0 8px; font: italic 800 18px/1 var(--display); text-transform: uppercase; color: var(--rar); }
 .album-rar small { font: 700 12px/1 var(--body); color: var(--muted); }
+
+/* Accueil : grande photo d'action en fond et cartes en éventail */
+.landing-bg { position: absolute; inset: 0 0 auto 0; height: min(100vh, 900px); background-size: cover; background-position: 70% 20%; opacity: 0.55; pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%); mask-image: linear-gradient(to bottom, #000 45%, transparent 100%); }
+.onboarding.has-bg::before { /* voile pour garder le texte lisible */
+  content: ''; position: absolute; inset: 0 0 auto 0; height: min(100vh, 900px); pointer-events: none;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.25), transparent 30%), radial-gradient(90% 70% at 20% 40%, color-mix(in srgb, var(--bg) 75%, transparent), transparent 75%);
+}
+.onboarding.has-bg .landing-title, .onboarding.has-bg .brand-big { text-shadow: 0 4px 24px rgba(0, 0, 0, 0.7); }
+.onboarding.has-bg .tagline { color: #e9e2f5; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8); }
+.landing-cards { position: relative; display: flex; justify-content: center; align-items: flex-end; height: 190px; margin: 6px 0 30px; }
+.lc { width: 112px; margin: 0 -14px; transition: transform 0.3s var(--ease-out); filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.55)); }
+.lc .pc-name { font-size: 12px; }
+.lc .pc-team { font-size: 9px; }
+.lc-0 { transform: rotate(-12deg) translateY(10px); }
+.lc-1 { transform: translateY(-8px) scale(1.08); z-index: 1; }
+.lc-2 { transform: rotate(12deg) translateY(10px); }
+.landing-cards:hover .lc-0 { transform: rotate(-16deg) translate(-12px, 6px); }
+.landing-cards:hover .lc-2 { transform: rotate(16deg) translate(12px, 6px); }
+.lc-caption { position: absolute; bottom: -24px; left: 0; right: 0; text-align: center; font-size: 12px; font-weight: 700; color: var(--muted); }
+.landing-hero { padding-bottom: 18px; }
+@media (min-width: 900px) {
+  .landing-bg { inset: 0 0 auto 30%; background-position: 60% 20%; opacity: 0.7;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 35%), linear-gradient(to bottom, #000 55%, transparent); -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(to right, transparent, #000 35%), linear-gradient(to bottom, #000 55%, transparent); mask-composite: intersect; }
+  .landing-cards { justify-content: flex-start; padding-left: 14px; }
+  .lc-caption { text-align: left; }
+}

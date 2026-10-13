@@ -9,7 +9,9 @@ export const CONFIG = {
   QUICK_STAKES: [5, 10, 25], // boutons de mise rapide du panier (+ Max)
   // Habillage saisonnier du site (couleurs, logo, décor) jusqu'à la date de fin incluse ; null : aucun.
   EVENT: { id: 'halloween', until: '2026-11-02' },
-  CARD_PHOTOS: true,       // photos des joueurs sur les cartes (TheSportsDB) ; false : silhouettes, sans redéploiement des cartes
+  CARD_PHOTOS: true,
+  // Photo de fond de l'accueil des nouveaux visiteurs (masquée avec CARD_PHOTOS: false).
+  LANDING_BG: 'https://r2.thesportsdb.com/images/media/player/fanart/bqi8n81731589735.jpg',       // photos des joueurs sur les cartes (TheSportsDB) ; false : silhouettes, sans redéploiement des cartes
   RENAME_COST: 1000,       // prix d'un changement de pseudo (gratuit si le pseudo est déjà pris)
   UPCOMING_TARGET: 18,   // matchs fictifs "à venir" maintenus dans la liste
   TICK_MS: 3000,         // fréquence à laquelle on vérifie si un provider doit être rappelé

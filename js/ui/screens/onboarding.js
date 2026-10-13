@@ -11,6 +11,8 @@ import { matchCard } from './matches.js';
 import { matchStatus } from '../../services/matchInfo.js';
 import { spotlight } from '../../services/spotlight.js';
 import { realNow } from '../../store.js';
+import { cardHtml } from '../cards.js';
+import { CARDS, cardById } from '../../services/cards.js';
 
 // Les matchs du moment, visibles sans pseudo : en direct d'abord, puis les gros matchs à venir.
 function guestMatches(s) {
@@ -39,6 +41,7 @@ function guestMatches(s) {
 
 const FEATURES = [
   { icon: 'stadium', title: 'Les vrais matchs', text: 'Ligue 1, Premier League, Ligue des champions, NBA, tennis, UFC, rugby… résultats officiels en direct.' },
+  { icon: 'star', title: 'Collectionne les cartes', text: `${CARDS.length} cartes de stars à débloquer : Mbappé, Wembanyama, Sinner, Dupont… Pochettes surprises et boutique du jour.` },
   { icon: 'trophy', title: 'Des rangs à grimper', text: 'De Fer à Radiant : chaque bon prono te fait monter, chaque raté te fait descendre.' },
   { icon: 'user', title: 'Ligues entre potes', text: 'Crée ta ligue, envoie le lien sur WhatsApp, et voyez qui est le vrai expert.' },
   { icon: 'bolt', title: 'Matchs éclair', text: 'Envie de jouer tout de suite ? Des matchs fictifs de 2 minutes, à toute heure.' },
@@ -88,14 +91,24 @@ function signupFirst() {
 export function renderOnboarding(s) {
   const profiles = listProfiles(s);
   const ladder = [...TIERS.map((t, i) => ({ ...rankOf(i * 3 * RR_PER_DIVISION), division: null, label: t.name })), { ...RADIANT, division: null, label: RADIANT.name }];
+  const bg = CONFIG.CARD_PHOTOS && CONFIG.LANDING_BG;
+  const showcase = ['liga-kylian-mbappe', 'nba-victor-wembanyama', 'tennis-jannik-sinner'].map(cardById).filter(Boolean);
+  const halloween = document.documentElement.dataset.event === 'halloween';
   return `
-  <div class="onboarding">
+  <div class="onboarding ${bg ? 'has-bg' : ''}">
+    ${bg ? `<div class="landing-bg" style="background-image:url('${escapeHtml(bg)}')"></div>` : ''}
     <div class="hero-glow"></div>
+    ${halloween ? '<div class="spooky" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><s></s><u>👻</u><em></em></div>' : ''}
     <div class="landing">
       <section class="landing-hero">
         <div class="brand-big">${icons.ball}<span>GOAL<b>ZZ</b></span></div>
-        <h1 class="landing-title">Pronostique.<br>Grimpe.<br><b>Domine tes potes.</b></h1>
-        <p class="tagline">Le jeu de pronos sportifs gratuit avec une monnaie 100 % virtuelle.</p>
+        <h1 class="landing-title">Pronostique.<br>Collectionne.<br><b>Domine tes potes.</b></h1>
+        <p class="tagline">Le jeu de pronos sportifs gratuit avec une monnaie 100 % virtuelle${halloween ? ' · 🎃 spécial Halloween' : ''}.</p>
+        ${showcase.length ? `
+        <div class="landing-cards" aria-label="Exemples de cartes à collectionner">
+          ${showcase.map((c, i) => `<div class="lc lc-${i}">${cardHtml(c)}</div>`).join('')}
+          <span class="lc-caption">${CARDS.length} cartes à collectionner · foot, NBA, tennis, UFC, rugby…</span>
+        </div>` : ''}
         <div class="landing-ladder" aria-label="Les rangs, de Fer à Radiant">
           ${ladder.map((r, i) => `<span style="animation-delay:${0.15 + i * 0.07}s">${rankEmblem(r)}</span>`).join('')}
         </div>

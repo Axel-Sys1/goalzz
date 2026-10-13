@@ -47,6 +47,7 @@ export function renderAccountCard({ compact = false } = {}) {
 export const PERKS = [
   ['trophy', 'Ta place dans le classement général, face à tous les joueurs'],
   ['cloud', 'Ta partie sauvegardée : rien ne se perd, sur tous tes appareils'],
+  ['star', 'Ta collection de cartes de joueurs, gardée pour toujours'],
   ['user', 'Les ligues privées avec tes potes'],
 ];
 
