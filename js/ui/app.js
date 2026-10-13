@@ -61,7 +61,7 @@ const shellHtml = () => `
     </div>
     <div class="freebar">${halloween() ? '🎃 Spécial Halloween · ' : ''}Jeu gratuit, sans argent réel<span class="hide-sm"> · Les Goalz n'ont aucune valeur monétaire</span></div>
   </header>
-  ${halloween() ? '<div class="spooky" aria-hidden="true"><i></i><i></i><i></i><b></b></div>' : ''}
+  ${halloween() ? '<div class="spooky" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><b></b><s></s><u>👻</u><em></em></div>' : ''}
   ${adSlot('top') ? `<div class="ad-band">${adSlot('top')}</div>` : ''}
   <div class="layout">
     <main id="content" class="content"></main>

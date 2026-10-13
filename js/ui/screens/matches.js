@@ -15,6 +15,7 @@ import { accountNudge, inviteBanner } from './account.js';
 import { cloud } from '../../services/cloud.js';
 import { LEAGUE_PAGES, matchPath } from '../../seo/pages.js';
 import { DAYS as SEO_DAYS } from '../../seo/data.js';
+import { starOf } from '../stars.js';
 
 const ORDER = { 1: 0, X: 1, 2: 2 };
 
@@ -112,8 +113,12 @@ function spotlightCard({ m, tag }, slipPick, first) {
       ${teamMark(team, `logo-img ${first ? 'logo-xl' : 'logo-lg'}`)}
       <strong>${escapeHtml(displayName(team))}</strong>
     </div>`;
+  // Joueurs vedettes des deux équipes en fond (s'ils sont dans le catalogue des cartes).
+  const stars = [starOf(m.home, m.sport), starOf(m.away, m.sport)];
+  const photo = (st, cls) => (st ? `<img class="spot-star ${cls}" src="${escapeHtml(st.img)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : '');
   return `
-  <article class="featured spot-card ${first ? 'spot-first' : ''}">
+  <article class="featured spot-card ${first ? 'spot-first' : ''} ${stars.some(Boolean) ? 'has-stars' : ''}">
+    ${photo(stars[0], 'spot-star-home')}${photo(stars[1], 'spot-star-away')}
     <header class="featured-head">
       <span class="featured-tag">${escapeHtml(first && tag === m.competition ? 'Match à la une' : tag)}</span>
       <span class="kick" data-kickoff="${m.startsAt}"${m.real ? ' data-real="1"' : ''}>${formatKickoff(m.startsAt, t)}</span>

@@ -1431,8 +1431,8 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 :root[data-event="halloween"] .pack-pouch { background: linear-gradient(150deg, #ff8a3d, #c2410c 45%, #5b21b6); }
 :root[data-event="halloween"] .pack-pouch small::after { content: ' 🎃'; }
 :root[data-event="halloween"] .pack-back { background: linear-gradient(150deg, #ff8a3d, #5b21b6); }
-.spooky { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
-.spooky i { position: absolute; width: 46px; height: 23px; opacity: 0.55; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 32'%3E%3Cpath fill='%23170a24' d='M32 10c2-4 4-5 5-3 1-3 3-3 3 0 4-4 12-5 20 0-6 0-9 3-10 8-3-3-6-3-9 0-2-2-5-2-7 3-1-2-1-2-2-2s-1 0-2 2c-2-5-5-5-7-3-3-3-6-3-9 0-1-5-4-8-10-8 8-5 16-4 20 0 0-3 2-3 3 0 1-2 3-1 5 3z'/%3E%3C/svg%3E") center / contain no-repeat; filter: drop-shadow(0 0 3px rgba(255, 122, 26, 0.65)); animation: bat-fly 26s linear infinite; }
+.spooky { position: fixed; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; } /* au-dessus du contenu mais transparent aux clics, sous la barre du haut */
+.spooky i { position: absolute; width: 46px; height: 23px; opacity: 0.75; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 32'%3E%3Cpath fill='%230a0510' d='M32 10c2-4 4-5 5-3 1-3 3-3 3 0 4-4 12-5 20 0-6 0-9 3-10 8-3-3-6-3-9 0-2-2-5-2-7 3-1-2-1-2-2-2s-1 0-2 2c-2-5-5-5-7-3-3-3-6-3-9 0-1-5-4-8-10-8 8-5 16-4 20 0 0-3 2-3 3 0 1-2 3-1 5 3z'/%3E%3C/svg%3E") center / contain no-repeat; filter: drop-shadow(0 0 1.5px rgba(255, 150, 60, 0.95)) drop-shadow(0 0 6px rgba(255, 122, 26, 0.45)); animation: bat-fly 26s linear infinite; }
 .spooky i:nth-child(1) { top: 16%; animation-delay: -4s; }
 .spooky i:nth-child(2) { top: 38%; width: 30px; height: 15px; opacity: 0.4; animation-duration: 34s; animation-delay: -17s; }
 .spooky i:nth-child(3) { top: 64%; width: 38px; height: 19px; opacity: 0.35; animation-duration: 41s; animation-delay: -28s; }
@@ -1455,3 +1455,53 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
   100% { transform: translate(calc(100vw + 80px), 0) scaleY(1); }
 }
 @media (prefers-reduced-motion: reduce) { .spooky i { animation: none; display: none; } }
+
+/* Joueurs vedettes en fond des matchs « À l'affiche » */
+.spot-card { position: relative; overflow: hidden; isolation: isolate; }
+.spot-star { position: absolute; z-index: -1; bottom: 64px; width: 56%; height: auto; max-height: 82%; object-fit: contain; object-position: bottom; pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 96%); mask-image: linear-gradient(to bottom, #000 55%, transparent 96%); filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.6)); opacity: 0.95; }
+.spot-star-home { left: -17%; }
+.spot-star-away { right: -17%; transform: scaleX(-1); }
+.spot-card.has-stars::after { /* voile pour garder les noms et logos lisibles */
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(to top, var(--surface) 64px, rgba(0, 0, 0, 0.35) 45%, transparent 75%);
+}
+.spot-card.has-stars .ft-team strong { text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9); }
+.spot-card.has-stars .ft-comp { text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9); }
+.spot-card.has-stars .logo-img { filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7)); }
+
+/* Décor Halloween : plus de chauves-souris, toiles, araignée, fantôme, citrouilles (discret, sans gêner les clics) */
+.spooky i:nth-child(4) { top: 8%; width: 24px; height: 12px; opacity: 0.45; animation-duration: 22s; animation-delay: -11s; animation-direction: reverse; }
+.spooky i:nth-child(5) { top: 50%; width: 20px; height: 10px; opacity: 0.4; animation-duration: 29s; animation-delay: -6s; animation-direction: reverse; }
+.spooky i:nth-child(6) { top: 82%; width: 28px; height: 14px; opacity: 0.35; animation-duration: 37s; animation-delay: -21s; }
+.spooky s { /* toile dans le coin haut droit */
+  position: absolute; right: 0; top: 96px; width: 120px; height: 120px; opacity: 0.1; text-decoration: none;
+  background: repeating-radial-gradient(circle at 100% 0, transparent 0 16px, #fff 16px 17px), repeating-conic-gradient(from 90deg at 100% 0, transparent 0 13deg, #fff 13deg 14deg);
+  -webkit-mask: radial-gradient(circle at 100% 0, #000 60%, transparent 72%); mask: radial-gradient(circle at 100% 0, #000 60%, transparent 72%);
+}
+.spooky em { /* petite araignée qui descend au bout de son fil */
+  position: absolute; right: 54px; top: 96px; width: 1px; height: 70px; background: rgba(255, 255, 255, 0.25); transform-origin: top; animation: spider 7s ease-in-out infinite;
+}
+.spooky em::after { content: '🕷️'; position: absolute; bottom: -13px; left: -9px; font-size: 18px; font-style: normal; filter: drop-shadow(0 0 3px rgba(255, 122, 26, 0.8)); }
+@keyframes spider { 0%, 100% { height: 40px; } 50% { height: 110px; } }
+.spooky u { /* fantôme qui flotte doucement */
+  position: absolute; right: 6%; bottom: 120px; font-size: 30px; text-decoration: none; opacity: 0.16; animation: ghost 9s ease-in-out infinite;
+}
+@keyframes ghost { 0%, 100% { transform: translate(0, 0) rotate(-6deg); } 50% { transform: translate(-24px, -40px) rotate(6deg); } }
+/* Chauve-souris accrochée sous la barre du haut */
+:root[data-event="halloween"] .topbar::after {
+  content: ''; position: absolute; left: 22%; bottom: -15px; width: 26px; height: 13px; pointer-events: none; transform: rotate(180deg); transform-origin: top;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 32'%3E%3Cpath fill='%230a0510' d='M32 10c2-4 4-5 5-3 1-3 3-3 3 0 4-4 12-5 20 0-6 0-9 3-10 8-3-3-6-3-9 0-2-2-5-2-7 3-1-2-1-2-2-2s-1 0-2 2c-2-5-5-5-7-3-3-3-6-3-9 0-1-5-4-8-10-8 8-5 16-4 20 0 0-3 2-3 3 0 1-2 3-1 5 3z'/%3E%3C/svg%3E") center / contain no-repeat; filter: drop-shadow(0 0 2px rgba(255, 122, 26, 0.7)); animation: hang 4s ease-in-out infinite;
+}
+@keyframes hang { 0%, 100% { transform: rotate(176deg); } 50% { transform: rotate(184deg); } }
+/* Petite citrouille après les titres de section */
+:root[data-event="halloween"] .section-title::after { content: '🎃'; font-size: 0.7em; margin-left: 2px; filter: drop-shadow(0 0 4px rgba(255, 122, 26, 0.6)); }
+/* Lueur citrouille sous l'onglet actif de la barre du bas */
+:root[data-event="halloween"] .nav-bottom .nav-item.active { text-shadow: 0 0 10px rgba(255, 122, 26, 0.8); }
+/* Toile discrète dans le coin des cartes « À l'affiche » et du premier match */
+:root[data-event="halloween"] .featured { background-image:
+    repeating-radial-gradient(circle at 100% 0, transparent 0 9px, rgba(255, 255, 255, 0.07) 9px 10px),
+    linear-gradient(115deg, transparent 0 70%, rgba(var(--accent-rgb), 0.12) 70% 73%, transparent 73% 76%, rgba(var(--accent-rgb), 0.06) 76% 78%, transparent 78%),
+    linear-gradient(180deg, var(--surface-2), var(--surface));
+  background-size: 60px 60px, auto, auto; background-position: top right, 0 0, 0 0; background-repeat: no-repeat; }
+@media (prefers-reduced-motion: reduce) { .spooky em, .spooky u, :root[data-event="halloween"] .topbar::after { animation: none; } }
