@@ -1,6 +1,6 @@
 // Boutique, façon Valorant : chaque jour, une sélection perso de cartes joueurs (1 vedette à −25 % +
 // 3 cartes, renouvelée à minuit) et une pochette de 3 cartes au hasard ; les boosts toujours en vente ;
-// l'album des collections ; le style (effets de pseudo, cadres, titres) en vente libre.
+// l'album des collections ; le style (effets de pseudo, cadres, titres), débloqué par niveau.
 import { escapeHtml, fmt } from '../../util.js';
 import { coin, icons } from '../icons.js';
 import { avatarHtml, nameHtml } from '../cosmetics.js';
@@ -10,7 +10,7 @@ import {
   ITEMS, RARITY, boostActive, levelOf, nextMidnight, owns, priceOf, style,
 } from '../../services/progress.js';
 import {
-  CARDS, CARD_SETS, CARD_PRICE, PACK, SET_REWARD, cardById, dailyCards, hasCard, myCards, ownedCount, setProgress,
+  CARDS, CARD_SETS, CARD_PRICE, PACK, SET_REWARD, cardById, dailyCards, hasCard, myCards, ownedCount, packsLeft, setProgress,
 } from '../../services/cards.js';
 
 const KIND_LABEL = { color: 'Effet de pseudo', frame: 'Cadre', title: 'Titre', boost: 'Boost' };
@@ -55,14 +55,18 @@ function offer(p, id, price, { featured = false } = {}) {
 }
 
 function packOffer(p) {
+  const left = packsLeft(p);
   return `
-    <article class="card-offer pack-offer">
+    <article class="card-offer pack-offer ${left ? '' : 'is-empty'}">
       <div class="pack-art">
         <span class="pack-pouch"><span>GOAL<b>ZZ</b></span><small>${PACK.size} cartes</small></span>
       </div>
       <strong class="shop-name">Pochette surprise</strong>
-      <span class="shop-kind">${PACK.size} cartes au hasard, toutes collections. Doublon repris en Goalz.</span>
-      <div class="shop-action">${buyBtn('pack-open', '', PACK.price, p)}</div>
+      <span class="pack-desc">${PACK.size} cartes au hasard. Doublon repris en Goalz.</span>
+      <span class="pack-left">${left ? `Encore ${left} aujourd'hui` : 'Plus de pochette aujourd\'hui'}</span>
+      <div class="shop-action">${left
+        ? buyBtn('pack-open', '', PACK.price, p)
+        : `<button class="btn btn-ghost" data-action="shop-tab" data-tab="boost" type="button">${icons.bolt} Recharger</button>`}</div>
     </article>`;
 }
 
@@ -112,6 +116,7 @@ function albumView(p) {
 
 // ─── Boosts et style ─────────────────────────────────────────────────────────
 function preview(p, item) {
+  if (item.packs) return `<div class="boost-art">${icons.bag}<b>+${item.packs}</b></div>`;
   if (item.kind === 'boost') return `<div class="boost-art">${icons.bolt}<b>×2</b></div>`;
   return playerCard(p, { ...style(p), [item.kind]: item.id });
 }
@@ -121,10 +126,10 @@ function action(p, item) {
   if (item.kind !== 'boost' && owns(p, item)) {
     return `<button class="btn ${equipped ? 'btn-equipped' : 'btn-ghost'}" data-action="shop-equip" data-id="${item.id}" type="button">${equipped ? `${icons.check} Équipé` : 'Équiper'}</button>`;
   }
-  const price = priceOf(item);
-  if (price != null) return buyBtn('shop-buy', item.id, price, p);
+  if (item.kind === 'boost') return buyBtn('shop-buy', item.id, priceOf(item), p);
   if (item.exclusive) return `<span class="shop-lock">${icons.lock} ${escapeHtml(item.exclusive)}</span>`;
-  return `<span class="shop-lock">${icons.lock} Niveau ${item.level}</span>`;
+  const lv = levelOf(p.xp).level;
+  return `<span class="shop-lock">${icons.lock} Niveau ${item.level}</span><span class="shop-or">encore ${item.level - lv} niveau${item.level - lv > 1 ? 'x' : ''}</span>`;
 }
 
 function itemCard(p, item) {
@@ -140,18 +145,20 @@ function itemCard(p, item) {
 
 function boostView(p) {
   return `
-    <p class="muted shop-cat-help">Pour monter de niveau deux fois plus vite. Toujours disponibles, et ils n'aident pas à gagner tes paris.</p>
+    <p class="muted shop-cat-help">XP ×2 pour monter de niveau plus vite, ou une recharge pour ouvrir 3 pochettes de plus aujourd'hui (${packsLeft(p)} restante${packsLeft(p) > 1 ? 's' : ''} pour l'instant). Ils n'aident pas à gagner tes paris.</p>
     <div class="shop-cards">${ITEMS.filter((i) => i.kind === 'boost').map((i) => itemCard(p, i)).join('')}</div>`;
 }
 
 function styleView(p) {
+  const lv = levelOf(p.xp).level;
   const kinds = [['color', 'Effets de pseudo'], ['frame', 'Cadres'], ['title', 'Titres']];
+  const next = ITEMS.filter((i) => i.level > lv && !i.retired).sort((a, b) => a.level - b.level)[0];
   return `
-    <p class="muted shop-cat-help">Change ton look dans le classement. Certains se débloquent en montant de niveau (tu es niveau ${levelOf(p.xp).level}) ou au Hall of Fame.</p>
+    <p class="muted shop-cat-help">Le style ne s'achète pas, il se mérite : monte de niveau en pariant (tu es niveau ${lv}).${next ? ` Prochain déblocage : <b>${escapeHtml(next.name)}</b> au niveau ${next.level}.` : ''}</p>
     ${kinds.map(([k, label]) => `
       <h2 class="section-title">${label}</h2>
-      <div class="shop-cards">${ITEMS.filter((i) => i.kind === k)
-        .sort((a, b) => Number(owns(p, b)) - Number(owns(p, a)) || ORDER.indexOf(b.rarity) - ORDER.indexOf(a.rarity))
+      <div class="shop-cards">${ITEMS.filter((i) => i.kind === k && (!i.retired || owns(p, i)))
+        .sort((a, b) => Number(owns(p, b)) - Number(owns(p, a)) || (a.level ?? 999) - (b.level ?? 999))
         .map((i) => itemCard(p, i)).join('')}</div>`).join('')}`;
 }
 

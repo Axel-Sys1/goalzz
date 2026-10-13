@@ -7,6 +7,8 @@ export const CONFIG = {
   MIN_STAKE: 1,
   DEFAULT_STAKE: 10,
   QUICK_STAKES: [5, 10, 25], // boutons de mise rapide du panier (+ Max)
+  // Habillage saisonnier du site (couleurs, logo, décor) jusqu'à la date de fin incluse ; null : aucun.
+  EVENT: { id: 'halloween', until: '2026-11-02' },
   CARD_PHOTOS: true,       // photos des joueurs sur les cartes (TheSportsDB) ; false : silhouettes, sans redéploiement des cartes
   RENAME_COST: 1000,       // prix d'un changement de pseudo (gratuit si le pseudo est déjà pris)
   UPCOMING_TARGET: 18,   // matchs fictifs "à venir" maintenus dans la liste

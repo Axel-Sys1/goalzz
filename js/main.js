@@ -11,6 +11,9 @@ import { joinPendingInvite, readInviteFromUrl } from './services/invite.js';
 import { ui } from './ui/uiState.js';
 import { applyPendingReferral, claimReferralRewards, readReferralFromUrl } from './services/referral.js';
 
+// Habillage saisonnier (ex. Halloween) : actif jusqu'à la date de fin incluse.
+if (CONFIG.EVENT && new Date() <= new Date(`${CONFIG.EVENT.until}T23:59:59`)) document.documentElement.dataset.event = CONFIG.EVENT.id;
+
 readInviteFromUrl();
 readReferralFromUrl();
 update((s) => { ensureBots(s); Object.values(s.players).forEach(ensureProgress); }, { silent: true });

@@ -44,10 +44,12 @@ let shellMounted = false;
 let lastRouteId = null;
 let liveSig = '';
 
+const halloween = () => document.documentElement.dataset.event === 'halloween';
+
 const shellHtml = () => `
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="logo" href="#matchs" aria-label="Goalzz, accueil">${icons.ball}<span>GOAL<b>ZZ</b></span></a>
+      <a class="logo" href="#matchs" aria-label="Goalzz, accueil">${halloween() ? icons.pumpkin : icons.ball}<span>GOAL<b>ZZ</b></span></a>
       <nav class="nav-top" id="nav-top" aria-label="Navigation principale"></nav>
       <div class="top-right">
         <a class="level-chip" id="level-chip" href="#profil" aria-label="Niveau"><b>1</b><i><span></span></i></a>
@@ -57,8 +59,9 @@ const shellHtml = () => `
         </div>
       </div>
     </div>
-    <div class="freebar">Jeu gratuit, sans argent réel<span class="hide-sm"> · Les Goalz n'ont aucune valeur monétaire</span></div>
+    <div class="freebar">${halloween() ? '🎃 Spécial Halloween · ' : ''}Jeu gratuit, sans argent réel<span class="hide-sm"> · Les Goalz n'ont aucune valeur monétaire</span></div>
   </header>
+  ${halloween() ? '<div class="spooky" aria-hidden="true"><i></i><i></i><i></i><b></b></div>' : ''}
   ${adSlot('top') ? `<div class="ad-band">${adSlot('top')}</div>` : ''}
   <div class="layout">
     <main id="content" class="content"></main>

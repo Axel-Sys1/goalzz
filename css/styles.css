@@ -1405,3 +1405,53 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .collection-text { display: grid; gap: 6px; justify-items: start; }
 .collection-text strong { font: italic 800 20px/1 var(--display); text-transform: uppercase; }
 .collection-text .btn svg { width: 15px; height: 15px; color: var(--gold); fill: currentColor; }
+
+.pack-desc { font-size: 12px; color: var(--muted); margin-top: -4px; }
+.pack-left { font-size: 12px; font-weight: 800; color: var(--accent); }
+.pack-offer.is-empty .pack-pouch { filter: grayscale(0.8) brightness(0.6); animation: none; }
+.pack-offer.is-empty .pack-left { color: var(--muted); }
+.shop-lock + .shop-or { font-size: 11px; }
+
+/* ---------- Habillage Halloween (CONFIG.EVENT) ---------- */
+:root[data-event="halloween"] {
+  --bg: #0c0716; --bg-2: #170b28; --surface: #1b1030; --surface-2: #25163d; --surface-3: #31204d;
+  --line: #3a2458; --line-2: #513478; --muted: #a896c4; --placeholder: #7a6a99;
+  --accent: #ff7a1a; --accent-hover: #ff9446; --accent-rgb: 255, 122, 26; --info: #b77bff; --info-soft: rgba(183, 123, 255, 0.14);
+}
+:root[data-event="halloween"] body {
+  background-image:
+    radial-gradient(circle at 86% 150px, rgba(255, 236, 190, 0.2) 0 38px, rgba(255, 236, 190, 0.07) 39px 90px, transparent 160px),
+    radial-gradient(60% 40% at 10% 100%, rgba(140, 60, 220, 0.18), transparent 70%),
+    radial-gradient(50% 35% at 100% 70%, rgba(255, 122, 26, 0.08), transparent 70%),
+    linear-gradient(180deg, var(--bg-2), var(--bg) 420px);
+}
+:root[data-event="halloween"] .topbar { background: rgba(12, 7, 22, 0.86); border-bottom-color: var(--accent); box-shadow: 0 2px 18px -6px rgba(255, 122, 26, 0.5); }
+:root[data-event="halloween"] .logo svg { color: var(--accent); filter: drop-shadow(0 0 6px rgba(255, 122, 26, 0.7)); }
+:root[data-event="halloween"] .freebar { background: linear-gradient(90deg, rgba(120, 50, 200, 0.35), rgba(255, 122, 26, 0.3), rgba(120, 50, 200, 0.35)); color: #ffe2c6; }
+:root[data-event="halloween"] .pack-pouch { background: linear-gradient(150deg, #ff8a3d, #c2410c 45%, #5b21b6); }
+:root[data-event="halloween"] .pack-pouch small::after { content: ' 🎃'; }
+:root[data-event="halloween"] .pack-back { background: linear-gradient(150deg, #ff8a3d, #5b21b6); }
+.spooky { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.spooky i { position: absolute; width: 46px; height: 23px; opacity: 0.55; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 32'%3E%3Cpath fill='%23170a24' d='M32 10c2-4 4-5 5-3 1-3 3-3 3 0 4-4 12-5 20 0-6 0-9 3-10 8-3-3-6-3-9 0-2-2-5-2-7 3-1-2-1-2-2-2s-1 0-2 2c-2-5-5-5-7-3-3-3-6-3-9 0-1-5-4-8-10-8 8-5 16-4 20 0 0-3 2-3 3 0 1-2 3-1 5 3z'/%3E%3C/svg%3E") center / contain no-repeat; filter: drop-shadow(0 0 3px rgba(255, 122, 26, 0.65)); animation: bat-fly 26s linear infinite; }
+.spooky i:nth-child(1) { top: 16%; animation-delay: -4s; }
+.spooky i:nth-child(2) { top: 38%; width: 30px; height: 15px; opacity: 0.4; animation-duration: 34s; animation-delay: -17s; }
+.spooky i:nth-child(3) { top: 64%; width: 38px; height: 19px; opacity: 0.35; animation-duration: 41s; animation-delay: -28s; }
+.spooky b { /* toile d'araignée dans le coin */
+  position: absolute; left: 0; bottom: 70px; width: 150px; height: 150px; opacity: 0.12;
+  background: repeating-radial-gradient(circle at 0 100%, transparent 0 18px, #fff 18px 19px), repeating-conic-gradient(from 0deg at 0 100%, transparent 0 13deg, #fff 13deg 14deg);
+  -webkit-mask: radial-gradient(circle at 0 100%, #000 60%, transparent 72%); mask: radial-gradient(circle at 0 100%, #000 60%, transparent 72%);
+}
+@keyframes bat-fly {
+  0% { transform: translate(-80px, 0) scaleY(1); }
+  10% { transform: translate(10vw, -18px) scaleY(0.6); }
+  20% { transform: translate(20vw, 6px) scaleY(1); }
+  30% { transform: translate(30vw, -12px) scaleY(0.6); }
+  40% { transform: translate(40vw, 10px) scaleY(1); }
+  50% { transform: translate(50vw, -20px) scaleY(0.6); }
+  60% { transform: translate(60vw, 4px) scaleY(1); }
+  70% { transform: translate(70vw, -14px) scaleY(0.6); }
+  80% { transform: translate(80vw, 8px) scaleY(1); }
+  90% { transform: translate(90vw, -10px) scaleY(0.6); }
+  100% { transform: translate(calc(100vw + 80px), 0) scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) { .spooky i { animation: none; display: none; } }

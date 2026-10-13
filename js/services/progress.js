@@ -29,51 +29,53 @@ export const XP = {
 
 // ─── Catalogue ───────────────────────────────────────────────────────────────
 // kind : color (pseudo) | frame (cadre d'avatar) | title | boost. level : débloqué gratuitement à ce
-// niveau. price : en vente dans la boutique (Goalz). Un objet peut avoir les deux.
+// niveau (les cosmétiques ne s'achètent plus : ça se mérite). price : boosts seulement.
 // rarity : commun | rare | epique | legendaire | mythique | exclusif (couleur et lueur dans la boutique).
 export const ITEMS = [
   // Effets de pseudo
   { id: 'color-orange', kind: 'color', rarity: 'commun', name: 'Orange Goalzz', level: 2 },
-  { id: 'color-blue', kind: 'color', rarity: 'commun', name: 'Bleu électrique', price: 500 },
-  { id: 'color-green', kind: 'color', rarity: 'commun', name: 'Vert pelouse', price: 500 },
-  { id: 'color-pink', kind: 'color', rarity: 'rare', name: 'Rose fluo', price: 800 },
-  { id: 'color-purple', kind: 'color', rarity: 'rare', name: 'Violet royal', level: 8, price: 1500 },
-  { id: 'color-ice', kind: 'color', rarity: 'epique', name: 'Glace', price: 2500 },
-  { id: 'color-toxic', kind: 'color', rarity: 'epique', name: 'Toxique', price: 2500 },
-  { id: 'color-gold', kind: 'color', rarity: 'epique', name: 'Or massif', level: 15, price: 3000 },
-  { id: 'color-lava', kind: 'color', rarity: 'legendaire', name: 'Lave', price: 5000 },
-  { id: 'color-galaxy', kind: 'color', rarity: 'legendaire', name: 'Galaxie', price: 6000 },
-  { id: 'color-fire', kind: 'color', rarity: 'legendaire', name: 'Flammes', level: 30 },
-  { id: 'color-neon', kind: 'color', rarity: 'mythique', name: 'Néon arc-en-ciel', price: 8000 },
+  { id: 'color-blue', kind: 'color', rarity: 'commun', name: 'Bleu électrique', level: 6 },
+  { id: 'color-purple', kind: 'color', rarity: 'rare', name: 'Violet royal', level: 12 },
+  { id: 'color-ice', kind: 'color', rarity: 'epique', name: 'Glace', level: 20 },
+  { id: 'color-gold', kind: 'color', rarity: 'epique', name: 'Or massif', level: 30 },
+  { id: 'color-fire', kind: 'color', rarity: 'legendaire', name: 'Flammes', level: 45 },
+  { id: 'color-neon', kind: 'color', rarity: 'mythique', name: 'Néon arc-en-ciel', level: 70 },
   // Cadres d'avatar
   { id: 'frame-bronze', kind: 'frame', rarity: 'commun', name: 'Bronze', level: 5 },
-  { id: 'frame-pitch', kind: 'frame', rarity: 'rare', name: 'Pelouse', price: 1200 },
-  { id: 'frame-silver', kind: 'frame', rarity: 'rare', name: 'Argent', level: 12, price: 2000 },
-  { id: 'frame-lightning', kind: 'frame', rarity: 'epique', name: 'Éclair', price: 4000 },
-  { id: 'frame-gold', kind: 'frame', rarity: 'epique', name: 'Or', level: 25, price: 5000 },
-  { id: 'frame-fire', kind: 'frame', rarity: 'legendaire', name: 'Flammes', price: 6000 },
-  { id: 'frame-galaxy', kind: 'frame', rarity: 'legendaire', name: 'Galaxie', price: 7000 },
-  { id: 'frame-diamond', kind: 'frame', rarity: 'legendaire', name: 'Diamant', level: 40 },
-  { id: 'frame-legend', kind: 'frame', rarity: 'mythique', name: 'Légende', level: 60 },
+  { id: 'frame-pitch', kind: 'frame', rarity: 'rare', name: 'Pelouse', level: 10 },
+  { id: 'frame-silver', kind: 'frame', rarity: 'rare', name: 'Argent', level: 18 },
+  { id: 'frame-gold', kind: 'frame', rarity: 'epique', name: 'Or', level: 28 },
+  { id: 'frame-diamond', kind: 'frame', rarity: 'legendaire', name: 'Diamant', level: 50 },
+  { id: 'frame-legend', kind: 'frame', rarity: 'mythique', name: 'Légende', level: 80 },
   { id: 'frame-champion', kind: 'frame', rarity: 'exclusif', name: 'Champion', exclusive: 'Top 3 d\'une saison' },
   // Titres
   { id: 'title-rookie', kind: 'title', rarity: 'commun', name: 'Rookie', level: 1 },
-  { id: 'title-prono', kind: 'title', rarity: 'commun', name: 'Pronostiqueur', level: 5 },
-  { id: 'title-ultra', kind: 'title', rarity: 'commun', name: 'Ultra', price: 1000 },
-  { id: 'title-1n2', kind: 'title', rarity: 'rare', name: 'Mister 1N2', price: 1500 },
-  { id: 'title-prophet', kind: 'title', rarity: 'rare', name: 'Le Prophète', price: 1500 },
-  { id: 'title-expert', kind: 'title', rarity: 'rare', name: 'Expert', level: 20 },
-  { id: 'title-sniper', kind: 'title', rarity: 'epique', name: 'Sniper', price: 2500 },
-  { id: 'title-combo', kind: 'title', rarity: 'epique', name: 'Roi du combiné', price: 2500 },
-  { id: 'title-boss', kind: 'title', rarity: 'legendaire', name: 'Le Boss', price: 4000 },
-  { id: 'title-machine', kind: 'title', rarity: 'legendaire', name: 'Machine à cotes', price: 4000 },
-  { id: 'title-legend', kind: 'title', rarity: 'legendaire', name: 'Légende', level: 50 },
-  { id: 'title-untouchable', kind: 'title', rarity: 'mythique', name: 'Intouchable', price: 7000 },
+  { id: 'title-prono', kind: 'title', rarity: 'commun', name: 'Pronostiqueur', level: 4 },
+  { id: 'title-expert', kind: 'title', rarity: 'rare', name: 'Expert', level: 15 },
+  { id: 'title-sniper', kind: 'title', rarity: 'epique', name: 'Sniper', level: 25 },
+  { id: 'title-boss', kind: 'title', rarity: 'legendaire', name: 'Le Boss', level: 40 },
+  { id: 'title-legend', kind: 'title', rarity: 'legendaire', name: 'Légende', level: 60 },
   { id: 'title-goat', kind: 'title', rarity: 'mythique', name: 'GOAT', level: 100 },
   { id: 'title-champion', kind: 'title', rarity: 'exclusif', name: 'Champion de saison', exclusive: 'Top 3 d\'une saison' },
-  // Boost
+  // Anciens objets (plus disponibles) : gardés pour ceux qui les ont achetés, visibles seulement chez eux.
+  { id: 'color-green', kind: 'color', rarity: 'commun', name: 'Vert pelouse', retired: true },
+  { id: 'color-pink', kind: 'color', rarity: 'rare', name: 'Rose fluo', retired: true },
+  { id: 'color-toxic', kind: 'color', rarity: 'epique', name: 'Toxique', retired: true },
+  { id: 'color-lava', kind: 'color', rarity: 'legendaire', name: 'Lave', retired: true },
+  { id: 'color-galaxy', kind: 'color', rarity: 'legendaire', name: 'Galaxie', retired: true },
+  { id: 'frame-lightning', kind: 'frame', rarity: 'epique', name: 'Éclair', retired: true },
+  { id: 'frame-fire', kind: 'frame', rarity: 'legendaire', name: 'Flammes', retired: true },
+  { id: 'frame-galaxy', kind: 'frame', rarity: 'legendaire', name: 'Galaxie', retired: true },
+  { id: 'title-ultra', kind: 'title', rarity: 'commun', name: 'Ultra', retired: true },
+  { id: 'title-1n2', kind: 'title', rarity: 'rare', name: 'Mister 1N2', retired: true },
+  { id: 'title-prophet', kind: 'title', rarity: 'rare', name: 'Le Prophète', retired: true },
+  { id: 'title-combo', kind: 'title', rarity: 'epique', name: 'Roi du combiné', retired: true },
+  { id: 'title-machine', kind: 'title', rarity: 'legendaire', name: 'Machine à cotes', retired: true },
+  { id: 'title-untouchable', kind: 'title', rarity: 'mythique', name: 'Intouchable', retired: true },
+  // Boosts
   { id: 'boost-xp', kind: 'boost', rarity: 'rare', name: 'Boost XP ×2 · 24 h', price: 1000, hours: 24 },
   { id: 'boost-xp-3d', kind: 'boost', rarity: 'epique', name: 'Boost XP ×2 · 3 jours', price: 2500, hours: 72 },
+  { id: 'boost-packs', kind: 'boost', rarity: 'epique', name: 'Recharge pochettes · +3 aujourd\'hui', price: 1500, packs: 3 },
 ];
 export const RARITY = {
   commun: 'Commun', rare: 'Rare', epique: 'Épique', legendaire: 'Légendaire', mythique: 'Mythique', exclusif: 'Exclusif',
@@ -96,7 +98,7 @@ export function seeded(key) {
 }
 
 // Prix d'un objet ; null s'il ne s'achète pas (débloqué par niveau, ou exclusif). Les cosmétiques
-// sont en vente libre dans l'onglet Style : la boutique du jour est réservée aux cartes.
+// se débloquent par niveau uniquement ; la boutique du jour est réservée aux cartes.
 export const priceOf = (item) => item?.price ?? null;
 
 export const style = (p) => p?.style || {};
@@ -125,19 +127,22 @@ export function addXp(p, amount, { boostable = true } = {}) {
 }
 
 // ─── Boutique ────────────────────────────────────────────────────────────────
+// Seuls les boosts s'achètent : XP ×2, ou recharge de pochettes (+3 pour la journée, voir cards.js).
 export function buyItem(id) {
   const item = itemById(id);
   const p = currentPlayer(getState());
-  if (!item || !item.price || !p) throw new Error('Objet introuvable.');
-  if (owns(p, item)) throw new Error('Tu l\'as déjà.');
+  if (!item || item.kind !== 'boost' || !p) throw new Error('Objet introuvable.');
   const price = priceOf(item);
   if (p.balance < price) throw new Error(`Il te manque ${(price - p.balance).toLocaleString('fr-FR')} Goalz.`);
   update((s) => {
     const me = currentPlayer(s);
     ensureProgress(me);
     me.balance -= price;
-    if (item.kind === 'boost') me.boostUntil = Math.max(Date.now(), me.boostUntil || 0) + (item.hours || 24) * 3600_000;
-    else { me.owned[item.id] = Date.now(); me.style[item.kind] = item.id; }
+    if (item.packs) {
+      const day = dayKey(Date.now());
+      if (me.packDay?.day !== day) me.packDay = { day, opened: 0, extra: 0 };
+      me.packDay.extra += item.packs;
+    } else me.boostUntil = Math.max(Date.now(), me.boostUntil || 0) + (item.hours || 24) * 3600_000;
   });
   return item;
 }

@@ -11,7 +11,7 @@ export const cardById = (id) => CARDS.find((c) => c.id === id) || null;
 export const setById = (id) => CARD_SETS.find((s) => s.id === id) || null;
 
 export const CARD_PRICE = { commun: 250, rare: 600, epique: 1500, legendaire: 3500, mythique: 8000 };
-export const PACK = { price: 700, size: 3 };
+export const PACK = { price: 800, size: 3, perDay: 3 }; // au-delà de 3 par jour : boost « Recharge pochettes »
 export const SET_REWARD = 2000;
 export const DUPLICATE_REFUND = 0.25; // un doublon tiré dans une pochette est repris à 25 % de son prix
 export const DAILY_CARDS = 3;
@@ -90,11 +90,18 @@ export function buyCard(id) {
   return card;
 }
 
+// Pochettes encore ouvrables aujourd'hui (3 par jour, + les recharges achetées aujourd'hui).
+export function packsLeft(p, t = Date.now()) {
+  const d = p?.packDay?.day === dayKey(t) ? p.packDay : { opened: 0, extra: 0 };
+  return Math.max(0, PACK.perDay + d.extra - d.opened);
+}
+
 // Pochette : 3 cartes tirées au hasard (plus de chances pour les cartes communes).
 // → [{ card, duplicate, refund }]
 export function openPack(rand = Math.random) {
   const p = currentPlayer(getState());
   if (!p) throw new Error('Joueur introuvable.');
+  if (!packsLeft(p)) throw new Error('Plus de pochette aujourd\'hui : prends une Recharge pochettes dans les Boosts, ou reviens demain !');
   if (p.balance < PACK.price) throw new Error(`Il te manque ${(PACK.price - p.balance).toLocaleString('fr-FR')} Goalz.`);
   const picks = [];
   for (let i = 0; i < PACK.size; i++) {
@@ -107,6 +114,9 @@ export function openPack(rand = Math.random) {
   update((s) => {
     const me = currentPlayer(s);
     me.balance -= PACK.price;
+    const day = dayKey(Date.now());
+    if (me.packDay?.day !== day) me.packDay = { day, opened: 0, extra: 0 };
+    me.packDay.opened += 1;
     for (const card of picks) {
       const duplicate = hasCard(me, card.id);
       const refund = duplicate ? Math.round(CARD_PRICE[card.rarity] * DUPLICATE_REFUND) : 0;

@@ -2,6 +2,7 @@ const svg = (body, extra = '') =>
   `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${body}</svg>`;
 
 export const icons = {
+  pumpkin: svg('<path d="M12 7c-1.5-1-5-1.2-7 1.5S3.5 17 6 19c1.8 1.4 4 1 6 .2 2 .8 4.2 1.2 6-.2 2.5-2 3-8 1-10.5S13.5 6 12 7z"/><path d="M12 7c.2-1.6 1-3 2.5-3.5"/><path d="M8 13l1.5-1.5L11 13M13 13l1.5-1.5L16 13M9 16.5c1 .8 2 .9 3 .5s2 .3 3-.5"/>'),
   ball: svg('<circle cx="12" cy="12" r="9"/><path d="M12 7l4 3-1.5 4.5h-5L8 10z"/><path d="M12 3v4M16 10l4.5-1.5M14.5 14.5l2.5 4M9.5 14.5l-2.5 4M8 10L3.5 8.5"/>'),
   ticket: svg('<path d="M4 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4z"/><path d="M13 5v2M13 11v2M13 17v2"/>'),
   list: svg('<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/>'),

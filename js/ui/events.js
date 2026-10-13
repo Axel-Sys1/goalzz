@@ -133,7 +133,7 @@ const actions = {
   'shop-buy': (el) => {
     const item = buyItem(el.dataset.id);
     play('bonus');
-    toast(item.kind === 'boost' ? `Boost activé : XP ×2 pendant ${item.hours >= 48 ? `${item.hours / 24} jours` : `${item.hours} h`} !` : `${item.name} : acheté et équipé !`, 'success');
+    toast(item.packs ? `+${item.packs} pochettes pour aujourd'hui !` : item.kind === 'boost' ? `Boost activé : XP ×2 pendant ${item.hours >= 48 ? `${item.hours / 24} jours` : `${item.hours} h`} !` : `${item.name} : acheté et équipé !`, 'success');
   },
   'shop-equip': (el) => equipItem(el.dataset.id),
   'card-buy': (el) => {
