@@ -10,7 +10,7 @@ import {
   ITEMS, RARITY, boostActive, levelOf, nextMidnight, owns, priceOf, style,
 } from '../../services/progress.js';
 import {
-  CARDS, CARD_SETS, CARD_PRICE, PACK, SET_REWARD, cardById, dailyCards, hasCard, myCards, ownedCount, packsLeft, setProgress,
+  CARDS, CARD_SETS, CARD_PRICE, PACK, RARITY_ORDER, cardById, dailyCards, hasCard, myCards, ownedCount, packsLeft, setProgress, setReward,
 } from '../../services/cards.js';
 
 const KIND_LABEL = { color: 'Effet de pseudo', frame: 'Cadre', title: 'Titre', boost: 'Boost' };
@@ -48,7 +48,7 @@ function offer(p, id, price, { featured = false } = {}) {
       ${featured ? '<span class="offer-flag">Vedette du jour</span>' : ''}
       ${promo ? `<span class="deal-flag">−${Math.round((1 - price / CARD_PRICE[card.rarity]) * 100)} %</span>` : ''}
       ${cardHtml(card, { size: featured ? 'lg' : '' })}
-      <span class="offer-set">${escapeHtml(CARD_SETS.find((s) => s.id === card.set)?.name || '')}</span>
+      <span class="offer-set">${escapeHtml(CARD_SETS.find((s) => s.id === card.sport)?.name || '')}</span>
       ${promo ? `<s class="shop-old">${fmt(CARD_PRICE[card.rarity])}</s>` : ''}
       <div class="shop-action">${mine ? `<span class="btn btn-equipped">${icons.check} Dans ton album</span>` : buyBtn('card-buy', id, price, p)}</div>
     </article>`;
@@ -82,7 +82,7 @@ function dailyView(p) {
       ${shop.items.map((x) => offer(p, x.id, x.price)).join('')}
       ${packOffer(p)}
     </div>
-    <p class="muted shop-note">Les cartes à l'unité ne sont en vente que dans ta boutique du jour. Complète une collection : +${fmt(SET_REWARD)} Goalz !</p>`;
+    <p class="muted shop-note">Les cartes à l'unité ne sont en vente que dans ta boutique du jour. Complète une collection pour un gros bonus de Goalz !</p>`;
 }
 
 // ─── Album ───────────────────────────────────────────────────────────────────
@@ -91,9 +91,10 @@ function albumView(p) {
   const mine = myCards(p);
   const fav = style(p).card;
   const prog = setProgress(p, setId);
-  const order = Object.fromEntries(ORDER.map((r, i) => [r, i]));
-  const list = CARDS.filter((c) => c.set === setId)
-    .sort((a, b) => Number(hasCard(p, b.id)) - Number(hasCard(p, a.id)) || order[b.rarity] - order[a.rarity]);
+  const list = CARDS.filter((c) => c.sport === setId);
+  const tile = (c) => (hasCard(p, c.id)
+    ? `<button class="album-card ${fav === c.id ? 'is-fav' : ''}" data-action="card-fav" data-id="${c.id}" type="button" aria-label="${escapeHtml(c.name)} : carte favorite">${cardHtml(c, { count: mine[c.id], favorite: fav === c.id })}</button>`
+    : `<div class="album-card">${cardHtml(c, { owned: false })}</div>`);
   return `
     <p class="muted shop-cat-help">${ownedCount(p)} carte${ownedCount(p) > 1 ? 's' : ''} sur ${CARDS.length}. Touche une de tes cartes pour en faire ta carte favorite (visible sur ton profil).</p>
     <div class="album-sets">
@@ -105,13 +106,15 @@ function albumView(p) {
     </div>
     <div class="album-progress">
       <div class="album-bar"><i style="width:${Math.round((prog.owned / prog.total) * 100)}%"></i></div>
-      <span>${prog.done ? `${icons.check} Collection complète` : `${prog.owned}/${prog.total} · complète-la pour +${fmt(SET_REWARD)} ${coin('coin coin-sm')}`}</span>
+      <span>${prog.done ? `${icons.check} Collection complète` : `${prog.owned}/${prog.total} · complète-la pour +${fmt(setReward(setId))} ${coin('coin coin-sm')}`}</span>
     </div>
-    <div class="album-grid">
-      ${list.map((c) => (hasCard(p, c.id)
-        ? `<button class="album-card ${fav === c.id ? 'is-fav' : ''}" data-action="card-fav" data-id="${c.id}" type="button" aria-label="${escapeHtml(c.name)} : carte favorite">${cardHtml(c, { count: mine[c.id], favorite: fav === c.id })}</button>`
-        : `<div class="album-card">${cardHtml(c, { owned: false })}</div>`)).join('')}
-    </div>`;
+    ${RARITY_ORDER.map((r) => {
+      const group = list.filter((c) => c.rarity === r).sort((a, b) => Number(hasCard(p, b.id)) - Number(hasCard(p, a.id)) || a.name.localeCompare(b.name));
+      if (!group.length) return '';
+      return `
+      <h3 class="album-rar rar-${r}">${RARITY[r]} <small>${group.filter((c) => hasCard(p, c.id)).length}/${group.length}</small></h3>
+      <div class="album-grid">${group.map(tile).join('')}</div>`;
+    }).join('')}`;
 }
 
 // ─── Boosts et style ─────────────────────────────────────────────────────────

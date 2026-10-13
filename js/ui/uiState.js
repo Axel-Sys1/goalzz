@@ -8,7 +8,7 @@ export const ui = {
   profileTab: 'stats',   // stats | settings (Profil)
   challengesOpen: false,  // défis du jour dépliés sur l'écran Matchs
   shopTab: 'daily',      // boutique : daily (cartes du jour) | album | boost | style
-  albumSet: null,        // collection affichée dans l'album (null : la première)
+  albumSet: null,        // sport affiché dans l'album (null : le premier, Foot)
   topScope: 'season',     // classement : season (mois en cours) | all (tous les temps)
   rankTab: 'top',        // top (classement général) | division | leagues
 };

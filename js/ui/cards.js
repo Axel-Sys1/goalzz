@@ -54,7 +54,7 @@ export function showPack(results, onClose) {
               <div class="pack-back"><span>GOAL<b>ZZ</b></span></div>
               <div class="pack-front">${cardHtml(card)}</div>
             </div>
-            <span class="pack-tag ${duplicate ? 'is-dup' : 'is-new'}">${duplicate ? `Doublon · +${refund} Goalz` : `Nouvelle · ${escapeHtml(setById(card.set)?.name || '')}`}</span>
+            <span class="pack-tag ${duplicate ? 'is-dup' : 'is-new'}">${duplicate ? `Doublon · +${refund} Goalz` : `Nouvelle · ${escapeHtml(setById(card.sport)?.name || '')}`}</span>
           </div>`).join('')}
       </div>
       <button class="btn btn-primary btn-lg" data-pack-close type="button">Super !</button>

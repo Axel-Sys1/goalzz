@@ -1505,3 +1505,6 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
     linear-gradient(180deg, var(--surface-2), var(--surface));
   background-size: 60px 60px, auto, auto; background-position: top right, 0 0, 0 0; background-repeat: no-repeat; }
 @media (prefers-reduced-motion: reduce) { .spooky em, .spooky u, :root[data-event="halloween"] .topbar::after { animation: none; } }
+
+.album-rar { display: flex; align-items: baseline; gap: 8px; margin: 16px 0 8px; font: italic 800 18px/1 var(--display); text-transform: uppercase; color: var(--rar); }
+.album-rar small { font: 700 12px/1 var(--body); color: var(--muted); }

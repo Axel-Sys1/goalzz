@@ -3,16 +3,26 @@
 // 3 cartes au hasard. Une collection complète rapporte des Goalz. Rien qui aide à gagner ses paris.
 import { getState, update } from '../store.js';
 import { currentPlayer } from './players.js';
-import { CARDS, CARD_SETS } from '../data/cards.js';
+import { CARDS } from '../data/cards.js';
 import { nextMidnight, seeded, dayKey } from './progress.js';
 
-export { CARDS, CARD_SETS };
+export { CARDS };
 export const cardById = (id) => CARDS.find((c) => c.id === id) || null;
+
+// Collections : une par sport (clubs, sélections et féminines confondus).
+const SPORT_NAMES = {
+  football: 'Foot', basketball: 'Basket', tennis: 'Tennis', mma: 'UFC', boxing: 'Boxe', rugby: 'Rugby', hockey: 'NHL', americanfootball: 'NFL',
+};
+export const CARD_SETS = Object.entries(SPORT_NAMES)
+  .filter(([id]) => CARDS.some((c) => c.sport === id))
+  .map(([id, name]) => ({ id, name }));
 export const setById = (id) => CARD_SETS.find((s) => s.id === id) || null;
+export const RARITY_ORDER = ['mythique', 'legendaire', 'epique', 'rare', 'commun'];
 
 export const CARD_PRICE = { commun: 250, rare: 600, epique: 1500, legendaire: 3500, mythique: 8000 };
 export const PACK = { price: 800, size: 3, perDay: 3 }; // au-delà de 3 par jour : boost « Recharge pochettes »
-export const SET_REWARD = 2000;
+export const SET_REWARD_PER_CARD = 100; // collection complète : 100 Goalz par carte (Foot ≈ 12 700, Boxe ≈ 1 400)
+export const setReward = (setId) => CARDS.filter((c) => c.sport === setId).length * SET_REWARD_PER_CARD;
 export const DUPLICATE_REFUND = 0.25; // un doublon tiré dans une pochette est repris à 25 % de son prix
 export const DAILY_CARDS = 3;
 const SHOP_WEIGHT = { commun: 30, rare: 30, epique: 22, legendaire: 13, mythique: 5 };
@@ -23,7 +33,7 @@ export const hasCard = (p, id) => (myCards(p)[id] || 0) > 0;
 export const ownedCount = (p) => CARDS.filter((c) => hasCard(p, c.id)).length;
 
 export function setProgress(p, setId) {
-  const list = CARDS.filter((c) => c.set === setId);
+  const list = CARDS.filter((c) => c.sport === setId);
   const owned = list.filter((c) => hasCard(p, c.id)).length;
   return { owned, total: list.length, done: list.length > 0 && owned === list.length, claimed: !!p?.setRewards?.[setId] };
 }
@@ -66,11 +76,12 @@ function giveCard(me, card) {
   me.setRewards ||= {};
   me.cards[card.id] = (me.cards[card.id] || 0) + 1;
   me.cardsAt[card.id] ||= Date.now();
-  const prog = setProgress(me, card.set);
+  const prog = setProgress(me, card.sport);
   if (prog.done && !prog.claimed) {
-    me.setRewards[card.set] = Date.now();
-    me.balance += SET_REWARD;
-    me.inbox.push({ type: 'reward', amount: SET_REWARD, text: `Collection « ${setById(card.set)?.name} » complète ! +${SET_REWARD.toLocaleString('fr-FR')} Goalz` });
+    const reward = setReward(card.sport);
+    me.setRewards[card.sport] = Date.now();
+    me.balance += reward;
+    me.inbox.push({ type: 'reward', amount: reward, text: `Collection ${setById(card.sport)?.name} complète ! +${reward.toLocaleString('fr-FR')} Goalz` });
   }
 }
 
