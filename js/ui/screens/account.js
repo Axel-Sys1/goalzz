@@ -2,7 +2,7 @@
 import { escapeHtml } from '../../util.js';
 import { cloud } from '../../services/cloud.js';
 import { pendingInvite } from '../../services/invite.js';
-import { icons } from '../icons.js';
+import { googleLogo, icons } from '../icons.js';
 
 export function renderAccountCard({ compact = false } = {}) {
   if (!cloud.enabled || !cloud.ready) return '';
@@ -34,7 +34,7 @@ export function renderAccountCard({ compact = false } = {}) {
       <input id="password-input" name="password" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}"
         placeholder="${signup ? 'Choisis un mot de passe (6 caractères min.)' : 'Mot de passe'}" minlength="6" required>
       <button class="btn btn-primary" type="submit">${signup ? 'Créer mon compte' : 'Se connecter'}</button>
-      <button class="btn btn-ghost" data-action="cloud-google" type="button">Continuer avec Google</button>
+      <button class="btn btn-ghost" data-action="cloud-google" type="button"><span class="google-chip">${googleLogo}</span>Continuer avec Google</button>
       <div class="account-links">
         <button class="link-btn" data-action="cloud-mode" data-mode="${signup ? 'login' : 'signup'}" type="button">
           ${signup ? 'J\'ai déjà un compte' : 'Pas encore de compte ? Créer un compte'}
@@ -62,7 +62,7 @@ export function accountNudge() {
       </div>
       <ul class="perks">${PERKS.map(([icon, text]) => `<li>${icons[icon]}<span>${text}</span></li>`).join('')}</ul>
       <div class="nudge-actions">
-        <button class="btn btn-primary" data-action="cloud-google" type="button">Continuer avec Google</button>
+        <button class="btn btn-primary" data-action="cloud-google" type="button"><span class="google-chip">${googleLogo}</span>Continuer avec Google</button>
         <button class="btn btn-ghost" data-action="go-account" type="button">Avec un email</button>
       </div>
       <p class="fineprint">Sans compte, ta partie reste seulement sur cet appareil et tu n'apparais pas dans le classement.</p>

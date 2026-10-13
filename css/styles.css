@@ -1536,3 +1536,7 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
   .landing-cards { justify-content: flex-start; padding-left: 14px; }
   .lc-caption { text-align: left; }
 }
+
+[data-action="cloud-google"] { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.google-chip { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #fff; flex-shrink: 0; }
+.google-chip .google-g { width: 18px; height: 18px; }

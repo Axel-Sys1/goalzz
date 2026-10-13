@@ -2,7 +2,7 @@ import { CONFIG } from '../../config.js';
 import { escapeHtml, fmt } from '../../util.js';
 import { listProfiles } from '../../services/players.js';
 import { TIERS, RADIANT, RR_PER_DIVISION, rankOf } from '../../services/ranks.js';
-import { coin, icons, rankEmblem } from '../icons.js';
+import { coin, googleLogo, icons, rankEmblem } from '../icons.js';
 import { inviteBanner, renderAccountCard, PERKS } from './account.js';
 import { cloud } from '../../services/cloud.js';
 import { pendingReferral, REWARD } from '../../services/referral.js';
@@ -68,7 +68,7 @@ function signupFirst() {
           <h2>${login ? 'Content de te revoir' : 'Crée ton compte gratuit'}</h2>
           ${login ? '<span class="muted">Connecte-toi pour retrouver ta partie.</span>' : `
           <ul class="perks">${PERKS.map(([icon, text]) => `<li>${icons[icon]}<span>${text}</span></li>`).join('')}</ul>`}
-          <button class="btn btn-primary btn-lg" data-action="cloud-google" type="button">Continuer avec Google</button>
+          <button class="btn btn-primary btn-lg" data-action="cloud-google" type="button"><span class="google-chip">${googleLogo}</span>Continuer avec Google</button>
           <div class="or"><span>ou avec un email</span></div>
           <form class="account-form" data-form="cloud-auth">
             <input id="email-input" name="email" type="email" autocomplete="email" inputmode="email" placeholder="ton@email.fr" required>
