@@ -925,6 +925,44 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .legal-page p { line-height: 1.55; }
 .legal-page a:not(.btn):not(.logo) { color: var(--accent); text-decoration: underline; }
 
+/* ---------- Pages publiques de pronostics (/pronos, rendues par le serveur) ---------- */
+.seo-top { max-width: 820px; margin: 0 auto; padding: 16px 16px 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.seo-page { max-width: 820px; margin: 0 auto; padding: 14px 16px 60px; display: grid; gap: 16px; }
+.seo-crumbs { font-size: 13px; color: var(--muted); }
+.seo-crumbs a { color: var(--muted); text-decoration: underline; }
+.seo-h1 { font: italic 800 clamp(28px, 6vw, 40px)/1.05 var(--display); text-transform: uppercase; }
+.seo-lead { color: var(--muted); line-height: 1.55; }
+.seo-lead a, .seo-foot a { color: var(--accent); text-decoration: underline; }
+.seo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.seo-league { display: grid; gap: 4px; transition: border-color 0.15s; }
+.seo-league:hover, .seo-match a:hover { border-color: var(--accent); }
+.seo-league-name { font: 800 20px/1.1 var(--display); text-transform: uppercase; }
+.seo-day { font: italic 800 20px/1.1 var(--display); text-transform: uppercase; margin-top: 6px; }
+.seo-matches { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.seo-match a { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.seo-when { color: var(--muted); font-size: 13px; white-space: nowrap; }
+.seo-teams { min-width: 0; }
+.seo-odds { display: flex; gap: 6px; }
+.seo-odds span { display: grid; justify-items: center; min-width: 52px; padding: 4px 6px; border-radius: var(--radius-sm); background: var(--accent-soft); }
+.seo-odds small { font-size: 11px; color: var(--muted); }
+.seo-odds b { color: var(--accent); }
+.seo-odds i { font-style: normal; font-size: 11px; color: var(--muted); }
+.seo-match-card, .seo-cta { display: grid; gap: 12px; }
+.seo-vs { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; text-align: center; font: 800 24px/1.1 var(--display); text-transform: uppercase; }
+.seo-vs span { color: var(--accent); font-style: italic; }
+.seo-odds-big { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
+.seo-odds-big div { display: grid; justify-items: center; gap: 2px; padding: 10px 6px; border: 1px solid var(--line); border-radius: var(--radius); text-align: center; }
+.seo-odds-big small { color: var(--muted); font-size: 13px; }
+.seo-odds-big b { font: 800 28px/1 var(--display); color: var(--accent); }
+.seo-odds-big i { font-style: normal; font-size: 12px; color: var(--muted); }
+.seo-verdict { font-weight: 600; line-height: 1.5; }
+.seo-cta { text-align: center; justify-items: center; }
+.seo-foot { text-align: center; font-size: 14px; display: grid; gap: 8px; }
+@media (max-width: 560px) {
+  .seo-match a { grid-template-columns: 1fr; gap: 6px; }
+  .seo-top .btn { padding-inline: 12px; }
+}
+
 /* ---------- À l'affiche ---------- */
 .spotlight { margin-top: 18px !important; }
 .spot-head { margin-top: 0 !important; margin-bottom: 10px; }
