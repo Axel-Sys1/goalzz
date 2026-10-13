@@ -8,6 +8,10 @@ import { setById } from '../services/cards.js';
 const FLAGS = {
   France: '🇫🇷', Argentine: '🇦🇷', Portugal: '🇵🇹', Brésil: '🇧🇷', Espagne: '🇪🇸', Norvège: '🇳🇴',
   Angleterre: '🏴󠁧󠁢󠁥󠁮󠁧󠁿', Maroc: '🇲🇦', Égypte: '🇪🇬', Croatie: '🇭🇷', Belgique: '🇧🇪', 'Corée du Sud': '🇰🇷',
+  Italie: '🇮🇹', Serbie: '🇷🇸', Biélorussie: '🇧🇾', Pologne: '🇵🇱', 'États-Unis': '🇺🇸', Allemagne: '🇩🇪', Russie: '🇷🇺',
+  'Royaume-Uni': '🇬🇧', Danemark: '🇩🇰', Kazakhstan: '🇰🇿', Australie: '🇦🇺', Ukraine: '🇺🇦', Mexique: '🇲🇽', Japon: '🇯🇵',
+  Géorgie: '🇬🇪', 'Afrique du Sud': '🇿🇦', 'Nouvelle-Zélande': '🇳🇿', Écosse: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', Canada: '🇨🇦', Suède: '🇸🇪',
+  Tchéquie: '🇨🇿', 'Pays-Bas': '🇳🇱', Haïti: '🇭🇹', Suisse: '🇨🇭', Irlande: '🇮🇪', Cameroun: '🇨🇲', Brazil: '🇧🇷',
 };
 const initials = (name) => name.split(/\s+/).map((w) => w[0]).slice(0, 2).join('').toUpperCase();
 

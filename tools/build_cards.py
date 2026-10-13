@@ -38,6 +38,38 @@ SETS = [
     Shai Gilgeous-Alexander L; Jayson Tatum E; Kevin Durant E; Anthony Edwards E; Jalen Brunson E; Cooper Flagg E;
     Joel Embiid R; Tyrese Haliburton R; Devin Booker R; Kyrie Irving R; Anthony Davis R; Paolo Banchero R;
     Zaccharie Risacher C; Alexandre Sarr C; Rudy Gobert C; Jimmy Butler C; Bam Adebayo C'''),
+  ('feminin', 'Foot féminin', 'football', '''
+    Aitana Bonmati M; Alexia Putellas L; Kadidiatou Diani E; Wendie Renard E; Marie-Antoinette Katoto E; Sam Kerr E;
+    Caroline Graham Hansen E; Ada Hegerberg E; Sakina Karchaoui R; Grace Geyoro R; Alessia Russo R; Lauren James R;
+    Selma Bacha R; Delphine Cascarino R; Melchie Dumornay R; Trinity Rodman R; Mary Earps C; Sophia Smith C'''),
+  ('wnba', 'Basket féminin', 'basketball', '''
+    Caitlin Clark L; A'ja Wilson L; Breanna Stewart E; Sabrina Ionescu E; Paige Bueckers E; Napheesa Collier E;
+    Angel Reese R; Gabby Williams R; Marine Johannes R; Jewell Loyd C; Kelsey Plum C'''),
+  ('tennis', 'Tennis', 'tennis', '''
+    Jannik Sinner M; Carlos Alcaraz M; Novak Djokovic L; Aryna Sabalenka L; Iga Swiatek L; Coco Gauff E;
+    Alexander Zverev E; Elena Rybakina E; Mirra Andreeva E; Arthur Fils E; Taylor Fritz R; Daniil Medvedev R;
+    Jack Draper R; Holger Rune R; Ben Shelton R; Alex de Minaur R; Lorenzo Musetti R; Jessica Pegula R;
+    Jasmine Paolini R; Lois Boisson R; Ugo Humbert C; Gael Monfils C; Giovanni Mpetshi Perricard C; Arthur Rinderknech C'''),
+  ('mma', 'UFC', 'mma', '''
+    Islam Makhachev M; Ilia Topuria M; Jon Jones L; Alex Pereira L; Merab Dvalishvili L; Tom Aspinall E; Ciryl Gane E;
+    Benoit Saint-Denis E; Dricus du Plessis E; Khamzat Chimaev E; Conor McGregor E; Alexandre Pantoja R; Belal Muhammad R;
+    Max Holloway R; Sean O'Malley R; Manon Fiorot R; Nassourdine Imavov R; Charles Oliveira R; Justin Gaethje C; Dustin Poirier C'''),
+  ('boxe', 'Boxe', 'boxing', '''
+    Oleksandr Usyk M; Canelo Alvarez L; Naoya Inoue L; Terence Crawford L; Tyson Fury E; Anthony Joshua E; Gervonta Davis E;
+    Shakur Stevenson R; Dmitry Bivol R; Artur Beterbiev R; Daniel Dubois R; David Benavidez R; Jake Paul C;
+    Devin Haney C; Ryan Garcia C'''),
+  ('rugby', 'Rugby', 'rugby', '''
+    Antoine Dupont M; Damian Penaud L; Thomas Ramos E; Romain Ntamack E; Louis Bielle-Biarrey E; Siya Kolisi E; Eben Etzebeth E;
+    Ardie Savea E; Cheslin Kolbe E; Charles Ollivon R; Matthieu Jalibert R; Thibaud Flament R; Gael Fickou R;
+    Finn Russell R; Marcus Smith R; Peato Mauvaka R; Uini Atonio C; Yoram Moefana C; Paul Boudehent C'''),
+  ('nhl', 'NHL', 'hockey', '''
+    Connor McDavid M; Nathan MacKinnon L; Auston Matthews L; Leon Draisaitl L; Nikita Kucherov E; Cale Makar E; Sidney Crosby E;
+    Alexander Ovechkin E; David Pastrnak R; Kirill Kaprizov R; Jack Hughes R; Connor Bedard R; Igor Shesterkin R; Mitch Marner R;
+    Matthew Tkachuk C; Alexandre Texier C'''),
+  ('nfl', 'NFL', 'americanfootball', '''
+    Patrick Mahomes M; Josh Allen L; Lamar Jackson L; Joe Burrow E; Jalen Hurts E; Saquon Barkley E; Justin Jefferson E;
+    Ja'Marr Chase E; Travis Kelce R; Tyreek Hill R; CeeDee Lamb R; Micah Parsons R; T.J. Watt R; Christian McCaffrey R;
+    Derrick Henry R; Aaron Rodgers C; Caleb Williams C; Brock Purdy C'''),
 ]
 RAR = {'M': 'mythique', 'L': 'legendaire', 'E': 'epique', 'R': 'rare', 'C': 'commun'}
 POS = [
@@ -45,7 +77,27 @@ POS = [
   (r'point guard', 'Meneur'), (r'shooting guard|guard', 'Arrière'), (r'power forward', 'Ailier fort'),
   (r'small forward', 'Ailier'), (r'center|centre', 'Pivot'),
 ]
-SPORT = {'football': 'Soccer', 'basketball': 'Basketball'}
+SPORT = {'football': 'Soccer', 'basketball': 'Basketball', 'tennis': 'Tennis', 'mma': 'Fighting', 'boxing': 'Fighting',
+         'rugby': 'Rugby', 'hockey': 'Ice Hockey', 'americanfootball': 'American Football'}
+# Sports individuels : la carte montre le pays du joueur (et sa catégorie de poids), pas un club.
+SOLO = {'tennis', 'mma', 'boxing'}
+NAT_FR = {'Italy': 'Italie', 'Spain': 'Espagne', 'Serbia': 'Serbie', 'Belarus': 'Biélorussie', 'Poland': 'Pologne',
+  'United States': 'États-Unis', 'USA': 'États-Unis', 'Germany': 'Allemagne', 'Russia': 'Russie', 'England': 'Angleterre',
+  'Great Britain': 'Royaume-Uni', 'United Kingdom': 'Royaume-Uni', 'Denmark': 'Danemark', 'France': 'France', 'Kazakhstan': 'Kazakhstan',
+  'Australia': 'Australie', 'Ukraine': 'Ukraine', 'Mexico': 'Mexique', 'Japan': 'Japon', 'Georgia': 'Géorgie', 'Brazil': 'Brésil',
+  'South Africa': 'Afrique du Sud', 'New Zealand': 'Nouvelle-Zélande', 'Scotland': 'Écosse', 'Canada': 'Canada', 'Sweden': 'Suède',
+  'Czech Republic': 'Tchéquie', 'Norway': 'Norvège', 'Netherlands': 'Pays-Bas', 'Haiti': 'Haïti', 'Switzerland': 'Suisse',
+  'Ireland': 'Irlande', 'Brazil ': 'Brésil', 'Cameroon': 'Cameroun', 'Samoa': 'Samoa', 'Tonga': 'Tonga', 'Fiji': 'Fidji'}
+WEIGHT_FR = [('light heavyweight', 'Mi-lourds'), ('super middleweight', 'Super-moyens'), ('cruiserweight', 'Lourds-légers'),
+  ('heavyweight', 'Lourds'), ('super lightweight', 'Super-légers'), ('middleweight', 'Moyens'), ('welterweight', 'Mi-moyens'),
+  ('lightweight', 'Légers'), ('featherweight', 'Plumes'), ('bantamweight', 'Coqs'), ('flyweight', 'Mouches'), ('strawweight', 'Pailles')]
+POS_SPORT = {
+  'rugby': [('scrum', 'Demi de mêlée'), ('fly', "Demi d'ouverture"), ('wing', 'Ailier'), ('centre|center', 'Centre'), ('full', 'Arrière'),
+            ('hooker', 'Talonneur'), ('prop', 'Pilier'), ('lock', 'Deuxième ligne'), ('flanker|back row', 'Troisième ligne'), ('number 8|no. 8', 'Numéro 8')],
+  'hockey': [('left wing', 'Ailier gauche'), ('right wing', 'Ailier droit'), ('center|centre', 'Centre'), ('defen', 'Défenseur'), ('goal', 'Gardien')],
+  'americanfootball': [('quarterback', 'Quarterback'), ('running', 'Running back'), ('wide', 'Receveur'), ('tight', 'Tight end'),
+            ('linebacker', 'Linebacker'), ('defensive end|edge', 'Defensive end'), ('safety', 'Safety'), ('corner', 'Cornerback')],
+}
 # Noms tels que TheSportsDB les connaît, quand la recherche simple tombe sur un homonyme.
 ALIASES = {'Pedri': 'Pedri Gonzalez', 'Rodri': 'Rodrigo Hernandez', 'Kenan Yildiz': 'Kenan Yıldız', 'Alexandre Sarr': 'Alex Sarr'}
 # Club actuel quand TheSportsDB ne connaît que la sélection (vérifié chez ESPN, oct. 2026).
@@ -64,7 +116,15 @@ def slug(s):
   s = unicodedata.normalize('NFD', s).encode('ascii', 'ignore').decode().lower()
   return re.sub(r'[^a-z0-9]+', '-', s).strip('-')
 
-def pos_fr(p, sport):
+def pos_fr(p, sport, team=''):
+  if sport == 'tennis': return 'WTA' if 'women' in (team or '').lower() or 'wta' in (team or '').lower() else 'ATP'
+  if sport in ('mma', 'boxing'):
+    t = (team or '').lower()
+    fr = next((v for k, v in WEIGHT_FR if k in t), '')
+    return ('Poids ' + fr.lower()) if fr else ('UFC' if sport == 'mma' else 'Boxe')
+  if sport in POS_SPORT:
+    low = (p or '').lower()
+    return next((v for k, v in POS_SPORT[sport] if re.search(k, low)), p or '')
   p = (p or '').lower()
   for pat, fr in POS:
     if sport == 'basketball' and fr in ('Gardien', 'Défenseur', 'Milieu', 'Attaquant'): continue
@@ -101,6 +161,7 @@ for key, label, sport, spec in SETS:
     p = search(name, sport)
     if not p: missing.append(name); print('MISSING', name, file=sys.stderr); continue
     if name in TEAM_FIX and not nation: p = {**p, 'strTeam': TEAM_FIX[name]}
+    if (p.get('strTeam') or '').startswith('_Free'): p = {**p, 'strTeam': 'Agent libre'}
     setid = key
     if key in CLUB_SETS:
       setid = next((k for k, teams in LEAGUE_OF.items() if p['strTeam'] in teams), 'ailleurs')
@@ -108,8 +169,8 @@ for key, label, sport, spec in SETS:
     if any(c['id'] == cid for c in cards): continue
     cards.append({
       'id': cid, 'set': setid, 'sport': sport, 'name': p['strPlayer'], 'rarity': RAR[r],
-      'team': nation or p['strTeam'], 'national': bool(nation), 'pos': pos_fr(p.get('strPosition'), sport),
-      'num': None if nation else (p.get('strNumber') or None),
+      'team': nation or (NAT_FR.get(p.get('strNationality') or '', p.get('strNationality') or '') if sport in SOLO else p['strTeam']), 'national': bool(nation) or sport in SOLO, 'pos': pos_fr(p.get('strPosition'), sport, p.get('strTeam')),
+      'num': None if nation or sport in SOLO else (p.get('strNumber') or None),
       'img': p.get('strCutout') or p.get('strThumb') or None, 'cutout': bool(p.get('strCutout')),
     })
     print(f"{cid:45} {p['strTeam']:25} {p.get('strPosition')} {'cutout' if p.get('strCutout') else 'thumb' if p.get('strThumb') else 'NO IMG'}")
