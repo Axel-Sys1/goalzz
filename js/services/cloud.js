@@ -709,6 +709,12 @@ export async function signOutCloud() {
   resetAll(); // la partie reste sur le compte ; on ne la laisse pas sur cet appareil
 }
 
+// Compte obligatoire pour jouer : tant que personne n'est connecté, on reste sur l'écran d'inscription
+// (une partie déjà commencée sur l'appareil part sur le compte à la connexion). Avant que l'état de
+// connexion soit connu, on ne bloque que les parties jamais reliées à un compte, pour ne pas faire
+// clignoter l'inscription chez les joueurs connectés. Service de compte injoignable : on laisse jouer.
+export const accountRequired = (s) => cloud.enabled && !cloud.user && (cloud.ready || !s.cloudUid);
+
 // À appeler au démarrage. `notify(message, type)` affiche un message à l'utilisateur.
 export async function initCloud({ notify } = {}) {
   if (!cloud.enabled) return;

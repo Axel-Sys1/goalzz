@@ -5,6 +5,7 @@ import { TIERS, RADIANT, RR_PER_DIVISION, rankOf } from '../../services/ranks.js
 import { coin, googleLogo, icons, pumpkinLogo, rankEmblem } from '../icons.js';
 import { inviteBanner, renderAccountCard, PERKS } from './account.js';
 import { cloud } from '../../services/cloud.js';
+import { ui } from '../uiState.js';
 import { pendingReferral, REWARD } from '../../services/referral.js';
 import { legalLinks } from './legal.js';
 import { matchCard } from './matches.js';
@@ -59,37 +60,47 @@ function pseudoForm(title, note = '') {
         </form>`;
 }
 
-// Inscription : le compte d'abord (Google en un clic, ou email), « jouer sans compte » en option.
-function signupFirst() {
+// Navigateurs intégrés aux applis (Instagram, TikTok, Snapchat, Facebook…) : Google y refuse la
+// connexion, on y propose l'email à la place.
+const IN_APP = /Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|Bytedance|Snapchat|LinkedInApp/i;
+const inAppBrowser = () => typeof navigator !== 'undefined' && IN_APP.test(navigator.userAgent || '');
+
+// Inscription obligatoire : Google en un clic, l'email en secours (replié). `saved` : partie déjà
+// commencée sur cet appareil, gardée et envoyée sur le compte à la connexion.
+function signupFirst(saved) {
   const login = cloud.mode === 'login';
+  const inApp = inAppBrowser();
+  const emailOpen = ui.emailOpen || inApp;
+  const title = saved ? 'Crée ton compte pour continuer' : login ? 'Content de te revoir' : 'Crée ton compte gratuit';
   return `
         <section class="register signup-first">
           ${pendingReferral() && !login ? `<p class="referral-hello">🎁 <b>${escapeHtml(pendingReferral())}</b> t'invite : crée ton compte et vous gagnez <b>${REWARD} Goalz</b> chacun !</p>` : ''}
-          <h2>${login ? 'Content de te revoir' : 'Crée ton compte gratuit'}</h2>
-          ${login ? '<span class="muted">Connecte-toi pour retrouver ta partie.</span>' : `
+          <h2>${title}</h2>
+          ${saved ? `<p class="saved-game">Ta partie <b>${escapeHtml(saved.pseudo)}</b> · ${fmt(saved.balance)} ${coin('coin coin-sm')} est gardée : elle passe sur ton compte dès que tu te connectes.</p>`
+            : login ? '<span class="muted">Connecte-toi pour retrouver ta partie.</span>' : `
           <ul class="perks">${PERKS.map(([icon, text]) => `<li>${icons[icon]}<span>${text}</span></li>`).join('')}</ul>`}
-          <button class="btn btn-primary btn-lg" data-action="cloud-google" type="button"><span class="google-chip">${googleLogo}</span>Continuer avec Google</button>
-          <div class="or"><span>ou avec un email</span></div>
+          ${inApp ? `<p class="in-app-hint">Dans cette appli, Google bloque sa connexion : inscris-toi avec ton email, ou ouvre goalzz.fr dans ton navigateur pour utiliser Google.</p>`
+            : `<button class="btn btn-primary btn-lg" data-action="cloud-google" type="button"><span class="google-chip">${googleLogo}</span>Continuer avec Google</button>
+          <button class="or or-toggle" data-action="email-open" type="button" aria-expanded="${emailOpen}"><span>ou avec un email ${emailOpen ? '▴' : '▾'}</span></button>`}
+          ${emailOpen ? `
           <form class="account-form" data-form="cloud-auth">
             <input id="email-input" name="email" type="email" autocomplete="email" inputmode="email" placeholder="ton@email.fr" required>
             <input id="password-input" name="password" type="password" autocomplete="${login ? 'current-password' : 'new-password'}"
               placeholder="${login ? 'Mot de passe' : 'Choisis un mot de passe (6 caractères min.)'}" minlength="6" required>
-            <button class="btn btn-ghost" type="submit">${login ? 'Se connecter' : 'Créer mon compte'}</button>
-          </form>
+            <button class="btn ${inApp ? 'btn-primary' : 'btn-ghost'}" type="submit">${login ? 'Se connecter' : 'Créer mon compte'}</button>
+          </form>` : ''}
           <div class="account-links">
             <button class="link-btn" data-action="cloud-mode" data-mode="${login ? 'signup' : 'login'}" type="button">${login ? 'Créer un compte' : 'J\'ai déjà un compte'}</button>
-            ${login ? '<button class="link-btn" data-action="cloud-reset" type="button">Mot de passe oublié ?</button>' : ''}
+            ${login && emailOpen ? '<button class="link-btn" data-action="cloud-reset" type="button">Mot de passe oublié ?</button>' : ''}
           </div>
           <span class="fineprint">${fmt(CONFIG.STARTING_BALANCE)} Goalz offerts à l'inscription · jeu gratuit, sans argent réel.</span>
-        </section>
-        <details class="guest-play">
-          <summary>Jouer sans compte</summary>
-          ${pseudoForm('Choisis ton pseudo', 'Sans compte, ta partie reste sur cet appareil et tu n\'apparais pas dans le classement.')}
-        </details>`;
+        </section>`;
 }
 
 export function renderOnboarding(s) {
   const profiles = listProfiles(s);
+  // Partie commencée sans compte sur cet appareil : on la montre, elle partira sur le compte.
+  const saved = cloud.enabled && !cloud.user ? s.players[s.currentPlayerId] || profiles[0] || null : null;
   const ladder = [...TIERS.map((t, i) => ({ ...rankOf(i * 3 * RR_PER_DIVISION), division: null, label: t.name })), { ...RADIANT, division: null, label: RADIANT.name }];
   const bg = CONFIG.CARD_PHOTOS && CONFIG.LANDING_BG;
   const showcase = ['liga-kylian-mbappe', 'nba-victor-wembanyama', 'tennis-jannik-sinner'].map(cardById).filter(Boolean);
@@ -124,9 +135,9 @@ export function renderOnboarding(s) {
 
       <section class="onboarding-card">
         ${inviteBanner()}
-        ${!cloud.enabled ? pseudoForm('Choisis ton pseudo') : cloud.user ? pseudoForm('Dernière étape : choisis ton pseudo', `Compte créé${cloud.user.email ? ` (${escapeHtml(cloud.user.email)})` : ''}. Ton pseudo sera visible dans le classement.`) : signupFirst()}
+        ${!cloud.enabled ? pseudoForm('Choisis ton pseudo') : cloud.user ? pseudoForm('Dernière étape : choisis ton pseudo', `Compte créé${cloud.user.email ? ` (${escapeHtml(cloud.user.email)})` : ''}. Ton pseudo sera visible dans le classement.`) : signupFirst(saved)}
 
-        ${profiles.length ? `
+        ${profiles.length && !cloud.enabled ? `
           <div class="profiles">
             <p class="eyebrow">Ou reprends ta partie</p>
             ${profiles.map((p) => `

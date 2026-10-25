@@ -1018,9 +1018,10 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .signup-first .account-form { gap: 8px; }
 .or { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; font-weight: 600; }
 .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-.guest-play { text-align: left; }
-.guest-play summary { cursor: pointer; color: var(--muted); font-size: 14px; font-weight: 600; text-align: center; padding: 6px; }
-.guest-play[open] summary { margin-bottom: 10px; }
+.or-toggle { width: 100%; padding: 6px 0; border: 0; background: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; color: var(--muted); }
+.or-toggle:hover, .or-toggle:focus-visible { color: var(--text); }
+.saved-game { margin: 0; padding: 10px 12px; border-radius: 10px; background: rgba(var(--accent-rgb), 0.12); border: 1px solid rgba(var(--accent-rgb), 0.4); font-size: 14px; }
+.in-app-hint { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); font-size: 13px; }
 
 /* ---------- Parrainage ---------- */
 .referral-card { display: grid; gap: 10px; border-color: rgba(var(--accent-rgb), 0.45); }

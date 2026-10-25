@@ -20,6 +20,7 @@ import { adSlot, mountAds } from './ads.js';
 import { boostActive, levelOf } from '../services/progress.js';
 import { bonusFor, nextStreakDay } from '../services/daily.js';
 import { legalLinks } from './screens/legal.js';
+import { accountRequired } from '../services/cloud.js';
 
 const ROUTES = [
   { id: 'matchs', label: 'Matchs', icon: 'ball', render: renderMatches },
@@ -168,7 +169,7 @@ export function render() {
   const s = getState();
   const p = currentPlayer(s);
 
-  if (!p) {
+  if (!p || accountRequired(s)) {
     shellMounted = false;
     lastRouteId = null;
     root.innerHTML = renderOnboarding(s);

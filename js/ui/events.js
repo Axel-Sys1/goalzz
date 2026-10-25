@@ -18,7 +18,7 @@ import { buyCard, favoriteCard, openPack } from '../services/cards.js';
 import { showPack } from './cards.js';
 import { applyReferral, referralLink, REWARD } from '../services/referral.js';
 import { CONFIG } from '../config.js';
-import { cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, loadTop, loadSeason, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
+import { accountRequired, cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, loadTop, loadSeason, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
 import { playerRR } from '../services/ranks.js';
 import { shareLeague } from '../services/invite.js';
 import { adsLeft, rewardAdWatched } from '../services/rewardAd.js';
@@ -63,6 +63,7 @@ const actions = {
   },
   'cloud-mode': (el) => { cloud.mode = el.dataset.mode === 'signup' ? 'signup' : 'login'; render(); },
   'cloud-google': () => signInWithGoogle(),
+  'email-open': () => { ui.emailOpen = !ui.emailOpen; render(); if (ui.emailOpen) document.getElementById('email-input')?.focus(); },
   'cloud-reset': async () => {
     const email = await resetPassword(document.getElementById('email-input')?.value);
     toast(`Si un compte existe pour ${email}, un email pour changer ton mot de passe vient de partir. Pense aux spams.`, 'info');
@@ -236,6 +237,7 @@ const forms = {
     toast(`Parrain enregistré : ${name}. +${REWARD} Goalz !`, 'success');
   },
   register: async (data) => {
+    if (accountRequired(getState())) throw new Error('Crée d\'abord ton compte, avec Google ou un email.');
     await register(data.get('pseudo'));
     const pick = ui.pendingPick;
     ui.pendingPick = null;

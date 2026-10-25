@@ -7,6 +7,7 @@ export const ui = {
   installPrompt: null,   // proposition d'installation du navigateur (Android, ordinateur)
   profileTab: 'stats',   // stats | settings (Profil)
   challengesOpen: false,  // défis du jour dépliés sur l'écran Matchs
+  emailOpen: false,      // inscription : formulaire email déplié (Google en avant)
   shopTab: 'daily',      // boutique : daily (cartes du jour) | album | boost | style
   albumSet: null,        // sport affiché dans l'album (null : le premier, Foot)
   topScope: 'season',     // classement : season (mois en cours) | all (tous les temps)
