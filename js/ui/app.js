@@ -20,15 +20,16 @@ import { adSlot, mountAds } from './ads.js';
 import { boostActive, levelOf } from '../services/progress.js';
 import { bonusFor, nextStreakDay } from '../services/daily.js';
 import { legalLinks } from './screens/legal.js';
-import { accountRequired } from '../services/cloud.js';
+import { isGuest } from '../services/cloud.js';
+import { renderLocked } from './screens/onboarding.js';
 
 const ROUTES = [
   { id: 'matchs', label: 'Matchs', icon: 'ball', render: renderMatches },
   { id: 'panier', label: 'Panier', icon: 'ticket', render: renderSlip },
   { id: 'paris', label: 'Mes paris', icon: 'list', render: renderMyBets },
-  { id: 'boutique', label: 'Boutique', icon: 'bag', render: renderShop },
-  { id: 'classement', label: 'Rangs', icon: 'trophy', render: renderRanking },
-  { id: 'profil', label: 'Profil', icon: 'user', render: renderProfile },
+  { id: 'boutique', label: 'Boutique', icon: 'bag', render: renderShop, account: true },
+  { id: 'classement', label: 'Rangs', icon: 'trophy', render: renderRanking, account: true },
+  { id: 'profil', label: 'Profil', icon: 'user', render: renderProfile, account: true },
 ];
 
 export function currentRoute() {
@@ -82,9 +83,10 @@ const shellHtml = () => `
   <nav class="nav-bottom" id="nav-bottom" aria-label="Navigation"></nav>`;
 
 function navHtml(route, p) {
+  const guest = isGuest();
   return ROUTES.map((r) => `
     <a href="#${r.id}" class="nav-item ${r.id === route.id ? 'active' : ''}" ${r.id === route.id ? 'aria-current="page"' : ''}>
-      <span class="nav-icon">${icons[r.icon]}${r.id === 'panier' && p.slip.length ? `<span class="nav-badge">${p.slip.length}</span>` : ''}</span>
+      <span class="nav-icon">${icons[r.icon]}${r.id === 'panier' && p.slip.length ? `<span class="nav-badge">${p.slip.length}</span>` : ''}${r.account && guest ? `<span class="nav-lock">${icons.lock}</span>` : ''}</span>
       <span>${r.label}</span>
     </a>`).join('');
 }
@@ -169,7 +171,7 @@ export function render() {
   const s = getState();
   const p = currentPlayer(s);
 
-  if (!p || accountRequired(s)) {
+  if (!p) {
     shellMounted = false;
     lastRouteId = null;
     root.innerHTML = renderOnboarding(s);
@@ -185,7 +187,7 @@ export function render() {
   root.querySelector('#nav-top').innerHTML = navHtml(route, p);
   root.querySelector('#nav-bottom').innerHTML = navHtml(route, p);
   const content = root.querySelector('#content');
-  content.innerHTML = route.render(s, p, { context: 'page' });
+  content.innerHTML = route.account && isGuest(s) ? renderLocked(route.id) : route.render(s, p, { context: 'page' });
   content.classList.toggle('enter', route.id !== lastRouteId);
 
   const showAside = route.id !== 'panier';
@@ -195,7 +197,7 @@ export function render() {
   root.querySelector('#aside').innerHTML = showAside ? renderSlip(s, p, { context: 'aside' }) : '';
   renderSlipBar(route, p);
   const step = tutorialStep(p);
-  root.querySelector('#coach').innerHTML = coachHtml(step);
+  root.querySelector('#coach').innerHTML = coachHtml(step, { guest: isGuest(s) });
   root.classList.toggle('coaching', !!step);
   highlight(step, route.id);
 

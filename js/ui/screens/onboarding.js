@@ -65,19 +65,18 @@ function pseudoForm(title, note = '') {
 const IN_APP = /Instagram|FBAN|FBAV|FB_IAB|TikTok|musical_ly|Bytedance|Snapchat|LinkedInApp/i;
 const inAppBrowser = () => typeof navigator !== 'undefined' && IN_APP.test(navigator.userAgent || '');
 
-// Inscription obligatoire : Google en un clic, l'email en secours (replié). `saved` : partie déjà
-// commencée sur cet appareil, gardée et envoyée sur le compte à la connexion.
-function signupFirst(saved) {
+// Inscription : Google en un clic, l'email en secours (replié). `title` / `note` : écran verrouillé
+// d'un joueur sans compte (sa partie passe sur le compte à la connexion).
+function signupCard({ title = null, note = null } = {}) {
   const login = cloud.mode === 'login';
   const inApp = inAppBrowser();
   const emailOpen = ui.emailOpen || inApp;
-  const title = saved ? 'Crée ton compte pour continuer' : login ? 'Content de te revoir' : 'Crée ton compte gratuit';
+  title = login ? 'Content de te revoir' : title || 'Crée ton compte gratuit';
   return `
         <section class="register signup-first">
           ${pendingReferral() && !login ? `<p class="referral-hello">🎁 <b>${escapeHtml(pendingReferral())}</b> t'invite : crée ton compte et vous gagnez <b>${REWARD} Goalz</b> chacun !</p>` : ''}
           <h2>${title}</h2>
-          ${saved ? `<p class="saved-game">Ta partie <b>${escapeHtml(saved.pseudo)}</b> · ${fmt(saved.balance)} ${coin('coin coin-sm')} est gardée : elle passe sur ton compte dès que tu te connectes.</p>`
-            : login ? '<span class="muted">Connecte-toi pour retrouver ta partie.</span>' : `
+          ${login ? '<span class="muted">Connecte-toi pour retrouver ta partie.</span>' : note ? `<p class="saved-game">${note}</p>` : `
           <ul class="perks">${PERKS.map(([icon, text]) => `<li>${icons[icon]}<span>${text}</span></li>`).join('')}</ul>`}
           ${inApp ? `<p class="in-app-hint">Dans cette appli, Google bloque sa connexion : inscris-toi avec ton email, ou ouvre goalzz.fr dans ton navigateur pour utiliser Google.</p>`
             : `<button class="btn btn-primary btn-lg" data-action="cloud-google" type="button"><span class="google-chip">${googleLogo}</span>Continuer avec Google</button>
@@ -93,14 +92,39 @@ function signupFirst(saved) {
             <button class="link-btn" data-action="cloud-mode" data-mode="${login ? 'signup' : 'login'}" type="button">${login ? 'Créer un compte' : 'J\'ai déjà un compte'}</button>
             ${login && emailOpen ? '<button class="link-btn" data-action="cloud-reset" type="button">Mot de passe oublié ?</button>' : ''}
           </div>
-          <span class="fineprint">${fmt(CONFIG.STARTING_BALANCE)} Goalz offerts à l'inscription · jeu gratuit, sans argent réel.</span>
+          <span class="fineprint">${note ? 'Gratuit, sans argent réel.' : `${fmt(CONFIG.STARTING_BALANCE)} Goalz offerts à l'inscription · jeu gratuit, sans argent réel.`}</span>
         </section>`;
+}
+
+// Écran d'accueil : l'inscription, et « jouer sans compte » (parier seulement) en option.
+const signupFirst = () => `${signupCard()}
+        <details class="guest-play">
+          <summary>Jouer sans compte</summary>
+          ${pseudoForm('Choisis ton pseudo', 'Sans compte, tu peux parier sur tous les matchs. Boutique, cartes, classement et bonus demandent un compte.')}
+        </details>`;
+
+// Écrans réservés aux joueurs avec un compte (boutique, classement, profil), vus sans compte.
+const LOCKED = {
+  boutique: ['La boutique', 'les cartes de joueurs, les pochettes et les styles'],
+  classement: ['Les rangs', 'le classement, ta division et les ligues entre potes'],
+  profil: ['Ton profil', 'tes stats, ton niveau, le parrainage et les réglages'],
+};
+export function renderLocked(routeId) {
+  const [label, what] = LOCKED[routeId] || ['Cet écran', 'tout le jeu'];
+  return `
+    <div class="locked-page">
+      <h1 class="page-title">${label}</h1>
+      <section class="card">
+        ${signupCard({
+          title: 'Crée ton compte pour débloquer',
+          note: `${icons.lock} Sans compte, tu peux seulement parier. Avec un compte gratuit : ${what}, les bonus du jour et les défis. Tes paris et tes Goalz te suivent.`,
+        })}
+      </section>
+    </div>`;
 }
 
 export function renderOnboarding(s) {
   const profiles = listProfiles(s);
-  // Partie commencée sans compte sur cet appareil : on la montre, elle partira sur le compte.
-  const saved = cloud.enabled && !cloud.user ? s.players[s.currentPlayerId] || profiles[0] || null : null;
   const ladder = [...TIERS.map((t, i) => ({ ...rankOf(i * 3 * RR_PER_DIVISION), division: null, label: t.name })), { ...RADIANT, division: null, label: RADIANT.name }];
   const bg = CONFIG.CARD_PHOTOS && CONFIG.LANDING_BG;
   const showcase = ['liga-kylian-mbappe', 'nba-victor-wembanyama', 'tennis-jannik-sinner'].map(cardById).filter(Boolean);
@@ -135,9 +159,9 @@ export function renderOnboarding(s) {
 
       <section class="onboarding-card">
         ${inviteBanner()}
-        ${!cloud.enabled ? pseudoForm('Choisis ton pseudo') : cloud.user ? pseudoForm('Dernière étape : choisis ton pseudo', `Compte créé${cloud.user.email ? ` (${escapeHtml(cloud.user.email)})` : ''}. Ton pseudo sera visible dans le classement.`) : signupFirst(saved)}
+        ${!cloud.enabled ? pseudoForm('Choisis ton pseudo') : cloud.user ? pseudoForm('Dernière étape : choisis ton pseudo', `Compte créé${cloud.user.email ? ` (${escapeHtml(cloud.user.email)})` : ''}. Ton pseudo sera visible dans le classement.`) : signupFirst()}
 
-        ${profiles.length && !cloud.enabled ? `
+        ${profiles.length ? `
           <div class="profiles">
             <p class="eyebrow">Ou reprends ta partie</p>
             ${profiles.map((p) => `

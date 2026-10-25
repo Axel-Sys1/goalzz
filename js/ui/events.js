@@ -18,7 +18,7 @@ import { buyCard, favoriteCard, openPack } from '../services/cards.js';
 import { showPack } from './cards.js';
 import { applyReferral, referralLink, REWARD } from '../services/referral.js';
 import { CONFIG } from '../config.js';
-import { accountRequired, cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, loadTop, loadSeason, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
+import { cloud, deleteAccount, isGuest, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, loadTop, loadSeason, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
 import { playerRR } from '../services/ranks.js';
 import { shareLeague } from '../services/invite.js';
 import { adsLeft, rewardAdWatched } from '../services/rewardAd.js';
@@ -161,6 +161,7 @@ const actions = {
   'open-album': () => { ui.shopTab = 'album'; go('boutique'); },
   'shop-tab': (el) => { ui.shopTab = el.dataset.tab; render(); },
   'coach-done': () => update((s) => { const p = s.players[s.currentPlayerId]; if (p) p.tutorialDone = true; }),
+  'coach-account': () => { update((s) => { const p = s.players[s.currentPlayerId]; if (p) p.tutorialDone = true; }); cloud.mode = 'signup'; go('profil'); },
   'coach-shop': () => { update((s) => { const p = s.players[s.currentPlayerId]; if (p) p.tutorialDone = true; }); go('boutique'); },
   'toggle-challenges': () => { ui.challengesOpen = !ui.challengesOpen; render(); },
   'share-referral': async () => {
@@ -237,7 +238,6 @@ const forms = {
     toast(`Parrain enregistré : ${name}. +${REWARD} Goalz !`, 'success');
   },
   register: async (data) => {
-    if (accountRequired(getState())) throw new Error('Crée d\'abord ton compte, avec Google ou un email.');
     await register(data.get('pseudo'));
     const pick = ui.pendingPick;
     ui.pendingPick = null;
@@ -291,6 +291,19 @@ const forms = {
   },
 };
 
+// Sans compte, on parie, rien de plus : ces actions (et formulaires) envoient vers l'inscription.
+const ACCOUNT_ONLY = new Set([
+  'claim-bonus', 'watch-ad', 'shop-buy', 'shop-equip', 'card-buy', 'pack-open', 'card-fav', 'share-referral',
+  'league-leave', 'league-invite', 'referral', 'rename', 'league-create', 'league-join',
+]);
+function needsAccount(name) {
+  if (!ACCOUNT_ONLY.has(name) || !isGuest()) return false;
+  cloud.mode = 'signup';
+  toast('Crée ton compte gratuit pour débloquer ça. Tes paris et tes Goalz te suivent.', 'info');
+  go('profil');
+  return true;
+}
+
 async function safely(fn) {
   try { await fn(); } catch (err) { toast(err.message || 'Oups, une erreur est survenue.', 'error'); }
 }
@@ -302,6 +315,7 @@ export function bindEvents() {
     const fn = actions[el.dataset.action];
     if (!fn) return;
     e.preventDefault();
+    if (needsAccount(el.dataset.action)) return;
     safely(() => fn(el));
   });
 
@@ -310,7 +324,7 @@ export function bindEvents() {
     if (!form) return;
     e.preventDefault();
     const fn = forms[form.dataset.form];
-    if (fn) safely(() => fn(new FormData(form), form));
+    if (fn && !needsAccount(form.dataset.form)) safely(() => fn(new FormData(form), form));
   });
 
   document.addEventListener('input', (e) => {

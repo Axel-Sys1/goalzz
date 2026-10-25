@@ -1020,6 +1020,14 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 .or-toggle { width: 100%; padding: 6px 0; border: 0; background: none; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; color: var(--muted); }
 .or-toggle:hover, .or-toggle:focus-visible { color: var(--text); }
+.guest-play { text-align: left; }
+.guest-play summary { cursor: pointer; color: var(--muted); font-size: 14px; font-weight: 600; text-align: center; padding: 6px; }
+.guest-play[open] summary { margin-bottom: 10px; }
+.locked-page { display: grid; gap: 14px; max-width: 520px; }
+.saved-game svg { width: 15px; height: 15px; vertical-align: -2px; color: var(--accent); }
+.nav-lock { position: absolute; right: -7px; bottom: -4px; display: grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; background: var(--surface-3); color: var(--muted); }
+.nav-lock svg { width: 9px; height: 9px; }
+.day-locked .day-ico { background: var(--surface-3); color: var(--muted); }
 .saved-game { margin: 0; padding: 10px 12px; border-radius: 10px; background: rgba(var(--accent-rgb), 0.12); border: 1px solid rgba(var(--accent-rgb), 0.4); font-size: 14px; }
 .in-app-hint { margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--line); color: var(--muted); font-size: 13px; }
 

@@ -13,7 +13,7 @@ import { AD_GOALZ, AD_PER_DAY, adsLeft, rewardAdEnabled } from '../../services/r
 import { coin, icons } from '../icons.js';
 import { ui } from '../uiState.js';
 import { accountNudge, inviteBanner } from './account.js';
-import { cloud } from '../../services/cloud.js';
+import { cloud, isGuest } from '../../services/cloud.js';
 import { LEAGUE_PAGES, matchPath } from '../../seo/pages.js';
 import { DAYS as SEO_DAYS } from '../../seo/data.js';
 import { starOf } from '../stars.js';
@@ -362,6 +362,13 @@ function renderFake(s, p, picks) {
 
 // « Ta journée » : bonus et série d'un côté, défis de l'autre (liste repliable), en un seul bandeau.
 function dayStrip(p) {
+  if (isGuest()) return `
+    <section class="card day-strip day-locked">
+      <button class="day-ad" data-action="go-account" type="button">
+        <span class="day-ico">${icons.lock}</span>
+        <span class="grow"><strong>Bonus du jour · défis · bonus vidéo</strong><small>Crée ton compte gratuit pour les débloquer</small></span>
+      </button>
+    </section>`;
   const list = challengeStatus(p);
   const done = list.filter((c) => c.done).length;
   const day = nextStreakDay(p);

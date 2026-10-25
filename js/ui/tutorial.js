@@ -14,10 +14,12 @@ const TEXT = {
   2: ['Valide ton pari', 'Choisis ta mise, puis touche « Valider le pari ». Tu as 100 Goalz pour commencer !'],
   3: ['Bravo, c\'est parti ! 🎉', 'Chaque pari te fait monter de niveau. Les défis du jour rapportent des Goalz, à dépenser en cartes de joueurs dans la Boutique.'],
 };
+// Sans compte : la boutique et les défis sont verrouillés, l'étape 3 invite à créer un compte.
+const GUEST_DONE = ['Bravo, c\'est parti ! 🎉', 'Crée ton compte gratuit pour débloquer les défis du jour, les bonus, la boutique de cartes et le classement. Ton pari te suit.'];
 
-export function coachHtml(step) {
+export function coachHtml(step, { guest = false } = {}) {
   if (!step) return '';
-  const [title, text] = TEXT[step];
+  const [title, text] = step === 3 && guest ? GUEST_DONE : TEXT[step];
   return `
     <div class="coach" role="status">
       <div class="coach-steps">${[1, 2, 3].map((n) => `<i class="${n <= step ? 'on' : ''}"></i>`).join('')}</div>
@@ -26,7 +28,9 @@ export function coachHtml(step) {
       <div class="coach-actions">
         ${step === 3
           ? `<button class="btn btn-ghost" data-action="coach-done" type="button">OK</button>
-             <button class="btn btn-primary" data-action="coach-shop" type="button">${icons.bag} Voir la boutique</button>`
+             ${guest
+               ? `<button class="btn btn-primary" data-action="coach-account" type="button">${icons.user} Créer mon compte</button>`
+               : `<button class="btn btn-primary" data-action="coach-shop" type="button">${icons.bag} Voir la boutique</button>`}`
           : '<button class="link-btn" data-action="coach-done" type="button">Passer</button>'}
       </div>
     </div>`;

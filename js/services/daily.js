@@ -4,6 +4,7 @@
 import { CONFIG } from '../config.js';
 import { todayKey } from '../util.js';
 import { addXp } from './progress.js';
+import { isGuest } from './cloud.js';
 
 // ─── Série de connexion ──────────────────────────────────────────────────────
 export const STREAK_DAYS = 7;
@@ -68,6 +69,7 @@ export function challengeStatus(p) {
 
 // Compte un événement (dans un update()). events : liste de types ('place', 'win', 'sport:football'…).
 export function track(p, events) {
+  if (isGuest()) return; // défis réservés aux joueurs avec un compte
   const d = dailyOf(p);
   for (const c of todaysChallenges(d.date)) {
     if (d.done[c.id]) continue;
