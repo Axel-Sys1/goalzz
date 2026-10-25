@@ -1560,11 +1560,11 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 }
 @keyframes twinkle { 50% { opacity: 0.55; } }
 :root[data-event="noel"] .freebar { background: linear-gradient(90deg, rgba(232, 55, 47, 0.35), rgba(22, 101, 52, 0.4), rgba(232, 55, 47, 0.35)); color: #fff4dc; }
-/* Bonnet de Père Noël posé sur le ballon du logo (js/ui/season.js) */
-:root[data-event="noel"] .logo svg, :root[data-event="noel"] .brand-big svg { color: #fff; }
-.ball-wrap { position: relative; display: inline-flex; flex: none; }
-.ball-wrap .hat { position: absolute; left: -30%; top: -46%; width: 108%; height: 92%; transform: rotate(-18deg); pointer-events: none;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 34'%3E%3Cpath fill='%23e8372f' d='M4 26C8 12 18 3 30 4c4 0 6 3 5 7-2-2-5-3-8-1-5 3-9 9-11 16z'/%3E%3Crect x='1' y='23' width='22' height='8' rx='4' fill='%23fff'/%3E%3Ccircle cx='35' cy='12' r='4.5' fill='%23fff'/%3E%3C/svg%3E") center / contain no-repeat; }
+/* Logo en boule de Noël (js/ui/icons.js) : elle se balance doucement depuis son attache */
+:root[data-event="noel"] .logo svg.bauble-logo, :root[data-event="noel"] .brand-big svg.bauble-logo {
+  transform-origin: 50% 6%; animation: bauble-swing 3.2s ease-in-out infinite; filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.45));
+}
+@keyframes bauble-swing { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
 /* Neige posée sur les cartes */
 :root[data-event="noel"] .card, :root[data-event="noel"] .featured, :root[data-event="noel"] .register { box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.55); }
 :root[data-event="noel"] .section-title::after { content: '🎄'; font-size: 0.7em; margin-left: 2px; }
@@ -1574,11 +1574,18 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 :root[data-event="noel"] .btn-primary { background: linear-gradient(180deg, #ff4d44, #c81e1e); color: #fff; }
 :root[data-event="noel"] .landing-bg { filter: hue-rotate(-18deg) saturate(1.1) brightness(0.9); }
 :root[data-event="noel"] .nav-bottom .nav-item.active { text-shadow: 0 0 10px rgba(255, 209, 102, 0.7); }
+/* Boules suspendues en haut de l'accueil */
+.baubles { position: absolute; inset: 0 0 auto 0; height: 0; z-index: 2; pointer-events: none; }
+.baubles span { position: absolute; top: 0; width: 2px; height: var(--len); background: rgba(255, 236, 180, 0.6); transform-origin: top; animation: bauble-swing 4s ease-in-out infinite; }
+.baubles i { position: absolute; left: 50%; bottom: -26px; width: 30px; height: 30px; margin-left: -15px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 32%, rgba(255, 255, 255, 0.85) 0 3px, transparent 9px), radial-gradient(circle at 40% 40%, var(--c), color-mix(in srgb, var(--c) 45%, #000)); box-shadow: 0 0 14px color-mix(in srgb, var(--c) 60%, transparent); }
+.baubles i::before { content: ''; position: absolute; left: 50%; top: -6px; width: 10px; height: 7px; margin-left: -5px; border-radius: 2px; background: #f2c14e; }
+@media (max-width: 600px) { .baubles span:nth-child(2), .baubles span:nth-child(3) { display: none; } }
 /* Flocons (js/ui/season.js) : au-dessus du contenu mais transparents aux clics */
 .snow { position: fixed; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; }
 .snow i { position: absolute; top: -12px; color: #fff; opacity: 0.8; font-style: normal; animation: snow-fall linear infinite; text-shadow: 0 0 4px rgba(255, 255, 255, 0.7); }
 @keyframes snow-fall { to { transform: translate(var(--dx, 30px), 105vh) rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .snow { display: none; } :root[data-event="noel"] .topbar::before { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .snow { display: none; } .baubles span { animation: none !important; } :root[data-event="noel"] .topbar::before, :root[data-event="noel"] svg.bauble-logo { animation: none; } }
 
 .album-rar { display: flex; align-items: baseline; gap: 8px; margin: 16px 0 8px; font: italic 800 18px/1 var(--display); text-transform: uppercase; color: var(--rar); }
 .album-rar small { font: 700 12px/1 var(--body); color: var(--muted); }

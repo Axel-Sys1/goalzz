@@ -126,7 +126,7 @@ export function renderOnboarding(s) {
   const profiles = listProfiles(s);
   const ladder = [...TIERS.map((t, i) => ({ ...rankOf(i * 3 * RR_PER_DIVISION), division: null, label: t.name })), { ...RADIANT, division: null, label: RADIANT.name }];
   const bg = CONFIG.CARD_PHOTOS && CONFIG.LANDING_BG;
-  const showcase = ['liga-kylian-mbappe', 'nba-victor-wembanyama', 'tennis-jannik-sinner'].map(cardById).filter(Boolean);
+  const showcase = ['liga-lamine-yamal', 'nba-victor-wembanyama', 'tennis-jannik-sinner'].map(cardById).filter(Boolean);
   return `
   <div class="onboarding ${bg ? 'has-bg' : ''}">
     ${bg ? `<div class="landing-bg" style="background-image:url('${escapeHtml(bg)}')"></div>` : ''}

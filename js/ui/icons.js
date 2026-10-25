@@ -52,6 +52,25 @@ export const pumpkinLogo = `<svg class="pumpkin-logo" viewBox="0 0 64 64" width=
   <path fill="#2a1200" d="M18 33l6-5 5 5zM35 33l5-5 6 5zM19 44c4 5 9 7 13 7s9-2 13-7l-4 1-2 3-3-2-4 3-4-3-3 2-2-3z"/>
 </svg>`;
 
+// Ballon en boule de Noël (logo pendant Noël, à la place du ballon) : boule rouge brillante, motif du
+// ballon doré, attache dorée et son anneau.
+export const baubleLogo = `<svg class="bauble-logo" viewBox="0 0 64 64" width="24" height="24" aria-hidden="true">
+  <defs>
+    <radialGradient id="bauble-red" cx="0.36" cy="0.34" r="0.75">
+      <stop offset="0" stop-color="#ff7b6e"/><stop offset="0.45" stop-color="#e3242b"/><stop offset="1" stop-color="#8e0f16"/>
+    </radialGradient>
+  </defs>
+  <circle cx="32" cy="8" r="4" fill="none" stroke="#f2c14e" stroke-width="2.4"/>
+  <rect x="25" y="11" width="14" height="7" rx="2" fill="#f2c14e"/>
+  <path d="M26 13.5h12" stroke="#b8862b" stroke-width="1.2"/>
+  <circle cx="32" cy="39" r="22" fill="url(#bauble-red)"/>
+  <g fill="none" stroke="#ffd166" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M32 31l7.6 5.5-2.9 9h-9.4l-2.9-9z" fill="#ffd166"/>
+    <path d="M32 17v14M39.6 36.5l11.6-3.8M36.7 45.5l7 9.6M27.3 45.5l-7 9.6M24.4 36.5l-11.6-3.8"/>
+  </g>
+  <ellipse cx="24" cy="29" rx="6" ry="3.6" fill="#fff" opacity="0.35" transform="rotate(-35 24 29)"/>
+</svg>`;
+
 export const coin = (cls = 'coin') => `
 <svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">
   <circle cx="12" cy="12" r="11" fill="#e79a00"/>

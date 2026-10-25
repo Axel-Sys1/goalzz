@@ -15,7 +15,7 @@ export const CONFIG = {
   ],
   CARD_PHOTOS: true,
   // Photo de fond de l'accueil des nouveaux visiteurs (masquée avec CARD_PHOTOS: false).
-  LANDING_BG: 'https://r2.thesportsdb.com/images/media/player/fanart/bqi8n81731589735.jpg',       // photos des joueurs sur les cartes (TheSportsDB) ; false : silhouettes, sans redéploiement des cartes
+  LANDING_BG: 'https://r2.thesportsdb.com/images/media/player/fanart/5v9g9w1731372119.jpg',       // photos des joueurs sur les cartes (TheSportsDB) ; false : silhouettes, sans redéploiement des cartes
   RENAME_COST: 1000,       // prix d'un changement de pseudo (gratuit si le pseudo est déjà pris)
   UPCOMING_TARGET: 18,   // matchs fictifs "à venir" maintenus dans la liste
   TICK_MS: 3000,         // fréquence à laquelle on vérifie si un provider doit être rappelé
