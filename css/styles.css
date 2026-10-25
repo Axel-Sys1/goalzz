@@ -897,7 +897,7 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .landing-ladder .rank-emblem { width: 28px; height: 32px; }
 @keyframes ladder-in { from { opacity: 0; transform: translateY(12px) scale(0.6); } }
 .features { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; text-align: left; }
-.features li { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: 10px; background: rgba(15, 31, 64, 0.7); border: 1px solid var(--line); }
+.features li { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border-radius: 10px; background: rgba(15, 31, 64, 0.7); background: color-mix(in srgb, var(--surface) 70%, transparent); border: 1px solid var(--line); }
 .features li > span:last-child { display: grid; gap: 2px; }
 .features strong { font: italic 800 17px/1.1 var(--display); text-transform: uppercase; letter-spacing: 0.02em; }
 .features .muted { font-size: 13px; line-height: 1.4; }
@@ -1441,7 +1441,7 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .pack-offer.is-empty .pack-left { color: var(--muted); }
 .shop-lock + .shop-or { font-size: 11px; }
 
-/* ---------- Habillage Halloween (CONFIG.EVENT) ---------- */
+/* ---------- Habillage Halloween (CONFIG.EVENTS) ---------- */
 :root[data-event="halloween"] {
   --bg: #0c0716; --bg-2: #170b28; --surface: #1b1030; --surface-2: #25163d; --surface-3: #31204d;
   --line: #3a2458; --line-2: #513478; --muted: #a896c4; --placeholder: #7a6a99;
@@ -1534,6 +1534,51 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
     linear-gradient(180deg, var(--surface-2), var(--surface));
   background-size: 60px 60px, auto, auto; background-position: top right, 0 0, 0 0; background-repeat: no-repeat; }
 @media (prefers-reduced-motion: reduce) { .spooky em, .spooky u, :root[data-event="halloween"] .topbar::after { animation: none; } }
+
+/* ---------- Habillage Noël (CONFIG.EVENTS) : sapin et rouge, guirlande, bonnet, neige ---------- */
+:root[data-event="noel"] {
+  --bg: #06140f; --bg-2: #0b2219; --surface: #102a20; --surface-2: #163527; --surface-3: #1d4232;
+  --line: #24503c; --line-2: #2f6a4f; --muted: #9fbfb0; --placeholder: #6f9282;
+  --accent: #e8372f; --accent-2: #a51717; --accent-ink: #fff; --accent-hover: #ff4d44; --accent-rgb: 232, 55, 47; --gold: #ffd166; --info: #7fd4ff; --info-soft: rgba(127, 212, 255, 0.14);
+}
+:root[data-event="noel"] body {
+  background-image:
+    radial-gradient(60% 40% at 15% 0%, rgba(255, 209, 102, 0.10), transparent 70%),
+    radial-gradient(50% 40% at 100% 30%, rgba(232, 55, 47, 0.10), transparent 70%),
+    linear-gradient(180deg, var(--bg-2), var(--bg) 420px);
+}
+:root[data-event="noel"] .topbar { background: rgba(6, 20, 15, 0.88); border-bottom-color: var(--accent); }
+/* Guirlande lumineuse sous la barre du haut */
+:root[data-event="noel"] .topbar::before {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -7px; height: 10px; pointer-events: none;
+  background:
+    radial-gradient(circle, #ff4d44 0 3px, transparent 4px) 0 0 / 56px 10px repeat-x,
+    radial-gradient(circle, #ffd166 0 3px, transparent 4px) 14px 0 / 56px 10px repeat-x,
+    radial-gradient(circle, #6ee7a8 0 3px, transparent 4px) 28px 0 / 56px 10px repeat-x,
+    radial-gradient(circle, #7fd4ff 0 3px, transparent 4px) 42px 0 / 56px 10px repeat-x;
+  filter: drop-shadow(0 0 4px rgba(255, 220, 150, 0.9)); animation: twinkle 1.6s steps(2) infinite;
+}
+@keyframes twinkle { 50% { opacity: 0.55; } }
+:root[data-event="noel"] .freebar { background: linear-gradient(90deg, rgba(232, 55, 47, 0.35), rgba(22, 101, 52, 0.4), rgba(232, 55, 47, 0.35)); color: #fff4dc; }
+/* Bonnet de Père Noël posé sur le ballon du logo (js/ui/season.js) */
+:root[data-event="noel"] .logo svg, :root[data-event="noel"] .brand-big svg { color: #fff; }
+.ball-wrap { position: relative; display: inline-flex; flex: none; }
+.ball-wrap .hat { position: absolute; left: -30%; top: -46%; width: 108%; height: 92%; transform: rotate(-18deg); pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 34'%3E%3Cpath fill='%23e8372f' d='M4 26C8 12 18 3 30 4c4 0 6 3 5 7-2-2-5-3-8-1-5 3-9 9-11 16z'/%3E%3Crect x='1' y='23' width='22' height='8' rx='4' fill='%23fff'/%3E%3Ccircle cx='35' cy='12' r='4.5' fill='%23fff'/%3E%3C/svg%3E") center / contain no-repeat; }
+/* Neige posée sur les cartes */
+:root[data-event="noel"] .card, :root[data-event="noel"] .featured, :root[data-event="noel"] .register { box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.55); }
+:root[data-event="noel"] .section-title::after { content: '🎄'; font-size: 0.7em; margin-left: 2px; }
+:root[data-event="noel"] .pack-pouch { background: linear-gradient(150deg, #ff5a52, #b91c1c 50%, #14532d); }
+:root[data-event="noel"] .pack-pouch small::after { content: ' 🎁'; }
+:root[data-event="noel"] .pack-back { background: linear-gradient(150deg, #ff5a52, #14532d); }
+:root[data-event="noel"] .btn-primary { background: linear-gradient(180deg, #ff4d44, #c81e1e); color: #fff; }
+:root[data-event="noel"] .landing-bg { filter: hue-rotate(-18deg) saturate(1.1) brightness(0.9); }
+:root[data-event="noel"] .nav-bottom .nav-item.active { text-shadow: 0 0 10px rgba(255, 209, 102, 0.7); }
+/* Flocons (js/ui/season.js) : au-dessus du contenu mais transparents aux clics */
+.snow { position: fixed; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; }
+.snow i { position: absolute; top: -12px; color: #fff; opacity: 0.8; font-style: normal; animation: snow-fall linear infinite; text-shadow: 0 0 4px rgba(255, 255, 255, 0.7); }
+@keyframes snow-fall { to { transform: translate(var(--dx, 30px), 105vh) rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .snow { display: none; } :root[data-event="noel"] .topbar::before { animation: none; } }
 
 .album-rar { display: flex; align-items: baseline; gap: 8px; margin: 16px 0 8px; font: italic 800 18px/1 var(--display); text-transform: uppercase; color: var(--rar); }
 .album-rar small { font: 700 12px/1 var(--body); color: var(--muted); }

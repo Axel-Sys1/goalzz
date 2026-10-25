@@ -2,7 +2,8 @@ import { CONFIG } from '../../config.js';
 import { escapeHtml, fmt } from '../../util.js';
 import { listProfiles } from '../../services/players.js';
 import { TIERS, RADIANT, RR_PER_DIVISION, rankOf } from '../../services/ranks.js';
-import { coin, googleLogo, icons, pumpkinLogo, rankEmblem } from '../icons.js';
+import { coin, googleLogo, icons, rankEmblem } from '../icons.js';
+import { eventDecor, eventLogo, eventTag } from '../season.js';
 import { inviteBanner, renderAccountCard, PERKS } from './account.js';
 import { cloud } from '../../services/cloud.js';
 import { ui } from '../uiState.js';
@@ -114,12 +115,10 @@ export function renderLocked(routeId) {
   return `
     <div class="locked-page">
       <h1 class="page-title">${label}</h1>
-      <section class="card">
-        ${signupCard({
-          title: 'Crée ton compte pour débloquer',
-          note: `${icons.lock} Sans compte, tu peux seulement parier. Avec un compte gratuit : ${what}, les bonus du jour et les défis. Tes paris et tes Goalz te suivent.`,
-        })}
-      </section>
+      ${signupCard({
+        title: 'Crée ton compte pour débloquer',
+        note: `${icons.lock} Sans compte, tu peux seulement parier. Avec un compte gratuit : ${what}, les bonus du jour et les défis. Tes paris et tes Goalz te suivent.`,
+      })}
     </div>`;
 }
 
@@ -128,17 +127,16 @@ export function renderOnboarding(s) {
   const ladder = [...TIERS.map((t, i) => ({ ...rankOf(i * 3 * RR_PER_DIVISION), division: null, label: t.name })), { ...RADIANT, division: null, label: RADIANT.name }];
   const bg = CONFIG.CARD_PHOTOS && CONFIG.LANDING_BG;
   const showcase = ['liga-kylian-mbappe', 'nba-victor-wembanyama', 'tennis-jannik-sinner'].map(cardById).filter(Boolean);
-  const halloween = document.documentElement.dataset.event === 'halloween';
   return `
   <div class="onboarding ${bg ? 'has-bg' : ''}">
     ${bg ? `<div class="landing-bg" style="background-image:url('${escapeHtml(bg)}')"></div>` : ''}
     <div class="hero-glow"></div>
-    ${halloween ? '<div class="spooky" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><s></s><u>👻</u><em></em></div>' : ''}
+    ${eventDecor({ landing: true })}
     <div class="landing">
       <section class="landing-hero">
-        <div class="brand-big">${halloween ? pumpkinLogo : icons.ball}<span>GOAL<b>ZZ</b></span></div>
+        <div class="brand-big">${eventLogo()}<span>GOAL<b>ZZ</b></span></div>
         <h1 class="landing-title">Pronostique.<br>Collectionne.<br><b>Domine tes potes.</b></h1>
-        <p class="tagline">Le jeu de pronos sportifs gratuit avec une monnaie 100 % virtuelle${halloween ? ' · 🎃 spécial Halloween' : ''}.</p>
+        <p class="tagline">Le jeu de pronos sportifs gratuit avec une monnaie 100 % virtuelle${eventTag({ short: true })}.</p>
         ${showcase.length ? `
         <div class="landing-cards" aria-label="Exemples de cartes à collectionner">
           ${showcase.map((c, i) => `<div class="lc lc-${i}">${cardHtml(c)}</div>`).join('')}

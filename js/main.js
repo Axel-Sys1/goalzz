@@ -9,10 +9,12 @@ import { toast } from './ui/effects.js';
 import { cloud, initCloud, loadHallOfFame } from './services/cloud.js';
 import { joinPendingInvite, readInviteFromUrl } from './services/invite.js';
 import { ui } from './ui/uiState.js';
+import { activeEvent } from './ui/season.js';
 import { applyPendingReferral, claimReferralRewards, readReferralFromUrl } from './services/referral.js';
 
-// Habillage saisonnier (ex. Halloween) : actif jusqu'à la date de fin incluse.
-if (CONFIG.EVENT && new Date() <= new Date(`${CONFIG.EVENT.until}T23:59:59`)) document.documentElement.dataset.event = CONFIG.EVENT.id;
+// Habillage saisonnier (Halloween, Noël…) : celui dont la période contient aujourd'hui.
+const season = activeEvent();
+if (season) document.documentElement.dataset.event = season.id;
 
 readInviteFromUrl();
 readReferralFromUrl();

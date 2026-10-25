@@ -3,7 +3,8 @@ import { CONFIG } from '../config.js';
 import { clockFor, getState, now, realNow } from '../store.js';
 import { countdown, fmt, formatKickoff } from '../util.js';
 import { canClaimBonus, currentPlayer } from '../services/players.js';
-import { icons, coin, pumpkinLogo } from './icons.js';
+import { icons, coin } from './icons.js';
+import { eventDecor, eventLogo, eventTag } from './season.js';
 import { animateBalance, processInbox } from './effects.js';
 import { renderOnboarding } from './screens/onboarding.js';
 import { renderMatches, kickoffShort } from './screens/matches.js';
@@ -46,12 +47,10 @@ let shellMounted = false;
 let lastRouteId = null;
 let liveSig = '';
 
-const halloween = () => document.documentElement.dataset.event === 'halloween';
-
 const shellHtml = () => `
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="logo" href="#matchs" aria-label="Goalzz, accueil">${halloween() ? pumpkinLogo : icons.ball}<span>GOAL<b>ZZ</b></span></a>
+      <a class="logo" href="#matchs" aria-label="Goalzz, accueil">${eventLogo()}<span>GOAL<b>ZZ</b></span></a>
       <nav class="nav-top" id="nav-top" aria-label="Navigation principale"></nav>
       <div class="top-right">
         <a class="level-chip" id="level-chip" href="#profil" aria-label="Niveau"><b>1</b><i><span></span></i></a>
@@ -61,9 +60,9 @@ const shellHtml = () => `
         </div>
       </div>
     </div>
-    <div class="freebar">${halloween() ? '🎃 Spécial Halloween · ' : ''}Jeu gratuit, sans argent réel<span class="hide-sm"> · Les Goalz n'ont aucune valeur monétaire</span></div>
+    <div class="freebar">${eventTag()}Jeu gratuit, sans argent réel<span class="hide-sm"> · Les Goalz n'ont aucune valeur monétaire</span></div>
   </header>
-  ${halloween() ? '<div class="spooky" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><b></b><s></s><u>👻</u><em></em></div>' : ''}
+  ${eventDecor()}
   ${adSlot('top') ? `<div class="ad-band">${adSlot('top')}</div>` : ''}
   <div class="layout">
     <main id="content" class="content"></main>
