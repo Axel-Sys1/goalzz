@@ -76,6 +76,10 @@ Passer à Google AdSense :
    retirer, liens policies.google.com/technologies/partner-sites et adssettings.google.com).
    Avec des revenus réguliers, l'éditeur n'est plus « non professionnel » (mentions légales).
 
+Cookies (consentement) : message RGPD de Google, créé dans AdSense → Confidentialité et messages.
+Une fois publié, passer `CONFIG.ADS.consent: true` : la balise AdSense se charge dès l'ouverture sur
+goalzz.fr et le message s'affiche ; le lien « Cookies » du pied de page le rouvre (`openCookieSettings`).
+
 Pub récompensée (`CONFIG.ADS.rewarded`, `js/services/rewardAd.js`, `js/ui/rewardAd.js`) : bouton
 « Bonus vidéo » dans « Ta journée », `goalz` Goalz par pub vue jusqu'au bout, `perDay` fois par
 jour. Avec `live: false`, c'est une pub simulée (encart + compte à rebours de `seconds` secondes).

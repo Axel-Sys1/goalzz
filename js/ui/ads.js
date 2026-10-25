@@ -119,6 +119,22 @@ export function prepareRewarded() {
   });
 }
 
+// Au démarrage : sur le site validé, la balise AdSense se charge tout de suite pour afficher le
+// message de consentement de Google (cookies) avant toute annonce.
+export function startAdsTag() {
+  const { enabled, consent, client, hosts = [] } = settings();
+  if (enabled && consent && client && hosts.includes(location.hostname)) loadAdSense();
+}
+
+// Lien « Cookies » : rouvre le message de consentement de Google pour changer son choix.
+// false : pas de message (balise non chargée, bloqueur de pub…).
+export function openCookieSettings() {
+  const fc = window.googlefc;
+  if (!fc?.callbackQueue || !fc.showRevocationMessage) return false;
+  fc.callbackQueue.push(fc.showRevocationMessage);
+  return true;
+}
+
 // À appeler une fois après avoir posé la coque.
 export function mountAds(scope) {
   if (settings().enabled && settings().rewarded?.enabled) prepareRewarded();

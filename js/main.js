@@ -10,6 +10,7 @@ import { cloud, initCloud, loadHallOfFame } from './services/cloud.js';
 import { joinPendingInvite, readInviteFromUrl } from './services/invite.js';
 import { ui } from './ui/uiState.js';
 import { activeEvent } from './ui/season.js';
+import { startAdsTag } from './ui/ads.js';
 import { applyPendingReferral, claimReferralRewards, readReferralFromUrl } from './services/referral.js';
 
 // Habillage saisonnier (Halloween, Noël…) : celui dont la période contient aujourd'hui.
@@ -27,6 +28,9 @@ render();
 
 // Compte en ligne (facultatif) : connexion par email et sauvegarde de la partie.
 initCloud({ notify: toast });
+
+// Pubs : message de consentement de Google (cookies) dès l'ouverture, sur le site validé.
+startAdsTag();
 
 // Lien d'invitation à une ligue : on la rejoint dès que le joueur est connecté.
 subscribe(async () => {

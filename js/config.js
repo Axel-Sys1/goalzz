@@ -43,6 +43,9 @@ export const CONFIG = {
     slots: { top: '', side: '', bottom: '' }, // id des blocs d'annonces
     hosts: ['goalzz.fr', 'www.goalzz.fr'], // vraies annonces seulement ici (ailleurs : encarts)
     personalized: false,                 // public dès 15 ans : annonces non personnalisées
+    // Message de consentement (cookies) de Google, créé dans AdSense → Confidentialité et messages.
+    // true : la balise AdSense se charge dès l'ouverture sur `hosts`, pour que le message s'affiche.
+    consent: false,
     contact: '',                         // lien des encarts (ex. 'mailto:…') ; vide : pas de lien
     // Pub récompensée : le joueur regarde une pub et gagne des Goalz, quelques fois par jour.
     // live: false → pub simulée (encart + compte à rebours), partout. live: true → vraie pub Google

@@ -8,4 +8,5 @@ export const legalLinks = () => `
     <a href="legal.html#mentions">Mentions légales</a>
     <a href="legal.html#cgu">Conditions d'utilisation</a>
     <a href="legal.html#confidentialite">Confidentialité</a>
+    <button class="link-btn" data-action="cookie-settings" type="button">Cookies</button>
   </nav>`;

@@ -910,8 +910,9 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .invite-banner { display: grid; gap: 4px; border-left: 3px solid var(--accent); background: linear-gradient(90deg, var(--accent-soft), var(--surface) 70%); animation: rise 0.4s var(--ease-out); }
 .invite-btn { margin-bottom: 4px; }
 .legal-links { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; margin-top: 14px; }
-.legal-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
-.legal-links a:hover { color: var(--text); }
+.legal-links a, .legal-links .link-btn { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+.legal-links .link-btn { padding: 0; font: inherit; border-radius: 0; background: none; }
+.legal-links a:hover, .legal-links .link-btn:hover { color: var(--text); }
 @media (min-width: 900px) {
   .landing { grid-template-columns: 1.15fr 1fr; gap: 20px 48px; grid-template-areas: "hero card" "features card"; align-items: center; }
   .landing-hero { text-align: left; }

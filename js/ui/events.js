@@ -23,6 +23,7 @@ import { playerRR } from '../services/ranks.js';
 import { shareLeague } from '../services/invite.js';
 import { adsLeft, rewardAdWatched } from '../services/rewardAd.js';
 import { watchRewardAd } from './rewardAd.js';
+import { openCookieSettings } from './ads.js';
 
 const actions = {
   login: (el) => login(el.dataset.id),
@@ -63,6 +64,9 @@ const actions = {
   },
   'cloud-mode': (el) => { cloud.mode = el.dataset.mode === 'signup' ? 'signup' : 'login'; render(); },
   'cloud-google': () => signInWithGoogle(),
+  'cookie-settings': () => {
+    if (!openCookieSettings()) toast('Aucun cookie publicitaire pour le moment : Goalzz garde seulement ta partie et ta connexion, indispensables au jeu.', 'info');
+  },
   'email-open': () => { ui.emailOpen = !ui.emailOpen; render(); if (ui.emailOpen) document.getElementById('email-input')?.focus(); },
   'cloud-reset': async () => {
     const email = await resetPassword(document.getElementById('email-input')?.value);
