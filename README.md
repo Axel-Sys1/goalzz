@@ -76,6 +76,12 @@ Passer à Google AdSense :
    retirer, liens policies.google.com/technologies/partner-sites et adssettings.google.com).
    Avec des revenus réguliers, l'éditeur n'est plus « non professionnel » (mentions légales).
 
+Pub récompensée (`CONFIG.ADS.rewarded`, `js/services/rewardAd.js`, `js/ui/rewardAd.js`) : bouton
+« Bonus vidéo » dans « Ta journée », `goalz` Goalz par pub vue jusqu'au bout, `perDay` fois par
+jour. Avec `live: false`, c'est une pub simulée (encart + compte à rebours de `seconds` secondes).
+Pour de vraies pubs : demander « H5 Games Ads » (annonces pour jeux) dans AdSense, passer
+`test: true` pour vérifier avec les pubs de test de Google, puis `live: true` et `test: false`.
+
 ### Ancienne version claude.ai
 
 <https://claude.ai/artifact/QF2GimwS3nT8S3PyJDRtDi> lit uniquement l'instantané (une page

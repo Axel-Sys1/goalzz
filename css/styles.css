@@ -1260,6 +1260,26 @@ a.ad-ph:focus-visible { outline-offset: -2px; }
 .day-ico svg { width: 17px; height: 17px; }
 .day-challenges .challenge-bar { margin-top: 4px; }
 .day-chevron { color: var(--muted); font-size: 12px; }
+/* Pub récompensée */
+.day-ad {
+  display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; padding: 8px 10px; border-radius: 9px; text-align: left;
+  border: 1px solid rgba(var(--accent-rgb), 0.45); background: linear-gradient(100deg, rgba(var(--accent-rgb), 0.12), var(--surface-2)); color: var(--text);
+}
+.day-ad strong { display: block; font: 800 15px/1.1 var(--display); text-transform: uppercase; }
+.day-ad small { display: block; font-size: 11px; color: var(--muted); font-weight: 600; }
+.day-ad.is-done { border-color: var(--line); background: var(--surface-2); }
+.day-ad.is-done .day-ico { background: var(--surface-3); color: var(--green); }
+.reward-ad { text-align: center; }
+.reward-ad .ad-label { justify-self: center; }
+.reward-ad-box {
+  display: grid; place-items: center; gap: 4px; min-height: 180px; border-radius: 10px;
+  border: 1px dashed var(--line-2); background: var(--surface-3); color: var(--muted);
+}
+.reward-ad-box strong { color: var(--text); }
+.reward-ad-box .coin { width: 44px; height: 44px; }
+.reward-ad-bar { height: 6px; border-radius: 99px; background: var(--surface-3); overflow: hidden; }
+.reward-ad-bar span { display: block; height: 100%; width: 0; background: var(--accent); transition: width 0.2s linear; }
+.reward-ad .dialog-actions { justify-content: center; }
 .challenge-list { list-style: none; margin: 0; padding: 4px 2px 2px; display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 10px; }
 
 /* ---------- Parcours guidé ---------- */

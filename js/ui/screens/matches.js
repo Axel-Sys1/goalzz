@@ -9,6 +9,7 @@ import { realFeedState } from '../../services/matches.js';
 import { LIVE_SPORTS, liveMarket } from '../../providers/liveOdds.js';
 import { spotlight } from '../../services/spotlight.js';
 import { bonusFor, challengeStatus, nextStreakDay, STREAK_DAYS } from '../../services/daily.js';
+import { AD_GOALZ, AD_PER_DAY, adsLeft, rewardAdEnabled } from '../../services/rewardAd.js';
 import { coin, icons } from '../icons.js';
 import { ui } from '../uiState.js';
 import { accountNudge, inviteBanner } from './account.js';
@@ -384,8 +385,26 @@ function dayStrip(p) {
           <span class="day-chevron">${ui.challengesOpen ? '▴' : '▾'}</span>
         </button>
       </div>
+      ${adButton(p)}
       ${ui.challengesOpen ? challengesList(list) : ''}
     </section>`;
+}
+
+// Pub récompensée : des Goalz contre une pub regardée jusqu'au bout, quelques fois par jour.
+function adButton(p) {
+  if (!rewardAdEnabled()) return '';
+  const left = adsLeft(p);
+  const watched = AD_PER_DAY() - left;
+  return left ? `
+      <button class="day-ad" data-action="watch-ad" type="button">
+        <span class="day-ico">${icons.play}</span>
+        <span class="grow"><strong>Bonus vidéo · +${fmt(AD_GOALZ())}</strong><small>${watched}/${AD_PER_DAY()} aujourd'hui</small></span>
+        <span class="day-ad-coin">${coin('coin coin-sm')}</span>
+      </button>` : `
+      <div class="day-ad is-done">
+        <span class="day-ico">${icons.check}</span>
+        <span class="grow"><strong>Bonus vidéo du jour récupérés</strong><small>${AD_PER_DAY()}/${AD_PER_DAY()} · reviens demain</small></span>
+      </div>`;
 }
 
 function challengesList(list) {

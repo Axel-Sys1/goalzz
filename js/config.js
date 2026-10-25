@@ -40,6 +40,10 @@ export const CONFIG = {
     hosts: ['goalzz.fr', 'www.goalzz.fr'], // vraies annonces seulement ici (ailleurs : encarts)
     personalized: false,                 // public dès 15 ans : annonces non personnalisées
     contact: '',                         // lien des encarts (ex. 'mailto:…') ; vide : pas de lien
+    // Pub récompensée : le joueur regarde une pub et gagne des Goalz, quelques fois par jour.
+    // live: false → pub simulée (encart + compte à rebours), partout. live: true → vraie pub Google
+    // (« H5 Games Ads », à demander dans AdSense) sur `hosts`. test: true → pubs de test de Google.
+    rewarded: { enabled: true, goalz: 500, perDay: 5, seconds: 15, live: false, test: false },
   },
 
   // Compte en ligne (connexion par email + sauvegarde de la partie). Coller ici la config

@@ -164,6 +164,9 @@ export function reconcile(local, remote) {
       // Pochettes du jour : la journée la plus récente, et pour un même jour le plus de pochettes ouvertes.
       packDay: [lp.packDay, rp.packDay].filter(Boolean)
         .sort((a, b) => (a.day === b.day ? b.opened - a.opened || b.extra - a.extra : (b.day > a.day ? 1 : -1)))[0],
+      // Pubs récompensées du jour : même règle, le plus de pubs regardées.
+      adDay: [lp.adDay, rp.adDay].filter(Boolean)
+        .sort((a, b) => (a.day === b.day ? b.watched - a.watched : (b.day > a.day ? 1 : -1)))[0],
       boostUntil: Math.max(rp.boostUntil || 0, lp.boostUntil || 0),
     };
     for (const b of Object.values(local.bets)) {

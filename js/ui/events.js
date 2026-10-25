@@ -21,6 +21,8 @@ import { CONFIG } from '../config.js';
 import { cloud, deleteAccount, createOnlineLeague, joinOnlineLeague, leaveOnlineLeague, loadDivision, loadMyLeagues, loadTop, loadSeason, resetPassword, signInWithEmail, signInWithGoogle, signOutCloud } from '../services/cloud.js';
 import { playerRR } from '../services/ranks.js';
 import { shareLeague } from '../services/invite.js';
+import { adsLeft, rewardAdWatched } from '../services/rewardAd.js';
+import { watchRewardAd } from './rewardAd.js';
 
 const actions = {
   login: (el) => login(el.dataset.id),
@@ -28,6 +30,13 @@ const actions = {
   go: (el) => go(el.dataset.route),
 
   'claim-bonus': () => claimBonus(),
+  'watch-ad': async () => {
+    if (!adsLeft(currentPlayer())) throw new Error('Plus de bonus vidéo aujourd\'hui. Reviens demain !');
+    const result = await watchRewardAd();
+    if (result === 'viewed') rewardAdWatched();
+    else if (result === 'dismissed') toast('Vidéo fermée avant la fin : pas de Goalz cette fois.', 'info');
+    else if (result === 'unavailable') toast('Aucune vidéo disponible pour le moment. Réessaie dans quelques minutes.', 'info');
+  },
 
   'profile-tab': (el) => { ui.profileTab = el.dataset.tab === 'settings' ? 'settings' : 'stats'; render(); },
   'go-account': () => { ui.profileTab = 'settings'; cloud.mode = 'signup'; go('profil'); },

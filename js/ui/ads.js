@@ -43,8 +43,14 @@ export function adSlot(id) {
     </div>`;
 }
 
+// Vraie pub récompensée (« H5 Games Ads ») : demandée dans AdSense, et seulement sur le site validé.
+export const rewardedLive = () => {
+  const { client, hosts = [], rewarded = {} } = settings();
+  return Boolean(client && rewarded.live && hosts.includes(location.hostname));
+};
+
 let ready = null;
-function loadAdSense() {
+export function loadAdSense() {
   if (ready) return ready;
   // Public dès 15 ans : on demande des annonces non personnalisées.
   if (!settings().personalized) (window.adsbygoogle = window.adsbygoogle || []).requestNonPersonalizedAds = 1;
@@ -53,9 +59,15 @@ function loadAdSense() {
     s.async = true;
     s.crossOrigin = 'anonymous';
     s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(settings().client)}`;
-    s.onload = resolve;
+    // Pub récompensée : la régie lit ces attributs au chargement du script.
+    if (rewardedLive()) {
+      s.dataset.adClient = settings().client;
+      s.dataset.adFrequencyHint = '30s';
+      if (settings().rewarded.test) s.dataset.adbreakTest = 'on';
+    }
+    s.onload = () => resolve(true);
     // Bloqueur de pub : on replie les emplacements au lieu de laisser des cadres vides.
-    s.onerror = () => document.documentElement.classList.add('no-ads');
+    s.onerror = () => { document.documentElement.classList.add('no-ads'); resolve(false); };
     document.head.appendChild(s);
   });
   return ready;
@@ -84,8 +96,8 @@ const watcher = typeof ResizeObserver === 'function'
       if (!contentRect.width) continue;
       watcher.unobserve(box);
       // Toujours affiché une fois la régie chargée ? Sinon on attend qu'il réapparaisse.
-      loadAdSense().then(() => {
-        if (!box.isConnected) return;
+      loadAdSense().then((ok) => {
+        if (!ok || !box.isConnected) return;
         if (box.offsetWidth) fill(box);
         else watcher.observe(box);
       });
@@ -93,11 +105,26 @@ const watcher = typeof ResizeObserver === 'function'
   })
   : null;
 
+// Pub récompensée : on charge la régie et on lui demande de précharger une pub, pour qu'elle soit
+// prête au moment du clic (sinon la première demande revient souvent « pas prête »).
+let rewardedSetup = false;
+export function prepareRewarded() {
+  if (!rewardedLive()) return Promise.resolve(false);
+  return loadAdSense().then((ok) => {
+    if (ok && !rewardedSetup) {
+      rewardedSetup = true;
+      (window.adsbygoogle = window.adsbygoogle || []).push({ preloadAdBreaks: 'on', sound: 'on' });
+    }
+    return ok;
+  });
+}
+
 // À appeler une fois après avoir posé la coque.
 export function mountAds(scope) {
+  if (settings().enabled && settings().rewarded?.enabled) prepareRewarded();
   watcher?.disconnect(); // emplacements d'une coque précédente (déconnexion du joueur)
   const boxes = scope.querySelectorAll('[data-ad-unit]:not([data-filled])');
   if (!boxes.length) return;
   loadAdSense();
-  boxes.forEach((box) => (watcher ? watcher.observe(box) : loadAdSense().then(() => fill(box))));
+  boxes.forEach((box) => (watcher ? watcher.observe(box) : loadAdSense().then((ok) => ok && fill(box))));
 }
